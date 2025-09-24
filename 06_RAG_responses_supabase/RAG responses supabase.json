@@ -98,7 +98,7 @@
       "parameters": {
         "content": "## Воркфлоу №2: Тестирование RAG\n\n1. Загрузка: Чтение CSV-файла с вопросами по URL.\n\n1. Парсинг: Преобразование CSV в JSON для обработки каждой строки.\n\n1. Поиск: Для каждого вопроса выполняется поиск релевантных документов в Supabase.\n\n1. Генерация: Ответ формируется LLM-моделью (gpt-4o-mini через OpenRouter) на основе найденного контекста.\n\n1. Сохранение: Все ответы агрегируются и сохраняются в итоговый CSV-файл для оценки.",
         "height": 848,
-        "width": 2400,
+        "width": 2592,
         "color": 4
       },
       "type": "n8n-nodes-base.stickyNote",
@@ -153,7 +153,7 @@
       "type": "@n8n/n8n-nodes-langchain.lmChatOpenRouter",
       "typeVersion": 1,
       "position": [
-        3184,
+        3392,
         1296
       ],
       "id": "f0df6bed-cbe1-4548-97f0-f40f57293e15",
@@ -184,7 +184,7 @@
             {
               "id": "8244c2b4-0931-4beb-b186-61ca012f2e53",
               "name": "Answer",
-              "value": "=",
+              "value": "={{$('Generate Answer via RAG').item.json.output}}",
               "type": "string"
             }
           ]
@@ -194,8 +194,8 @@
       "type": "n8n-nodes-base.set",
       "typeVersion": 3.4,
       "position": [
-        3776,
-        1184
+        4080,
+        1232
       ],
       "id": "fe07c922-53da-450d-a224-cac52047cd4c",
       "name": "Format Final Answer"
@@ -220,15 +220,36 @@
         "columns": {
           "mappingMode": "defineBelow",
           "value": {
-            "data": "={{ $json.Answer }}"
+            "row_id": "={{ $json.row_id }}",
+            "Answer": "={{ $json.Answer }}"
           },
           "matchingColumns": [
             "data"
           ],
           "schema": [
             {
-              "id": "data",
-              "displayName": "data",
+              "id": "row_id",
+              "displayName": "row_id",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Answer",
+              "displayName": "Answer",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Question",
+              "displayName": "Question",
               "required": false,
               "defaultMatch": false,
               "display": true,
@@ -245,8 +266,8 @@
       "type": "n8n-nodes-base.googleSheets",
       "typeVersion": 4.7,
       "position": [
-        3984,
-        1184
+        4288,
+        1232
       ],
       "id": "1fb1be2c-5e1d-4774-a4bd-6827729d1910",
       "name": "Save Results to CSV",
@@ -273,7 +294,7 @@
         "mode": "insert",
         "tableName": {
           "__rl": true,
-          "value": "={{ $json.data }}",
+          "value": "=documents",
           "mode": "id"
         },
         "options": {
@@ -357,13 +378,15 @@
     {
       "parameters": {
         "promptType": "define",
-        "text": "=Ты — точный и фактический ассистент. Отвечай на вопрос пользователя {{ $json.Question }}, основываясь только на предоставленном контексте из инструмента поиска. Ответ должен быть кратким и содержать только число или факт, без дополнительных объяснений.\n\nВсегда используй инструмент Supabase Vector Store для поиска информации перед ответом. ",
-        "options": {}
+        "text": "=Ты — точный и фактический ассистент. Отвечай на вопрос пользователя {{ $json.Question }}, основываясь только на предоставленном контексте из инструмента поиска. Если вопрос касается значения, например, сколько было съедено килограмм яблок, а ответ в тексте \"5 тонн\", то отвечай только числом в строгом соответствии с вопросом: \"5000\". Ответ должен быть кратким и содержать только число или факт, без дополнительных объяснений.\n\nВсегда используй инструмент Supabase Vector Store для поиска информации перед ответом. Все ответы есть в хранилище.",
+        "options": {
+          "systemMessage": "=Ты — ассистент для высокоточного извлечения фактов. Твоя единственная задача — отвечать на вопросы, используя СТРОГО предоставленный контекст от твоего инструмента поиска. Не используй свои внутренние знания и ничего не додумывай.\n\n**Твой алгоритм:**\n1. Используй свой инструмент поиска, чтобы найти информацию по вопросу пользователя.\n2. Внимательно проанализируй полученный контекст.\n3. Сформируй ответ, основываясь ИСКЛЮЧИТЕЛЬНО на этом контексте.\n\n**Правила ответа:**\n- Если ответ — это число, выведи ТОЛЬКО это число.\n- Если в предоставленном контексте точного ответа нет, выведи 666."
+        }
       },
       "type": "@n8n/n8n-nodes-langchain.agent",
       "typeVersion": 2.2,
       "position": [
-        3296,
+        3504,
         1008
       ],
       "id": "0e62420c-56de-448b-8ec5-1d28a470c799",
@@ -373,14 +396,16 @@
     {
       "parameters": {
         "mode": "retrieve-as-tool",
-        "toolDescription": "Use this tool to find factual information and answer user questions.",
+        "toolDescription": "Используй этот инструмент первым, чтобы найти в базе знаний документы, релевантные вопросу пользователя.",
         "tableName": {
           "__rl": true,
           "value": "rpc/match_documents",
           "mode": "list",
           "cachedResultName": "rpc/match_documents"
         },
+        "topK": 20,
         "includeDocumentMetadata": false,
+        "useReranker": true,
         "options": {
           "queryName": "match_documents"
         }
@@ -388,7 +413,7 @@
       "type": "@n8n/n8n-nodes-langchain.vectorStoreSupabase",
       "typeVersion": 1.3,
       "position": [
-        3328,
+        3536,
         1408
       ],
       "id": "2e420551-6229-4115-8115-fbd5d75d20eb",
@@ -408,7 +433,7 @@
       "type": "@n8n/n8n-nodes-langchain.embeddingsOpenAi",
       "typeVersion": 1.2,
       "position": [
-        3024,
+        3232,
         1584
       ],
       "id": "ac87b3cd-ef3f-40ac-80b2-dd482a2077a7",
@@ -464,7 +489,8 @@
     },
     {
       "parameters": {
-        "chunkOverlap": 100,
+        "chunkSize": 700,
+        "chunkOverlap": 140,
         "options": {}
       },
       "type": "@n8n/n8n-nodes-langchain.textSplitterRecursiveCharacterTextSplitter",
@@ -475,6 +501,40 @@
       ],
       "id": "5d5a2838-dde8-4b76-ab8c-2fb55c8b0396",
       "name": "Recursive Character Text Splitter2"
+    },
+    {
+      "parameters": {
+        "modelName": "rerank-multilingual-v3.0",
+        "topN": 5
+      },
+      "type": "@n8n/n8n-nodes-langchain.rerankerCohere",
+      "typeVersion": 1,
+      "position": [
+        3840,
+        1600
+      ],
+      "id": "6a99cb65-c096-4fe8-ab9d-32233cd280c7",
+      "name": "Reranker Cohere",
+      "credentials": {
+        "cohereApi": {
+          "id": "N9DnY88wfEgW95Ly",
+          "name": "CohereApi account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "amount": 6.5
+      },
+      "type": "n8n-nodes-base.wait",
+      "typeVersion": 1.1,
+      "position": [
+        3056,
+        1328
+      ],
+      "id": "c6a284f0-8a77-486e-bf4d-2c0844d1f905",
+      "name": "Wait (for Reranker)",
+      "webhookId": "dcbba643-f4f5-4718-8aad-e76238d7b512"
     }
   ],
   "pinData": {
@@ -683,7 +743,7 @@
       "main": [
         [
           {
-            "node": "Generate Answer via RAG",
+            "node": "Wait (for Reranker)",
             "type": "main",
             "index": 0
           }
@@ -700,13 +760,35 @@
           }
         ]
       ]
+    },
+    "Reranker Cohere": {
+      "ai_reranker": [
+        [
+          {
+            "node": "Supabase Vector Store",
+            "type": "ai_reranker",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Wait (for Reranker)": {
+      "main": [
+        [
+          {
+            "node": "Generate Answer via RAG",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
     }
   },
   "active": false,
   "settings": {
     "executionOrder": "v1"
   },
-  "versionId": "eb456c4e-e47d-4a5a-9f8e-c68e5ec8b353",
+  "versionId": "4934856e-0dd2-4562-b6a5-06ed8e67b3e7",
   "meta": {
     "templateCredsSetupCompleted": true,
     "instanceId": "b85f0d09f3d863b4b665ea0e3475dac5af387c16ba8aaf52f137a98c26bd5361"
