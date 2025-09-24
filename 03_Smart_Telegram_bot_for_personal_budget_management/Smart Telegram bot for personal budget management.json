@@ -1,0 +1,2001 @@
+{
+  "name": "Smart Telegram bot for personal budget management",
+  "nodes": [
+    {
+      "parameters": {
+        "content": "# Основной workflow \"Telegram Bot Handler\"",
+        "height": 112,
+        "width": 912,
+        "color": 3
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        -1344,
+        -304
+      ],
+      "typeVersion": 1,
+      "id": "b45afc3e-270a-4562-9ce2-c7768da53560",
+      "name": "Sticky Note"
+    },
+    {
+      "parameters": {
+        "content": "## Блок 1: Получение и первичная обработка\n\n1. **Получение обновлений Telegram** получает от Telegram API новое событие (команда, сообщение, нажатие кнопки).\n1. **Code: Extract Data** извлекает из JSON-объекта события ключевые данные: user_id, chat_id, text, message_type и callback_data.\n1. **Redis: Get State** обращается к базе Redis по ключу *user_state:{{user_id}}* для получения текущего состояния пользователя, которое определит дальнейший маршрут выполнения. ",
+        "height": 432,
+        "width": 896,
+        "color": 4
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        -1312,
+        -48
+      ],
+      "typeVersion": 1,
+      "id": "ecee4754-aa02-4da7-9b55-6e160094cecb",
+      "name": "Sticky Note1"
+    },
+    {
+      "parameters": {
+        "content": "## Блок 2: Определение состояния пользователя \n\n1. Узел **Switch: State Router** работает как маршрутизатор, анализируя состояние пользователя, полученное на предыдущем шаге.\n1. В зависимости от значения состояния, он направляет выполнение по одному из трех выходов:\n    * **Output 0** (New User / Set Limit): \n      * если состояние не найдено или равно `/start` (для новых пользователей).\n    * **Output 1** (Handle Limit Input):\n      * если состояние равно `set_limit` (ожидание ввода бюджета).\n    * **Output 2** (Base Mode): \n      * если состояние равно `base` (основной режим работы).",
+        "height": 576,
+        "width": 816,
+        "color": 2
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        -192,
+        -592
+      ],
+      "typeVersion": 1,
+      "id": "15d56e38-b86b-4a84-b549-383950cb05d2",
+      "name": "Sticky Note2"
+    },
+    {
+      "parameters": {
+        "content": "## Блок 4: Обработка существующих пользователей\n\n1. **Code: Parse and Validate Limit** получает текстовое сообщение от пользователя и проверяет, является ли оно корректным положительным числом\n1. **Invalid limit?** (`If`) проверяет, вернул ли предыдущий узел ошибку. Если число неположительное, то узел **Telegram: Error Message** отправляет пользователю сообщение о некорректном вводе.\n1. Если ошибок нет, узел **Check User Exists** выполняет поиск пользователя в Google Sheets по `user_id` на вкладке *Users*.\n1. **User Exists?** (`If`) проверяет результат поиска.\n    * Если пользователь найден, узел **Google Sheets Update** обновляет его бюджет в существующей строке.\n    * Если пользователь не найден, узел **Google Sheets Append** создает для него новую строку.\n1. После успешного сохранения в Google Sheets, узел **Redis: Change to Base State** устанавливает состояние пользователя в `base`.\n1. **Confirm Limit** отправляет пользователю финальное сообщение, подтверждающее установку лимита.",
+        "height": 688,
+        "width": 2096
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        1840,
+        -992
+      ],
+      "typeVersion": 1,
+      "id": "040a73bd-78b9-4589-aa6c-a621feea573c",
+      "name": "Sticky Note4"
+    },
+    {
+      "parameters": {
+        "content": "## Блок 5: Обработка по состояниям\n\n1. В узле  в **Switch Node: Message Type Router** происходит анализ поля `message_type` из в **Блока 1**\n1. После чего ветвление на ветки **Text Message**, **Command** и **Callback Query** в зависимости от типа: \n    - text, \n    - command, \n    - callback",
+        "height": 672,
+        "width": 448,
+        "color": 6
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        912,
+        240
+      ],
+      "typeVersion": 1,
+      "id": "0365efcb-9aa3-44bd-80d7-2e666181e699",
+      "name": "Sticky Note5"
+    },
+    {
+      "parameters": {
+        "content": "## Дополнительный Workflow: Daily Expenses Report\n\nВоркфлоу запускается по расписанию (cron) и отправляет отчёты всем пользователям:\n1. **Cron Trigger** автоматически запускает воркфлоу каждый день в 9:00 по заданному `cron` выражению.\n2. **Read Users** считывает из Google Sheets (вкладка *Users*) полный список всех зарегистрированных пользователей.\n3. **SplitInBatches Node:** разбивает полученный список пользователей на пакеты (батчи) для поочередной обработки, чтобы избежать превышения лимитов API.\n4. Внутри цикла для каждого батча:\n    * **Read Spendings** считывает из Google Sheets (вкладка *Spendings*) всю историю трат.\n    * **Code: Filter Yesterday + Sum** выполняет фильтрацию: для каждого `user_id` из текущего батча он находит траты, совершенные за вчерашний день, суммирует их и формирует текстовый отчет `report`.\n    * **Send Report to User** отправляет итоговый отчет в Telegram соответствующему пользователю по его `user_id`.\n",
+        "height": 688,
+        "width": 2032,
+        "color": 4
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        -1648,
+        768
+      ],
+      "typeVersion": 1,
+      "id": "0e2e60a5-a692-4886-8b2f-acce86669aef",
+      "name": "Sticky Note6"
+    },
+    {
+      "parameters": {
+        "updates": [
+          "message",
+          "callback_query"
+        ],
+        "additionalFields": {}
+      },
+      "type": "n8n-nodes-base.telegramTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        -1200,
+        144
+      ],
+      "id": "72f84cce-97a9-4a3e-a123-d037d3c65f4d",
+      "name": "Получение обновлений Telegram",
+      "webhookId": "772f2d52-87f5-4a6f-8084-2f8fd74fa8c4",
+      "credentials": {
+        "telegramApi": {
+          "id": "FXJxkysfxWRBDiZ3",
+          "name": "Telegram 51"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "content": "## Блок 3: Обработка нового пользователя\n\n1. Извлечение лимитов в **Set Initial State**\n1. **Redis Save State** сохраняет это состояние в Redis, связывая его с `user_id` пользователя.\n1. **Ask for Limit** отправляет пользователю в Telegram сообщение с текстом: \"*Привет! Укажите ваш месячный лимит бюджета (число в рублях)*\"",
+        "height": 336,
+        "width": 1088,
+        "color": 4
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        1856,
+        -1408
+      ],
+      "typeVersion": 1,
+      "id": "30143c91-a50c-4bdf-b56a-1d53ecf4294b",
+      "name": "Sticky Note3"
+    },
+    {
+      "parameters": {
+        "jsCode": "return { json: { state: 'set_limit' } };"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        2256,
+        -1248
+      ],
+      "id": "fa934a68-9753-48fc-8ee7-ba4f7f8dd6c7",
+      "name": "Set Initial State"
+    },
+    {
+      "parameters": {
+        "operation": "set",
+        "key": "=user_state:{{ $('Code: Extract Data').item.json.chat_id }}",
+        "value": "={{ $json.state }}"
+      },
+      "type": "n8n-nodes-base.redis",
+      "typeVersion": 1,
+      "position": [
+        2464,
+        -1248
+      ],
+      "id": "1247fee4-a84f-4f48-82aa-39a5f78a1be1",
+      "name": "Redis Save State",
+      "credentials": {
+        "redis": {
+          "id": "4mQS2Uf86Cyv3lzY",
+          "name": "Redis cred"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "chatId": "={{ $('Code: Extract Data').item.json.user_id }}",
+        "text": "Привет! Укажите ваш месячный лимит бюджета (число в рублях).",
+        "additionalFields": {
+          "appendAttribution": false
+        }
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        2672,
+        -1248
+      ],
+      "id": "838cad61-ba47-4f70-af50-0af564a5ed0c",
+      "name": "Ask for Limit",
+      "webhookId": "870aa17a-f694-48f5-b88f-392ef9c0732e",
+      "credentials": {
+        "telegramApi": {
+          "id": "FXJxkysfxWRBDiZ3",
+          "name": "Telegram 51"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const update = items[0].json; // Обрабатываем первый элемент массива\nconst msg = update.message || update.callback_query?.message || {};\nconst from = update.message?.from || update.callback_query?.from || {};\nconst chat_id = (msg.chat && msg.chat.id) || from.id;\nconst text = update.message?.text || '';\nconst isCallback = !!update.callback_query;\nconst callback_data = update.callback_query?.data || null;\n\n// Исправленное регулярное выражение\nconst isCommand = /^\\//.test(text); // Экранируем слеш одним обратным слешем\nconst command = isCommand ? text.split(' ')[0] : ''; // берем только первый элемент\nconst message_type = isCallback ? 'callback' : (isCommand ? 'command' : 'text');\n\n// Возвращаем массив объектов для n8n\nreturn [{ \n  json: { \n    user_id: chat_id, \n    chat_id, \n    text, \n    isCommand, \n    command, \n    message_type, \n    callback_data \n  } \n}];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -960,
+        144
+      ],
+      "id": "7e6f4e98-8b38-44e0-825e-442da21f9faa",
+      "name": "Code: Extract Data"
+    },
+    {
+      "parameters": {
+        "jsCode": "// Получаем текст и очищаем его от пробелов\nconst text = $('Code: Extract Data').first().json.text || '';\nconst cleanedText = text.replace(',', '.').trim();\n\n// Строгая проверка, что вся строка является числом (целым или дробным)\nconst isNumeric = /^-?\\d+(\\.\\d+)?$/.test(cleanedText);\nconst limit = parseFloat(cleanedText);\n\n// Если проверка не пройдена или число некорректно, возвращаем ошибку\nif (!isNumeric || isNaN(limit) || limit <= 0) {\n  return [{ \n    json: { \n      error: 'INVALID_LIMIT', \n      message: 'Введено некорректное значение. Пожалуйста, отправьте только число, например: 30000' \n    } \n  }];\n}\n\n// Если всё в порядке, возвращаем бюджет\nreturn { \n  json: { \n    budget: Math.round(limit), \n    user_id: $('Code: Extract Data').first().json.user_id \n  } \n};"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        2160,
+        -704
+      ],
+      "id": "49ea73f5-a296-414b-8479-416734d6f107",
+      "name": "Code: Parse and Validate Limit"
+    },
+    {
+      "parameters": {
+        "operation": "set",
+        "key": "=user_state:{{ $json.user_id }}",
+        "value": "base"
+      },
+      "type": "n8n-nodes-base.redis",
+      "typeVersion": 1,
+      "position": [
+        3408,
+        -624
+      ],
+      "id": "fd062d9e-8191-4622-9ff2-677e42486788",
+      "name": "Redis: Change to Base State",
+      "credentials": {
+        "redis": {
+          "id": "4mQS2Uf86Cyv3lzY",
+          "name": "Redis cred"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "chatId": "={{ $('Code: Extract Data').item.json.user_id }}",
+        "text": "=Лимит установлен на {{ $json.budget }} рублей. Теперь вы в базовом режиме. \n\nУкажите свои траты в формате:\nкатегория - сумма трат",
+        "additionalFields": {
+          "appendAttribution": false
+        }
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        3616,
+        -624
+      ],
+      "id": "c9e196a8-02fc-498c-8369-734082564b2e",
+      "name": "Confirm Limit",
+      "webhookId": "b7e7d16b-39bd-45a1-a853-0be7806844b4",
+      "credentials": {
+        "telegramApi": {
+          "id": "FXJxkysfxWRBDiZ3",
+          "name": "Telegram 51"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=Парсинг строки: ‘{{ $('Code: Extract Data').item.json.text }}’. Верни JSON строго по схеме.",
+        "options": {
+          "systemMessage": "=Твоя задача — извлечь из текста трату. Верни ТОЛЬКО JSON-объект без лишнего текста и markdown. \n\nСтруктура JSON: {\"category\": \"название\", \"sum\": число}. \n\nПример: для \"кофе 250\" верни {\"category\": \"кофе\", \"sum\": 250}."
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 2.2,
+      "position": [
+        2288,
+        -32
+      ],
+      "id": "10304d46-954c-47fe-a13a-43924ffa4742",
+      "name": "AI Agent"
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenRouter",
+      "typeVersion": 1,
+      "position": [
+        2192,
+        176
+      ],
+      "id": "af6e41fa-f39e-4b51-b590-cdf6eabc638b",
+      "name": "OpenRouter Chat Model",
+      "credentials": {
+        "openRouterApi": {
+          "id": "SToaU6AIVh2FP5p0",
+          "name": "OpenRouter"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "// Получаем сырой вывод от AI Agent\nlet rawOutput = $json.output;\nlet result = null;\n\n// Пытаемся распарсить вывод как JSON\ntry {\n  // Проверяем, является ли вывод уже объектом\n  if (typeof rawOutput === 'object' && rawOutput !== null) {\n    result = rawOutput;\n  } else if (typeof rawOutput === 'string') {\n    // Если это строка, ищем в ней JSON, возможно, \"завернутый\" в markdown\n    const jsonMatch = rawOutput.match(/{[\\s\\S]*}/);\n    if (jsonMatch) {\n      result = JSON.parse(jsonMatch[0]);\n    }\n  }\n} catch (e) {\n  // Ошибка парсинга, result останется null\n  console.error(\"Не удалось распарсить JSON из вывода AI:\", rawOutput);\n}\n\n// Если распарсить не удалось, выбрасываем ошибку\nif (!result || typeof result !== 'object') {\n  throw new Error('AI Agent не смог распознать данные. Получено: ' + rawOutput);\n}\n\nconst date = new Date().toLocaleDateString('ru-RU'); \nreturn { \n  json: { \n    user_id: $('Code: Extract Data').first().json.user_id, \n    category: result.category || 'Без категории', \n    sum: result.sum || 0,\n    date \n  } \n};\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        2704,
+        128
+      ],
+      "id": "527e4598-774a-4958-bdc3-e868eba71def",
+      "name": "Code: Prepare Data"
+    },
+    {
+      "parameters": {
+        "chatId": "={{ $('Code: Extract Data').item.json.user_id }}",
+        "text": "=Трата сохранена: {{ $json.category }} - {{ $json.sum }} руб.",
+        "additionalFields": {
+          "appendAttribution": false
+        }
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        3184,
+        128
+      ],
+      "id": "011a7fa5-49b2-4753-9c17-0cc908a0b10d",
+      "name": "Confirm Expense",
+      "webhookId": "156f50d4-ec98-4ef6-90b0-45225e541edc",
+      "credentials": {
+        "telegramApi": {
+          "id": "FXJxkysfxWRBDiZ3",
+          "name": "Telegram 51"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "content": "## Блок 5. Подветка \"Text Message\"\n\n1. **AI Agent** получает текстовое сообщение пользователя и передает его LLMке для извлечения категории и суммы траты в формате *JSON*.\n1. Поскольку LLM работает через OpenRouter, то можно играться, но конкретно тут используется _openai/gpt-4.1-mini_\n1. **Code: Prepare Data** обрабатывает вывод от ИИ, добавляя к нему `user_id` и текущую дату.\n1. **Append Spendings** добавляет новую строку с данными о трате в таблицу Google Sheets на вкладку *Spendings*.\n1. **Confirm Expense** отправляет пользователю в Telegram-бот подтверждение о сохранении траты.",
+        "height": 560,
+        "width": 1616,
+        "color": 5
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        1840,
+        -240
+      ],
+      "typeVersion": 1,
+      "id": "4ef5f53c-4eb9-4cc8-b09b-6b1ee307cede",
+      "name": "Sticky Note7"
+    },
+    {
+      "parameters": {
+        "content": "## Блок 5. Подветка \"Command\"\n\n1. **Read Spendings (месяц)** считывает из вкладки *Spendings* все записи о тратах для текущего пользователя за текущий месяц.\n2. **Switch** проверяет текст команды: `/status` или `/report`.\n3. В случае команды */report* активируется прохождение соответствующей ветки:\n    * **Code: Group by Category** обрабатывает полученные траты, группирует их по категориям, суммирует и формирует текстовый отчет.\n    * после чего **Send Report with Inline Button** отправляет этот отчёт пользователю вместе с кнопкой \"Совет от ИИ\".\n4. В случае команды */status*:\n    * параллельно запускаются два узла: **Code: Sum X** суммирует все траты, а **Get Budget Y** получает установленный лимит из другой таблицы.\n    * после объединения результатов их выполнения **Code: Calc Z** вычисляет процент потраченных средств.\n    * пользователю в бот отправляется итоговый статус.",
+        "height": 688,
+        "width": 1968,
+        "color": 5
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        1760,
+        400
+      ],
+      "typeVersion": 1,
+      "id": "d33bdd79-24a2-49e0-bd34-3e101a76657a",
+      "name": "Sticky Note8"
+    },
+    {
+      "parameters": {
+        "content": "## Блок 5. Подветка \"Callback Query\"\n\n1. **If: Advice from AI?** проверяет, что `callback_data` из нажатой кнопки равен `ai_advice`.\n1. Ежели условие истинно, запускается параллельный сбор данных: **Read Monthly Spendings** читает все траты пользователя, а **Get Budget Y1** его бюджет.\n1. **Merge Data for AI** объединяет эти данные по идентификатору пользователя.\n1. **Code: Prepare Advice Payload** обрабатывает объединенные данные, формируя единый *JSON*-объект.\n1. **AI Agent: Generate Advice** отправляет эти данные языковой модели для генерации персонального совета.\n1. Пользователю в бот через **Send Advice** отправляется сгенерированный совет.",
+        "height": 688,
+        "width": 1936,
+        "color": 5
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        1808,
+        1264
+      ],
+      "typeVersion": 1,
+      "id": "11106770-4654-4420-af35-902bdf457709",
+      "name": "Sticky Note9"
+    },
+    {
+      "parameters": {
+        "rules": {
+          "values": [
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $('Code: Extract Data').item.json.text }}",
+                    "rightValue": "/status",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    },
+                    "id": "54ef739f-41e5-4916-933d-61d44febd2e6"
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "/status"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "id": "a788a991-847c-48da-bc47-ff11666f9fca",
+                    "leftValue": "={{ $('Code: Extract Data').item.json.text }}",
+                    "rightValue": "/report",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals",
+                      "name": "filter.operator.equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "/report"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3.2,
+      "position": [
+        2480,
+        784
+      ],
+      "id": "39eea082-0052-4957-aeb6-4ee268bb8c94",
+      "name": "Switch"
+    },
+    {
+      "parameters": {
+        "chatId": "={{ $('Code: Extract Data').item.json.chat_id }}",
+        "text": "=Ты потратил {{ $json.X }} рублей из {{ $json.Y }} рублей ({{ $json.Z }}%)",
+        "additionalFields": {
+          "appendAttribution": false
+        }
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        3488,
+        688
+      ],
+      "id": "5982e377-e391-46a7-844b-28abb4c4d9e9",
+      "name": "Send a text message",
+      "webhookId": "c11e963e-c34a-49cf-a694-7b194dceffd1",
+      "credentials": {
+        "telegramApi": {
+          "id": "FXJxkysfxWRBDiZ3",
+          "name": "Telegram 51"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenRouter",
+      "typeVersion": 1,
+      "position": [
+        3024,
+        1808
+      ],
+      "id": "392a58c2-86d6-4566-96c3-8c9f78ed882a",
+      "name": "OpenRouter Chat Model1",
+      "credentials": {
+        "openRouterApi": {
+          "id": "SToaU6AIVh2FP5p0",
+          "name": "OpenRouter"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "chatId": "={{ $('Code: Prepare Advice Payload').item.json.user_id }}",
+        "text": "= {{ $json.output }}",
+        "additionalFields": {
+          "appendAttribution": false
+        }
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        3504,
+        1600
+      ],
+      "id": "817a4f0a-7f49-44c2-b9df-089da339dc8c",
+      "name": "Send Advice",
+      "webhookId": "ade73580-3dbe-4215-805f-2733056869ef",
+      "credentials": {
+        "telegramApi": {
+          "id": "FXJxkysfxWRBDiZ3",
+          "name": "Telegram 51"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "cronExpression",
+              "expression": "0 9 * * *"
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        -1456,
+        1072
+      ],
+      "id": "5d09a071-e6c8-4219-a74b-27c1ce196f16",
+      "name": "Cron Trigger"
+    },
+    {
+      "parameters": {
+        "batchSize": 20,
+        "options": {}
+      },
+      "type": "n8n-nodes-base.splitInBatches",
+      "typeVersion": 3,
+      "position": [
+        -688,
+        1008
+      ],
+      "id": "eaefe6a3-878e-451c-bc66-717b07e5accb",
+      "name": "SplitInBatches Node:"
+    },
+    {
+      "parameters": {
+        "chatId": "={{ $json.user_id }}",
+        "text": "={{ $json.report }}",
+        "additionalFields": {
+          "appendAttribution": false
+        }
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        112,
+        1152
+      ],
+      "id": "c532b479-dd7a-4820-b9ae-5a7f097d956e",
+      "name": "Send Report to User",
+      "webhookId": "ec3f767b-d802-4416-9efb-77d2b00b9f39",
+      "credentials": {
+        "telegramApi": {
+          "id": "FXJxkysfxWRBDiZ3",
+          "name": "Telegram 51"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "append",
+        "documentId": {
+          "__rl": true,
+          "value": "1I22dBDEINJ29HUy4FA_DLlMMzViBpvdwDr67ZlvjJHw",
+          "mode": "list",
+          "cachedResultName": "Users_state",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1I22dBDEINJ29HUy4FA_DLlMMzViBpvdwDr67ZlvjJHw/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": 2106844880,
+          "mode": "list",
+          "cachedResultName": "Spendings",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1I22dBDEINJ29HUy4FA_DLlMMzViBpvdwDr67ZlvjJHw/edit#gid=2106844880"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "user_id": "={{ $json.user_id }}",
+            "category": "={{ $json.category }}",
+            "sum": "={{ $json.sum }}",
+            "date": "={{ $json.date }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "user_id",
+              "displayName": "user_id",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "category",
+              "displayName": "category",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "sum",
+              "displayName": "sum",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "date",
+              "displayName": "date",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        2960,
+        -32
+      ],
+      "id": "6897277e-c022-4676-a579-c101f676d900",
+      "name": "Append Spendings",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "pI4ZZe9t4Jt86Ygd",
+          "name": "Google Sheets account 12"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const now = new Date();\nconst m = now.getMonth(), y = now.getFullYear();\nconst toRub = v => Number(String(v).replace(',', '.')) || 0;\nconst inMonth = (d) => {\n  const [dd, mm, yyyy] = String(d||'').split('.');\n  const dt = new Date(+yyyy, (+mm)-1, +dd);\n  return dt.getMonth()===m && dt.getFullYear()===y;\n};\nconst rows = items.map(i => i.json).filter(r => String(r.user_id) === String($('Code: Extract Data').first().json.user_id) && inMonth(r.date));\nconst X = rows.reduce((s, r) => s + toRub(r.sum), 0);\nreturn { json: { X } };"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        2816,
+        592
+      ],
+      "id": "38ff2b20-8ced-4033-b8a9-5ac17cf90bea",
+      "name": "Code: Sum X"
+    },
+    {
+      "parameters": {
+        "jsCode": "// Все нужные данные теперь в одном объекте $json\nconst X = $json.X || 0;\nconst Y = $json.budget || 0;\n\n// Вычисляем процент\nconst Z = Y > 0 ? ((X / Y) * 100).toFixed(2) : '0.00';\n\n// Возвращаем результат\nreturn { \n  json: { \n    X, \n    Y, \n    Z \n  } \n};\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        3280,
+        688
+      ],
+      "id": "19e3070e-7134-4cad-ab3e-835f0d2bb1c9",
+      "name": "Code: Calc Z"
+    },
+    {
+      "parameters": {
+        "jsCode": "const rows = items.map(i => i.json);\nconst toRub = v => Number(String(v).replace(',', '.')) || 0;\nconst map = {};\n\n// Получаем user_id из самого первого узла, чтобы не потерять его\nconst user_id = $('Code: Extract Data').first().json.user_id;\n\nfor (const r of rows) {\n  // Дополнительная проверка на случай, если Google Sheets вернул лишнее\n  if (String(r.user_id) !== String(user_id)) continue;\n  \n  const [dd, mm, yyyy] = String(r.date || '').split('.');\n  if (!dd || !mm || !yyyy) continue; // Пропускаем строки с некорректной датой\n  \n  const dt = new Date(+yyyy, (+mm) - 1, +dd);\n  const now = new Date();\n  \n  // Учитываем траты только за текущий месяц и год\n  if (dt.getMonth() !== now.getMonth() || dt.getFullYear() !== now.getFullYear()) continue;\n  \n  map[r.category] = (map[r.category] || 0) + toRub(r.sum);\n}\n\nconst lines = Object.entries(map)\n  .sort((a, b) => b[1] - a[1]) // Сортируем по убыванию трат\n  .map(([k, v]) => `${k}: ${v} руб.`);\n  \nconst report = lines.length ? lines.join('\\n') : 'Нет трат за текущий месяц.';\n\n// Возвращаем объект, содержащий И отчет, И user_id\nreturn { \n  json: { \n    report: report,\n    user_id: user_id \n  } \n};"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        2816,
+        912
+      ],
+      "id": "7ae5211c-1d26-42ca-876f-de269b26a07f",
+      "name": "Code: Group by Category"
+    },
+    {
+      "parameters": {
+        "documentId": {
+          "__rl": true,
+          "value": "1I22dBDEINJ29HUy4FA_DLlMMzViBpvdwDr67ZlvjJHw",
+          "mode": "list",
+          "cachedResultName": "Users_state",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1I22dBDEINJ29HUy4FA_DLlMMzViBpvdwDr67ZlvjJHw/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": 2106844880,
+          "mode": "list",
+          "cachedResultName": "Spendings",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1I22dBDEINJ29HUy4FA_DLlMMzViBpvdwDr67ZlvjJHw/edit#gid=2106844880"
+        },
+        "filtersUI": {
+          "values": [
+            {
+              "lookupColumn": "user_id",
+              "lookupValue": "={{ $('Code: Extract Data').item.json.user_id }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        2496,
+        1488
+      ],
+      "id": "70727fe2-2f26-499c-90a0-5d7613630434",
+      "name": "Read Monthly Spendings",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "pI4ZZe9t4Jt86Ygd",
+          "name": "Google Sheets account 12"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "// Явно получаем user_id из самого первого узла, чтобы он не потерялся\nconst user_id = $('Code: Extract Data').first().json.user_id;\n\n// Все данные приходят от Merge-узла.\n// Бюджет будет одинаковым для всех строк, берем его из первой.\nconst budget = items[0].json.budget || 0;\n\n// Группируем траты по категориям\nconst toRub = v => Number(String(v).replace(',', '.')) || 0;\nconst byCat = {};\n\nfor (const item of items) {\n  const category = item.json.category;\n  const sum = item.json.sum;\n  if (category && sum) {\n    byCat[category] = (byCat[category] || 0) + toRub(sum);\n  }\n}\n\n// Форматируем данные для агента ИИ\nconst categories = Object.entries(byCat)\n                         .map(([category, sum]) => ({ category, sum }));\n\n// Возвращаем объект, который содержит И user_id, И payload для ИИ\nreturn { \n  json: { \n    user_id: user_id, // <--- Добавляем user_id для финального узла\n    payload_for_ai: {\n      budget: budget, \n      categories: categories\n    }\n  } \n};"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        2944,
+        1600
+      ],
+      "id": "3b322d85-d776-4eff-9a55-3967e2f3a015",
+      "name": "Code: Prepare Advice Payload"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "={{ $json.payload_for_ai }}",
+        "options": {
+          "systemMessage": "Анализируй траты по категориям и бюджет, дай краткий конкретный совет на 2–3 предложения"
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 2.2,
+      "position": [
+        3152,
+        1600
+      ],
+      "id": "e449cc77-59dc-4efa-b5e7-b4ac970f3c58",
+      "name": "AI Agent: Generate Advice"
+    },
+    {
+      "parameters": {
+        "documentId": {
+          "__rl": true,
+          "value": "1I22dBDEINJ29HUy4FA_DLlMMzViBpvdwDr67ZlvjJHw",
+          "mode": "list",
+          "cachedResultName": "Users_state",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1I22dBDEINJ29HUy4FA_DLlMMzViBpvdwDr67ZlvjJHw/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": 222686898,
+          "mode": "list",
+          "cachedResultName": "Users",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1I22dBDEINJ29HUy4FA_DLlMMzViBpvdwDr67ZlvjJHw/edit#gid=222686898"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        -1136,
+        1072
+      ],
+      "id": "2fecd9d4-580b-4c9e-a0d1-080d201de290",
+      "name": "Read Users",
+      "alwaysOutputData": true,
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "pI4ZZe9t4Jt86Ygd",
+          "name": "Google Sheets account 12"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "documentId": {
+          "__rl": true,
+          "value": "1I22dBDEINJ29HUy4FA_DLlMMzViBpvdwDr67ZlvjJHw",
+          "mode": "list",
+          "cachedResultName": "Users_state",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1I22dBDEINJ29HUy4FA_DLlMMzViBpvdwDr67ZlvjJHw/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": 2106844880,
+          "mode": "list",
+          "cachedResultName": "Spendings",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1I22dBDEINJ29HUy4FA_DLlMMzViBpvdwDr67ZlvjJHw/edit#gid=2106844880"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        -336,
+        1056
+      ],
+      "id": "ee574869-a6bb-4790-989a-1bf7365a23da",
+      "name": "Read Spendings",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "pI4ZZe9t4Jt86Ygd",
+          "name": "Google Sheets account 12"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "mode": "expression",
+        "numberOutputs": 3,
+        "output": "={{\n  (!$json.userState || $('Code: Extract Data').item.json.command === '/start') ? 0 :\n  ($json.userState === 'set_limit') ? 1 :\n  ($json.userState === 'base') ? 2 : 0\n}}\n"
+      },
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3.2,
+      "position": [
+        96,
+        -288
+      ],
+      "id": "0673cbc8-6875-4bf7-8b8d-be83cfa3454e",
+      "name": "Switch: State Router",
+      "alwaysOutputData": false,
+      "executeOnce": false
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "a19e62d7-0622-46ee-a4b5-26cd741dd62d",
+              "leftValue": "={{ $json.error }}",
+              "rightValue": "=INVALID_LIMIT",
+              "operator": {
+                "type": "string",
+                "operation": "equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        2416,
+        -608
+      ],
+      "id": "6040b419-d650-424d-9915-a32983d5b482",
+      "name": "Invalid limit?"
+    },
+    {
+      "parameters": {
+        "rules": {
+          "values": [
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $('Code: Extract Data').item.json.message_type }}",
+                    "rightValue": "=text",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    },
+                    "id": "7602be0f-5073-48f5-b3fe-8465e601d6c5"
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "Text Message"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "id": "f02b1b98-dd90-47b2-9286-3a87804db200",
+                    "leftValue": "={{ $('Code: Extract Data').item.json.message_type }}",
+                    "rightValue": "command",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "Command"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "id": "54780b0e-ea9e-425e-8f1c-f8c8add473cc",
+                    "leftValue": "={{ $('Code: Extract Data').item.json.message_type }}",
+                    "rightValue": "callback",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals",
+                      "name": "filter.operator.equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "Callback Query"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3.2,
+      "position": [
+        1120,
+        528
+      ],
+      "id": "dbc49076-64f4-4fde-9f44-f78628f1e9e5",
+      "name": "Switch: Message Type Router"
+    },
+    {
+      "parameters": {
+        "documentId": {
+          "__rl": true,
+          "value": "1I22dBDEINJ29HUy4FA_DLlMMzViBpvdwDr67ZlvjJHw",
+          "mode": "list",
+          "cachedResultName": "Users_state",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1I22dBDEINJ29HUy4FA_DLlMMzViBpvdwDr67ZlvjJHw/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": 2106844880,
+          "mode": "list",
+          "cachedResultName": "Spendings",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1I22dBDEINJ29HUy4FA_DLlMMzViBpvdwDr67ZlvjJHw/edit#gid=2106844880"
+        },
+        "filtersUI": {
+          "values": [
+            {
+              "lookupColumn": "user_id",
+              "lookupValue": "={{ $('Code: Extract Data').item.json.user_id }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        2256,
+        720
+      ],
+      "id": "e8f4ae65-f0ab-4464-ba1f-94d8a89267cc",
+      "name": "Read Spendings (месяц)",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "pI4ZZe9t4Jt86Ygd",
+          "name": "Google Sheets account 12"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "documentId": {
+          "__rl": true,
+          "value": "1I22dBDEINJ29HUy4FA_DLlMMzViBpvdwDr67ZlvjJHw",
+          "mode": "list",
+          "cachedResultName": "Users_state",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1I22dBDEINJ29HUy4FA_DLlMMzViBpvdwDr67ZlvjJHw/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": 222686898,
+          "mode": "list",
+          "cachedResultName": "Users",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1I22dBDEINJ29HUy4FA_DLlMMzViBpvdwDr67ZlvjJHw/edit#gid=222686898"
+        },
+        "filtersUI": {
+          "values": [
+            {
+              "lookupColumn": "user_id",
+              "lookupValue": "={{ $('Read Spendings (месяц)').item.json.user_id }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        2816,
+        768
+      ],
+      "id": "f7083b8e-18ba-4ef1-a7d6-09f73ebeea89",
+      "name": "Get Budget Y",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "pI4ZZe9t4Jt86Ygd",
+          "name": "Google Sheets account 12"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "chatId": "={{ $json.user_id }}",
+        "text": "={{ $json.report }}",
+        "replyMarkup": "inlineKeyboard",
+        "inlineKeyboard": {
+          "rows": [
+            {
+              "row": {
+                "buttons": [
+                  {
+                    "text": "Совет от ИИ",
+                    "additionalFields": {
+                      "callback_data": "ai_advice"
+                    }
+                  }
+                ]
+              }
+            }
+          ]
+        },
+        "additionalFields": {
+          "appendAttribution": false
+        }
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        3120,
+        896
+      ],
+      "id": "dc28262d-95b4-409c-99ce-8944dde37851",
+      "name": "Send Report with Inline Button",
+      "webhookId": "be37dba2-652f-454b-b070-eae6e92ff380",
+      "credentials": {
+        "telegramApi": {
+          "id": "FXJxkysfxWRBDiZ3",
+          "name": "Telegram 51"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "documentId": {
+          "__rl": true,
+          "value": "1I22dBDEINJ29HUy4FA_DLlMMzViBpvdwDr67ZlvjJHw",
+          "mode": "list",
+          "cachedResultName": "Users_state",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1I22dBDEINJ29HUy4FA_DLlMMzViBpvdwDr67ZlvjJHw/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": 222686898,
+          "mode": "list",
+          "cachedResultName": "Users",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1I22dBDEINJ29HUy4FA_DLlMMzViBpvdwDr67ZlvjJHw/edit#gid=222686898"
+        },
+        "filtersUI": {
+          "values": [
+            {
+              "lookupColumn": "user_id",
+              "lookupValue": "={{ $('Code: Extract Data').item.json.user_id }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        2496,
+        1760
+      ],
+      "id": "edb87b02-e411-4cad-84c8-211da4a63b9a",
+      "name": "Get Budget Y1",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "pI4ZZe9t4Jt86Ygd",
+          "name": "Google Sheets account 12"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const user_id = $('SplitInBatches Node:').item.json.user_id;\nconst now = new Date();\nconst yest = new Date(now.getFullYear(), now.getMonth(), now.getDate()-1);\nconst yDD = String(yest.getDate()).padStart(2,'0');\nconst yMM = String(yest.getMonth()+1).padStart(2,'0');\nconst yYYYY = String(yest.getFullYear());\nconst yStr = `${yDD}.${yMM}.${yYYYY}`;\nconst toRub = v => Number(String(v).replace(',', '.')) || 0;\nconst rows = items.map(i=>i.json).filter(r => String(r.user_id)===String(user_id) && r.date===yStr);\nconst total = rows.reduce((s,r)=>s+toRub(r.sum),0);\nconst report = `Вчера потрачено: ${total} руб.`;\nreturn { json: { user_id, report } };"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -96,
+        1072
+      ],
+      "id": "1478a459-88f4-4648-81a2-610d458c2aa3",
+      "name": "Code: Filter Yesterday + Sum"
+    },
+    {
+      "parameters": {
+        "chatId": "={{ $('Code: Extract Data').item.json.user_id }}",
+        "text": "Некорректное число. Введите положительное число, например, 30000",
+        "replyMarkup": "replyKeyboard",
+        "replyKeyboard": {
+          "rows": [
+            {}
+          ]
+        },
+        "replyKeyboardOptions": {},
+        "additionalFields": {
+          "appendAttribution": false
+        }
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        2752,
+        -752
+      ],
+      "id": "0ac88416-d068-470f-8980-daaacf37f56b",
+      "name": "Telegram: Error Message",
+      "webhookId": "d1895cf4-d228-4508-85e4-d195c42a3d72",
+      "credentials": {
+        "telegramApi": {
+          "id": "FXJxkysfxWRBDiZ3",
+          "name": "Telegram 51"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "2f425a07-26fa-4b85-9aed-a80ecd1e7482",
+              "leftValue": "={{ $('Code: Extract Data').item.json.user_id }}",
+              "rightValue": 0,
+              "operator": {
+                "type": "number",
+                "operation": "notExists",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "or"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        2848,
+        -576
+      ],
+      "id": "3eeac12d-354c-41c6-8b44-370f3bd90658",
+      "name": "User Exists?"
+    },
+    {
+      "parameters": {
+        "documentId": {
+          "__rl": true,
+          "value": "1I22dBDEINJ29HUy4FA_DLlMMzViBpvdwDr67ZlvjJHw",
+          "mode": "list",
+          "cachedResultName": "Users_state",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1I22dBDEINJ29HUy4FA_DLlMMzViBpvdwDr67ZlvjJHw/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": 222686898,
+          "mode": "list",
+          "cachedResultName": "Users",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1I22dBDEINJ29HUy4FA_DLlMMzViBpvdwDr67ZlvjJHw/edit#gid=222686898"
+        },
+        "filtersUI": {
+          "values": [
+            {
+              "lookupColumn": "user_id",
+              "lookupValue": "={{ $('Code: Extract Data').item.json.user_id }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        2640,
+        -576
+      ],
+      "id": "46cc8938-251d-470d-b203-a8c21a5f3a2a",
+      "name": "Check User Exists",
+      "alwaysOutputData": true,
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "pI4ZZe9t4Jt86Ygd",
+          "name": "Google Sheets account 12"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "update",
+        "documentId": {
+          "__rl": true,
+          "value": "1I22dBDEINJ29HUy4FA_DLlMMzViBpvdwDr67ZlvjJHw",
+          "mode": "list",
+          "cachedResultName": "Users_state",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1I22dBDEINJ29HUy4FA_DLlMMzViBpvdwDr67ZlvjJHw/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": 222686898,
+          "mode": "list",
+          "cachedResultName": "Users",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1I22dBDEINJ29HUy4FA_DLlMMzViBpvdwDr67ZlvjJHw/edit#gid=222686898"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "user_id": "={{ $('Code: Parse and Validate Limit').item.json.user_id }}",
+            "budget": "={{ $('Code: Parse and Validate Limit').item.json.budget }}"
+          },
+          "matchingColumns": [
+            "user_id"
+          ],
+          "schema": [
+            {
+              "id": "user_id",
+              "displayName": "user_id",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "budget",
+              "displayName": "budget",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "row_number",
+              "displayName": "row_number",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "number",
+              "canBeUsedToMatch": true,
+              "readOnly": true,
+              "removed": true
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        3088,
+        -496
+      ],
+      "id": "f6dfd2df-5e14-471f-985e-71a874b62611",
+      "name": "Google Sheets Update (пользователь существует)",
+      "alwaysOutputData": true,
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "pI4ZZe9t4Jt86Ygd",
+          "name": "Google Sheets account 12"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "append",
+        "documentId": {
+          "__rl": true,
+          "value": "1I22dBDEINJ29HUy4FA_DLlMMzViBpvdwDr67ZlvjJHw",
+          "mode": "list",
+          "cachedResultName": "Users_state",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1I22dBDEINJ29HUy4FA_DLlMMzViBpvdwDr67ZlvjJHw/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": 222686898,
+          "mode": "list",
+          "cachedResultName": "Users",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1I22dBDEINJ29HUy4FA_DLlMMzViBpvdwDr67ZlvjJHw/edit#gid=222686898"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "budget": "={{ $('Code: Parse and Validate Limit').item.json.budget }}",
+            "user_id": "={{ $('Code: Parse and Validate Limit').item.json.user_id }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "user_id",
+              "displayName": "user_id",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "budget",
+              "displayName": "budget",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        3088,
+        -736
+      ],
+      "id": "af6a8167-e68e-4ec7-b842-05661a31e352",
+      "name": "Google Sheets Append (новый пользователь)",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "pI4ZZe9t4Jt86Ygd",
+          "name": "Google Sheets account 12"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "get",
+        "propertyName": "userState",
+        "key": "=user_state:{{ $json.user_id }}",
+        "keyType": "string",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.redis",
+      "typeVersion": 1,
+      "position": [
+        -672,
+        144
+      ],
+      "id": "15ae032d-7dd6-4958-a849-f3be28cecd30",
+      "name": "Redis: Get State",
+      "credentials": {
+        "redis": {
+          "id": "4mQS2Uf86Cyv3lzY",
+          "name": "Redis cred"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "mode": "combine",
+        "combineBy": "combineByPosition",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        3056,
+        688
+      ],
+      "id": "754f344e-c5a2-4a2a-a63e-172094a697de",
+      "name": "Merge"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "3e802fad-8a97-454b-bd06-4a95d0944d20",
+              "leftValue": "={{ $('Code: Extract Data').item.json.callback_data }}",
+              "rightValue": "ai_advice",
+              "operator": {
+                "type": "string",
+                "operation": "equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        2176,
+        1632
+      ],
+      "id": "c7e73710-c126-4acc-afb0-30c970c2fa8f",
+      "name": "If: Advice from AI?"
+    },
+    {
+      "parameters": {
+        "mode": "combine",
+        "advanced": true,
+        "mergeByFields": {
+          "values": [
+            {
+              "field1": "user_id",
+              "field2": "user_id"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        2720,
+        1600
+      ],
+      "id": "8c99ee1b-6617-470b-9895-11768b7887bf",
+      "name": "Merge Data for AI"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Получение обновлений Telegram": {
+      "main": [
+        [
+          {
+            "node": "Code: Extract Data",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Set Initial State": {
+      "main": [
+        [
+          {
+            "node": "Redis Save State",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Redis Save State": {
+      "main": [
+        [
+          {
+            "node": "Ask for Limit",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code: Extract Data": {
+      "main": [
+        [
+          {
+            "node": "Redis: Get State",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code: Parse and Validate Limit": {
+      "main": [
+        [
+          {
+            "node": "Invalid limit?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Redis: Change to Base State": {
+      "main": [
+        [
+          {
+            "node": "Confirm Limit",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenRouter Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Agent": {
+      "main": [
+        [
+          {
+            "node": "Code: Prepare Data",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code: Prepare Data": {
+      "main": [
+        [
+          {
+            "node": "Append Spendings",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Switch": {
+      "main": [
+        [
+          {
+            "node": "Code: Sum X",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Get Budget Y",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Code: Group by Category",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenRouter Chat Model1": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent: Generate Advice",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Cron Trigger": {
+      "main": [
+        [
+          {
+            "node": "Read Users",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "SplitInBatches Node:": {
+      "main": [
+        [],
+        [
+          {
+            "node": "Read Spendings",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Send Report to User": {
+      "main": [
+        [
+          {
+            "node": "SplitInBatches Node:",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Append Spendings": {
+      "main": [
+        [
+          {
+            "node": "Confirm Expense",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code: Sum X": {
+      "main": [
+        [
+          {
+            "node": "Merge",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code: Calc Z": {
+      "main": [
+        [
+          {
+            "node": "Send a text message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code: Group by Category": {
+      "main": [
+        [
+          {
+            "node": "Send Report with Inline Button",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Read Monthly Spendings": {
+      "main": [
+        [
+          {
+            "node": "Merge Data for AI",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code: Prepare Advice Payload": {
+      "main": [
+        [
+          {
+            "node": "AI Agent: Generate Advice",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Agent: Generate Advice": {
+      "main": [
+        [
+          {
+            "node": "Send Advice",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Read Users": {
+      "main": [
+        [
+          {
+            "node": "SplitInBatches Node:",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Read Spendings": {
+      "main": [
+        [
+          {
+            "node": "Code: Filter Yesterday + Sum",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Switch: State Router": {
+      "main": [
+        [
+          {
+            "node": "Set Initial State",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Code: Parse and Validate Limit",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Switch: Message Type Router",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Invalid limit?": {
+      "main": [
+        [
+          {
+            "node": "Telegram: Error Message",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Check User Exists",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Switch: Message Type Router": {
+      "main": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Read Spendings (месяц)",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "If: Advice from AI?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Read Spendings (месяц)": {
+      "main": [
+        [
+          {
+            "node": "Switch",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get Budget Y": {
+      "main": [
+        [
+          {
+            "node": "Merge",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "Get Budget Y1": {
+      "main": [
+        [
+          {
+            "node": "Merge Data for AI",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "Code: Filter Yesterday + Sum": {
+      "main": [
+        [
+          {
+            "node": "Send Report to User",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "User Exists?": {
+      "main": [
+        [
+          {
+            "node": "Google Sheets Append (новый пользователь)",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Google Sheets Update (пользователь существует)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Check User Exists": {
+      "main": [
+        [
+          {
+            "node": "User Exists?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Google Sheets Update (пользователь существует)": {
+      "main": [
+        [
+          {
+            "node": "Redis: Change to Base State",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Redis: Get State": {
+      "main": [
+        [
+          {
+            "node": "Switch: State Router",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Ask for Limit": {
+      "main": [
+        []
+      ]
+    },
+    "Google Sheets Append (новый пользователь)": {
+      "main": [
+        [
+          {
+            "node": "Redis: Change to Base State",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Merge": {
+      "main": [
+        [
+          {
+            "node": "Code: Calc Z",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If: Advice from AI?": {
+      "main": [
+        [
+          {
+            "node": "Read Monthly Spendings",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Get Budget Y1",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        []
+      ]
+    },
+    "Merge Data for AI": {
+      "main": [
+        [
+          {
+            "node": "Code: Prepare Advice Payload",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "7366b699-7fa6-4baa-bbab-ff56e6ba74b6",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "b85f0d09f3d863b4b665ea0e3475dac5af387c16ba8aaf52f137a98c26bd5361"
+  },
+  "id": "LJMSCQ40ZbXkh3tw",
+  "tags": []
+}

@@ -1,0 +1,413 @@
+{
+  "name": "google api docs",
+  "nodes": [
+    {
+      "parameters": {
+        "pollTimes": {
+          "item": [
+            {
+              "mode": "everyMinute"
+            }
+          ]
+        },
+        "triggerOn": "specificFolder",
+        "folderToWatch": {
+          "__rl": true,
+          "value": "1luqQ4A4D40PVZh8fvlz3wvhodPsAvKT0",
+          "mode": "list",
+          "cachedResultName": "n8n",
+          "cachedResultUrl": "https://drive.google.com/drive/folders/1luqQ4A4D40PVZh8fvlz3wvhodPsAvKT0"
+        },
+        "event": "fileCreated",
+        "options": {
+          "fileType": "all"
+        }
+      },
+      "type": "n8n-nodes-base.googleDriveTrigger",
+      "typeVersion": 1,
+      "position": [
+        0,
+        0
+      ],
+      "id": "3405cbdf-a033-41c4-98fd-71906d4b5a56",
+      "name": "Google Drive Trigger",
+      "alwaysOutputData": false,
+      "executeOnce": false,
+      "retryOnFail": false,
+      "credentials": {
+        "googleDriveOAuth2Api": {
+          "id": "54UNvCGYNpwgHk7o",
+          "name": "Google Drive account 14"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "43e4d621-e09f-4a30-ae40-d7f72a0a4a50",
+              "name": "originalFilename",
+              "value": "={{ $json.name }}",
+              "type": "string"
+            },
+            {
+              "id": "c1f08b9e-6ecf-4931-ab16-2f622567da53",
+              "name": "id",
+              "value": "={{ $json.id }}",
+              "type": "string"
+            },
+            {
+              "id": "5580c9fb-7e3a-43d3-838a-d2675cb09de0",
+              "name": "webViewLink",
+              "value": "={{ $json.webViewLink }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        208,
+        0
+      ],
+      "id": "5a561099-c7c2-49ab-ad68-1d988dafd43c",
+      "name": "Edit Fields"
+    },
+    {
+      "parameters": {
+        "operation": "copy",
+        "fileId": {
+          "__rl": true,
+          "value": "={{ $json.id }}",
+          "mode": "id"
+        },
+        "name": "={{ $json.originalFilename + \" copy\" }}",
+        "sameFolder": false,
+        "driveId": {
+          "__rl": true,
+          "value": "My Drive",
+          "mode": "list",
+          "cachedResultName": "My Drive",
+          "cachedResultUrl": "https://drive.google.com/drive/my-drive"
+        },
+        "folderId": {
+          "__rl": true,
+          "value": "1H391_b6cHCECil3y2F49zSbNUFNkIwyM",
+          "mode": "list",
+          "cachedResultName": "Copies",
+          "cachedResultUrl": "https://drive.google.com/drive/folders/1H391_b6cHCECil3y2F49zSbNUFNkIwyM"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleDrive",
+      "typeVersion": 3,
+      "position": [
+        416,
+        0
+      ],
+      "id": "b63f603e-5b96-483d-a52d-34a366349e1f",
+      "name": "Copy file",
+      "credentials": {
+        "googleDriveOAuth2Api": {
+          "id": "54UNvCGYNpwgHk7o",
+          "name": "Google Drive account 14"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "1cebbb11-6058-4de9-b817-9ce49d2d01d1",
+              "name": "copy_id",
+              "value": "={{ $json.id }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        624,
+        0
+      ],
+      "id": "7d6b5471-aae4-462d-ac89-6b52c6e441cd",
+      "name": "Edit Fields1"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "08eeab97-7a52-42ff-bf6b-1d984c5bec46",
+              "name": "content",
+              "value": "={{ $json.content }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        416,
+        416
+      ],
+      "id": "19eff914-428d-46c1-a73c-b4ee911482db",
+      "name": "Set Content"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "=https://www.googleapis.com/drive/v2/files/{{ $json.copy_id }}/copy?convert=true&supportsAllDrives=true ",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "googleDocsOAuth2Api",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        832,
+        0
+      ],
+      "id": "cfb652b2-8aee-4e23-8fc0-12fccb7409c9",
+      "name": "HTTP Request",
+      "credentials": {
+        "googleDocsOAuth2Api": {
+          "id": "cpwabv3AL2yw8QYS",
+          "name": "Google Docs account 6"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "get",
+        "documentURL": "={{ $json.id }}"
+      },
+      "type": "n8n-nodes-base.googleDocs",
+      "typeVersion": 2,
+      "position": [
+        224,
+        416
+      ],
+      "id": "e402cff8-e10d-4514-a541-0cdc814cdca0",
+      "name": "Read Docs file",
+      "credentials": {
+        "googleDocsOAuth2Api": {
+          "id": "cpwabv3AL2yw8QYS",
+          "name": "Google Docs account 6"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=Вот текст эссе:\n===\n{{ $json.content }}",
+        "options": {
+          "systemMessage": "Ты преподаватель, который должен выполнить ревью по предоставленному эссе. Используй академический язык. Вынеси вердикт максимум на 1 абзац. \n\nРевью помимо текстового вердикта должен содержать комплексную оценку по 5-балльной шкале по параметрам:\n- Структура\n- Аргументация\n- Язык\n- Стиль\n\nКомплексная оценка рассчитывается как среднее от суммы оценок каждого параметра\n\nСтруктура ревью:\n- Оценка (комплексная, затем по каждому параметру)\n- Вердикт"
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 2.1,
+      "position": [
+        768,
+        384
+      ],
+      "id": "4a3ffeae-7ab1-40dc-bb57-10f48684ec59",
+      "name": "AI Agent",
+      "retryOnFail": true,
+      "onError": "continueErrorOutput",
+      "notes": "цветы закончилися"
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenRouter",
+      "typeVersion": 1,
+      "position": [
+        656,
+        592
+      ],
+      "id": "18ec9a33-02e8-424e-87d2-ac34460cbf14",
+      "name": "OpenRouter Chat Model",
+      "credentials": {
+        "openRouterApi": {
+          "id": "SToaU6AIVh2FP5p0",
+          "name": "OpenRouter"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "createFromText",
+        "content": "={{ $json.output }}",
+        "name": "={{ $('Edit Fields').item.json.originalFilename + \" review\"}}",
+        "driveId": {
+          "__rl": true,
+          "mode": "list",
+          "value": "My Drive"
+        },
+        "folderId": {
+          "__rl": true,
+          "value": "1uwloX7KEHxmiL1erjIc_ONPGqohAD6dx",
+          "mode": "list",
+          "cachedResultName": "Review",
+          "cachedResultUrl": "https://drive.google.com/drive/folders/1uwloX7KEHxmiL1erjIc_ONPGqohAD6dx"
+        },
+        "options": {
+          "convertToGoogleDocument": false
+        }
+      },
+      "type": "n8n-nodes-base.googleDrive",
+      "typeVersion": 3,
+      "position": [
+        1120,
+        288
+      ],
+      "id": "783f5fb7-f342-448f-89f6-03ea461b81dc",
+      "name": "Create file from text",
+      "credentials": {
+        "googleDriveOAuth2Api": {
+          "id": "54UNvCGYNpwgHk7o",
+          "name": "Google Drive account 14"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "content": "## Рецензирование публикации\n\n1. В папку гуглдокс поместить документ со статьёй\n1. Запустить цепочку\n1. Агент выполнит рецензию и поместит её в отдельную папку",
+        "height": 256
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        -240,
+        192
+      ],
+      "typeVersion": 1,
+      "id": "3e1a2a29-b488-4134-8c66-dddfe6476d6c",
+      "name": "Sticky Note"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Google Drive Trigger": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields": {
+      "main": [
+        [
+          {
+            "node": "Copy file",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Copy file": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields1": {
+      "main": [
+        [
+          {
+            "node": "HTTP Request",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP Request": {
+      "main": [
+        [
+          {
+            "node": "Read Docs file",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Read Docs file": {
+      "main": [
+        [
+          {
+            "node": "Set Content",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Agent": {
+      "main": [
+        [
+          {
+            "node": "Create file from text",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        []
+      ]
+    },
+    "OpenRouter Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Set Content": {
+      "main": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "7010155c-384b-48b4-8111-079824a15eaf",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "b85f0d09f3d863b4b665ea0e3475dac5af387c16ba8aaf52f137a98c26bd5361"
+  },
+  "id": "rUZjL4snl4HkatDH",
+  "tags": []
+}

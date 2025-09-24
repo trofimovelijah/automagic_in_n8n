@@ -1,0 +1,772 @@
+{
+  "name": "Flower shop",
+  "nodes": [
+    {
+      "parameters": {
+        "updates": [
+          "message"
+        ],
+        "additionalFields": {}
+      },
+      "type": "n8n-nodes-base.telegramTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        384,
+        16
+      ],
+      "id": "4f8b1458-5be9-4ab0-a7b5-c6f235db1297",
+      "name": "Telegram Trigger",
+      "webhookId": "2ea7970c-b085-4f8a-b7aa-773d1e8ffbd0",
+      "credentials": {
+        "telegramApi": {
+          "id": "F2ODQJLp23qATJaP",
+          "name": "tg_n8n_stepik_bot"
+        }
+      },
+      "disabled": true
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "07045d7a-4415-49f6-8a09-44a997378fdf",
+              "name": "text",
+              "value": "={{ $json.message.text }}",
+              "type": "string"
+            },
+            {
+              "id": "817e99d7-dcb9-4fe0-8b46-9eb49f4459e1",
+              "name": "chat_id",
+              "value": "={{ $json.message.chat.id }}",
+              "type": "number"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        608,
+        16
+      ],
+      "id": "0cb69e4c-4e3f-41f8-a1fd-7ae7be5b4816",
+      "name": "Edit Fields",
+      "retryOnFail": true,
+      "disabled": true
+    },
+    {
+      "parameters": {
+        "chatId": "={{ $json.chat_id }}",
+        "text": "={{ $json.text }}",
+        "additionalFields": {
+          "appendAttribution": false
+        }
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        832,
+        16
+      ],
+      "id": "bc7a9ca6-3036-471f-8d0e-4d92313310c9",
+      "name": "Send a text message",
+      "webhookId": "dc0cf9df-85a4-40d1-bed9-31081633fa27",
+      "credentials": {
+        "telegramApi": {
+          "id": "F2ODQJLp23qATJaP",
+          "name": "tg_n8n_stepik_bot"
+        }
+      },
+      "disabled": true
+    },
+    {
+      "parameters": {
+        "chatId": "={{ $('Telegram Trigger1').item.json.message.chat.id }}",
+        "text": "={{ $json.output }}",
+        "additionalFields": {
+          "appendAttribution": false
+        }
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        1152,
+        960
+      ],
+      "id": "b9fd3f68-8936-441d-b719-424ca4074426",
+      "name": "Send a text message1",
+      "webhookId": "dc0cf9df-85a4-40d1-bed9-31081633fa27",
+      "alwaysOutputData": false,
+      "credentials": {
+        "telegramApi": {
+          "id": "F2ODQJLp23qATJaP",
+          "name": "tg_n8n_stepik_bot"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "content": "## Эхо-бот\nДля использования активировать все ноды, а иные ноды деактивировать",
+        "color": 4
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        0,
+        0
+      ],
+      "typeVersion": 1,
+      "id": "bbe817d3-420e-4acb-b945-896be01257c0",
+      "name": "Sticky Note",
+      "disabled": true
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "={{ $('Edit Fields2').item.json.message }}",
+        "options": {
+          "systemMessage": "Ты агент-помощник интернет-магазина «Цветочный рай». Отвечай как дружелюбный, энергичный и немного романтичный помощник. Помогай покупателям подобрать букет, отвечай на вопросы про оплату, доставку, ассортимент и цены. Будь кратким, вежливым и информативным.\n\nДля ответов используй следующие знания:\n\nУсловия доставки:\n- Самовывоз: 3-я Коммунистическая улица, дом 12, ежедневно с 8:00 до 22:00 без выходных.  \n- Доставка нашей транспортной компанией «Быстрый Букет» по городу и области в течение дня, 7 дней в неделю.  \n- Экспресс-доставка за 2 часа в пределах МКАД – 300 ₽.  \n- Бесплатная доставка при заказе от 3 000 ₽.\n\nСпособы оплаты:\n- Наличными при самовывозе или курьеру.  \n- Картой Visa, Mastercard, Мир (терминал на месте или онлайн-ссылка).  \n- Онлайн-перевод по СБП или СПБ.  \n- Разбивка на 2 платежа без % при заказе от 5 000 ₽.\n\nАссортимент:\n- Цветущие растения: розы, тюльпаны, пионы, хризантемы, орхидеи, лилии, герберы, альстромерии, гипсофилы, эустомы.  \n- Комнатные растения: фиалки, фикусы, суккуленты, монстеры, замиокулькасы, сансевиерии, пеперомии, хойи.  \n- Готовые букеты: «Классика», «Минимализм», «Премиум», «Шляпная коробка».  \n- Дополнительно: открытки, конфеты, мягкие игрушки, декоративная упаковка, удобрения и горшки.\n\nПрайс:\n- Комнатные растения – 300 ₽ за штуку.  \n- Цветущие растения – 500 ₽ за штуку.  \n- Готовые букеты – от 1 500 ₽ до 15 000 ₽.  \n- Сезонные скидки: весной –10 % на тюльпаны, зимой –15 % на новогодние композиции."
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 2.1,
+      "position": [
+        608,
+        912
+      ],
+      "id": "1c85fd18-13ad-4c30-b6d2-fa5d27731c89",
+      "name": "AI Agent",
+      "retryOnFail": true,
+      "onError": "continueErrorOutput",
+      "notes": "цветы закончилися"
+    },
+    {
+      "parameters": {
+        "sessionIdType": "customKey",
+        "sessionKey": "={{ $('Telegram Trigger1').item.json.message.chat.id }}"
+      },
+      "type": "@n8n/n8n-nodes-langchain.memoryBufferWindow",
+      "typeVersion": 1.3,
+      "position": [
+        784,
+        1200
+      ],
+      "id": "7457f5dd-7295-4013-9a6a-72adf96b8f3e",
+      "name": "Simple Memory"
+    },
+    {
+      "parameters": {
+        "content": "## Помощник по цветочному магазу\n- указать через тг [@n8n_stepik_bot](https://t.me/n8n_stepik_bot) вопрос по работе цветочного магазина\n- используется опенроутер\n- в таблице [Google Sheets](https://docs.google.com/spreadsheets/d/1YWOlo3SLC_kVKsn1Q43KZSlsSCo9KL_CVBt1nl4l6PA/edit?gid=0#gid=0) учитываются события аудита пользовательских действий",
+        "height": 224,
+        "width": 272,
+        "color": 4
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        -1392,
+        1040
+      ],
+      "typeVersion": 1,
+      "id": "c71f2067-ce94-4ff5-bb7f-8e12a4e91f2e",
+      "name": "Sticky Note1"
+    },
+    {
+      "parameters": {
+        "errorMessage": "приехали, стоп!"
+      },
+      "type": "n8n-nodes-base.stopAndError",
+      "typeVersion": 1,
+      "position": [
+        1024,
+        1088
+      ],
+      "id": "b942803c-b5c5-4245-bff2-c55b4fb91553",
+      "name": "Stop and Error"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "1906b01a-d3d9-4c83-bd47-37aca71ed662",
+              "name": "telegram_id",
+              "value": "={{ $json.message.chat.id }}",
+              "type": "number"
+            },
+            {
+              "id": "e29c5893-6dfc-40d2-a280-63a448e00f34",
+              "name": "username",
+              "value": "={{ $json.message.from.username }}",
+              "type": "string"
+            },
+            {
+              "id": "cf088351-04d4-4cd2-8180-5220f58ff260",
+              "name": "message",
+              "value": "={{ $json.message.text }}",
+              "type": "string"
+            },
+            {
+              "id": "47dabdae-834f-426f-abe3-6dd2390edc5e",
+              "name": "date",
+              "value": "={{ $json.message.date }}",
+              "type": "string"
+            }
+          ]
+        },
+        "includeOtherFields": "=",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -672,
+        1120
+      ],
+      "id": "4d27aef7-2229-4172-bbc7-b15fcd480730",
+      "name": "Edit Fields2",
+      "alwaysOutputData": true
+    },
+    {
+      "parameters": {
+        "operation": "update",
+        "documentId": {
+          "__rl": true,
+          "value": "1YWOlo3SLC_kVKsn1Q43KZSlsSCo9KL_CVBt1nl4l6PA",
+          "mode": "list",
+          "cachedResultName": "Support Inbox",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1YWOlo3SLC_kVKsn1Q43KZSlsSCo9KL_CVBt1nl4l6PA/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "Tickets",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1YWOlo3SLC_kVKsn1Q43KZSlsSCo9KL_CVBt1nl4l6PA/edit#gid=0"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "telegram_id": "={{ $('Get row(s) in sheet').item.json.telegram_id }}",
+            "username": "={{ $('Get row(s) in sheet').item.json.username }}",
+            "message": "={{ $('Edit Fields2').item.json.message }}",
+            "last_message_at": "={{$now.toISO()}}",
+            "is_repeat": "=\"Да\"",
+            "repeat_count": "={{ $('Get row(s) in sheet').item.json.repeat_count + 1 }}",
+            "first_message_at": "={{ $json.first_message_at }}"
+          },
+          "matchingColumns": [
+            "telegram_id"
+          ],
+          "schema": [
+            {
+              "id": "telegram_id",
+              "displayName": "telegram_id",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "username",
+              "displayName": "username",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "message",
+              "displayName": "message",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "first_message_at",
+              "displayName": "first_message_at",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "last_message_at",
+              "displayName": "last_message_at",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "is_repeat",
+              "displayName": "is_repeat",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "repeat_count",
+              "displayName": "repeat_count",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "row_number",
+              "displayName": "row_number",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "number",
+              "canBeUsedToMatch": true,
+              "readOnly": true,
+              "removed": true
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        -64,
+        928
+      ],
+      "id": "98bfb320-708c-4c51-9808-df3769a096d1",
+      "name": "Update row in sheet",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "pI4ZZe9t4Jt86Ygd",
+          "name": "Google Sheets account 12"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "append",
+        "documentId": {
+          "__rl": true,
+          "value": "1YWOlo3SLC_kVKsn1Q43KZSlsSCo9KL_CVBt1nl4l6PA",
+          "mode": "list",
+          "cachedResultName": "Support Inbox",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1YWOlo3SLC_kVKsn1Q43KZSlsSCo9KL_CVBt1nl4l6PA/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "Tickets",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1YWOlo3SLC_kVKsn1Q43KZSlsSCo9KL_CVBt1nl4l6PA/edit#gid=0"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "telegram_id": "={{ $('Edit Fields2').item.json.telegram_id }}",
+            "username": "={{ $('Edit Fields2').item.json.username }}",
+            "message": "={{ $('Edit Fields2').item.json.message }}",
+            "first_message_at": "={{$now.toISO()}}",
+            "last_message_at": "={{$now.toISO()}}",
+            "is_repeat": "\"Нет\"",
+            "repeat_count": "1"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "telegram_id",
+              "displayName": "telegram_id",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "username",
+              "displayName": "username",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "message",
+              "displayName": "message",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "first_message_at",
+              "displayName": "first_message_at",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "last_message_at",
+              "displayName": "last_message_at",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "is_repeat",
+              "displayName": "is_repeat",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "repeat_count",
+              "displayName": "repeat_count",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        -32,
+        1200
+      ],
+      "id": "af7e4329-c960-4304-bc6c-86eea7053686",
+      "name": "Append row in sheet",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "pI4ZZe9t4Jt86Ygd",
+          "name": "Google Sheets account 12"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenRouter",
+      "typeVersion": 1,
+      "position": [
+        480,
+        1120
+      ],
+      "id": "b161ca76-8ddb-4297-bdb5-6feaac512c7f",
+      "name": "OpenRouter Chat Model",
+      "notesInFlow": false,
+      "credentials": {
+        "openRouterApi": {
+          "id": "SToaU6AIVh2FP5p0",
+          "name": "OpenRouter"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "updates": [
+          "message"
+        ],
+        "additionalFields": {}
+      },
+      "type": "n8n-nodes-base.telegramTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        -992,
+        1264
+      ],
+      "id": "bb5c52d7-1bdd-4815-9244-121efd913faf",
+      "name": "Telegram Trigger1",
+      "webhookId": "e8b53d6e-9b69-4c08-8fbd-fc58e8b2f4a5",
+      "credentials": {
+        "telegramApi": {
+          "id": "F2ODQJLp23qATJaP",
+          "name": "tg_n8n_stepik_bot"
+        }
+      }
+    },
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        208,
+        1008
+      ],
+      "id": "1b614e67-632f-4215-af12-f3fee9a7db6c",
+      "name": "Merge"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "loose",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "6e6fe905-6db0-4f91-9f08-fb747de7b984",
+              "leftValue": "={{ $('Edit Fields2').item.json.telegram_id }}",
+              "rightValue": "={{ $json.telegram_id }}",
+              "operator": {
+                "type": "string",
+                "operation": "equals",
+                "name": "filter.operator.equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "looseTypeValidation": true,
+        "options": {
+          "ignoreCase": false
+        }
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        -256,
+        1040
+      ],
+      "id": "e1c79150-3c5a-4788-b61a-9a7ca49c7b97",
+      "name": "If",
+      "alwaysOutputData": false,
+      "executeOnce": false
+    },
+    {
+      "parameters": {
+        "documentId": {
+          "__rl": true,
+          "value": "1YWOlo3SLC_kVKsn1Q43KZSlsSCo9KL_CVBt1nl4l6PA",
+          "mode": "list",
+          "cachedResultName": "Support Inbox",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1YWOlo3SLC_kVKsn1Q43KZSlsSCo9KL_CVBt1nl4l6PA/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "Tickets",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1YWOlo3SLC_kVKsn1Q43KZSlsSCo9KL_CVBt1nl4l6PA/edit#gid=0"
+        },
+        "filtersUI": {
+          "values": [
+            {
+              "lookupColumn": "telegram_id",
+              "lookupValue": "={{ $json.telegram_id }}"
+            }
+          ]
+        },
+        "combineFilters": "OR",
+        "options": {
+          "returnFirstMatch": false
+        }
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        -464,
+        1120
+      ],
+      "id": "b3b54f94-86d6-45cb-b257-bb397fddd8d6",
+      "name": "Get row(s) in sheet",
+      "alwaysOutputData": true,
+      "executeOnce": false,
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "pI4ZZe9t4Jt86Ygd",
+          "name": "Google Sheets account 12"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Telegram Trigger": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields": {
+      "main": [
+        [
+          {
+            "node": "Send a text message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Simple Memory": {
+      "ai_memory": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_memory",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Agent": {
+      "main": [
+        [
+          {
+            "node": "Send a text message1",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Stop and Error",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields2": {
+      "main": [
+        [
+          {
+            "node": "Get row(s) in sheet",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Append row in sheet": {
+      "main": [
+        [
+          {
+            "node": "Merge",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "Update row in sheet": {
+      "main": [
+        [
+          {
+            "node": "Merge",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenRouter Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Telegram Trigger1": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Merge": {
+      "main": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If": {
+      "main": [
+        [
+          {
+            "node": "Update row in sheet",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Append row in sheet",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get row(s) in sheet": {
+      "main": [
+        [
+          {
+            "node": "If",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "6f958744-8303-496f-aa3f-bee80ea80cb1",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "b85f0d09f3d863b4b665ea0e3475dac5af387c16ba8aaf52f137a98c26bd5361"
+  },
+  "id": "u7e3ju7AVlhOAwTr",
+  "tags": []
+}

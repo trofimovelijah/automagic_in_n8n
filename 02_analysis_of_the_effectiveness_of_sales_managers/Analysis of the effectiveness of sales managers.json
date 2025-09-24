@@ -1,0 +1,1056 @@
+{
+  "name": "Analysis of the effectiveness of sales managers",
+  "nodes": [
+    {
+      "parameters": {
+        "pollTimes": {
+          "item": [
+            {
+              "mode": "everyMinute"
+            }
+          ]
+        },
+        "authentication": "airtableTokenApi",
+        "baseId": {
+          "__rl": true,
+          "value": "https://airtable.com/appg3ruheQ4j6jOxf/tbleprUuwSoaMc4jb",
+          "mode": "url"
+        },
+        "tableId": {
+          "__rl": true,
+          "value": "https://airtable.com/appg3ruheQ4j6jOxf/tbl3UIc5rBHsU72tG/viw21S8sTvEg1OzUK",
+          "mode": "url"
+        },
+        "triggerField": "created time",
+        "additionalFields": {}
+      },
+      "type": "n8n-nodes-base.airtableTrigger",
+      "typeVersion": 1,
+      "position": [
+        -1456,
+        528
+      ],
+      "id": "bc0aa29b-dab1-4436-b9a6-70263b01c4d2",
+      "name": "Airtable Trigger",
+      "credentials": {
+        "airtableTokenApi": {
+          "id": "InfuD0tgusifqfcX",
+          "name": "Airtable Personal Access Token account 6"
+        }
+      },
+      "disabled": true
+    },
+    {
+      "parameters": {
+        "content": "## Анализ эффективности менеджеров по продажам\n\n**Цель:**\nКомпания \"AI аудит\" хочет понять, какие менеджеры приносят больше всего продаж и имеют лучшую конверсию по лидам, а какие - наихудшую.\n\n**Задача:**\nНеобходимо оценить эффективность каждого менеджера и принять решение, кого из работников следует уволить.",
+        "height": 224,
+        "width": 1120,
+        "color": 4
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        -544,
+        -48
+      ],
+      "typeVersion": 1,
+      "id": "678a8f54-1d31-40c4-9bf5-e0143118c159",
+      "name": "Sticky Note"
+    },
+    {
+      "parameters": {
+        "operation": "search",
+        "base": {
+          "__rl": true,
+          "value": "appg3ruheQ4j6jOxf",
+          "mode": "list",
+          "cachedResultName": "Manager_Lead_Task_Leads.csv",
+          "cachedResultUrl": "https://airtable.com/appg3ruheQ4j6jOxf"
+        },
+        "table": {
+          "__rl": true,
+          "value": "tbl3UIc5rBHsU72tG",
+          "mode": "list",
+          "cachedResultName": "Orders",
+          "cachedResultUrl": "https://airtable.com/appg3ruheQ4j6jOxf/tbl3UIc5rBHsU72tG"
+        },
+        "filterByFormula": "=",
+        "options": {
+          "fields": [
+            "order_id",
+            "lead_email",
+            "manager"
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.airtable",
+      "typeVersion": 2.1,
+      "position": [
+        -944,
+        672
+      ],
+      "id": "e65e030a-ad25-402d-a328-d0e9469a090e",
+      "name": "Search for Orders",
+      "alwaysOutputData": true,
+      "credentials": {
+        "airtableTokenApi": {
+          "id": "InfuD0tgusifqfcX",
+          "name": "Airtable Personal Access Token account 6"
+        }
+      },
+      "disabled": true
+    },
+    {
+      "parameters": {
+        "operation": "search",
+        "base": {
+          "__rl": true,
+          "value": "appg3ruheQ4j6jOxf",
+          "mode": "list",
+          "cachedResultName": "Manager_Lead_Task_Leads.csv",
+          "cachedResultUrl": "https://airtable.com/appg3ruheQ4j6jOxf"
+        },
+        "table": {
+          "__rl": true,
+          "value": "tblupb3L7GN8TTI7Z",
+          "mode": "list",
+          "cachedResultName": "Leads",
+          "cachedResultUrl": "https://airtable.com/appg3ruheQ4j6jOxf/tblupb3L7GN8TTI7Z"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.airtable",
+      "typeVersion": 2.1,
+      "position": [
+        -944,
+        416
+      ],
+      "id": "88cf5ed5-8b70-4489-9f54-315696e1dfe0",
+      "name": "Search for Leads",
+      "alwaysOutputData": true,
+      "executeOnce": false,
+      "credentials": {
+        "airtableTokenApi": {
+          "id": "InfuD0tgusifqfcX",
+          "name": "Airtable Personal Access Token account 6"
+        }
+      },
+      "disabled": true
+    },
+    {
+      "parameters": {
+        "mode": "combine",
+        "fieldsToMatchString": "lead_email",
+        "joinMode": "enrichInput2",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        -384,
+        496
+      ],
+      "id": "665ad3a7-efcc-4b76-ae38-d09d10a4ef37",
+      "name": "Merge",
+      "alwaysOutputData": true,
+      "disabled": true
+    },
+    {
+      "parameters": {
+        "content": "## Таблица Leads\nПоиск и фильтрация по таблице Leads",
+        "height": 240,
+        "width": 512,
+        "color": 5
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        -1040,
+        320
+      ],
+      "typeVersion": 1,
+      "id": "627ba96a-8c05-4e87-93b1-82216f26c6cc",
+      "name": "Sticky Note1",
+      "disabled": true
+    },
+    {
+      "parameters": {
+        "content": "## Таблица Orders\nПоиск и фильтрация по таблице Orders",
+        "height": 240,
+        "width": 512,
+        "color": 5
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        -1040,
+        592
+      ],
+      "typeVersion": 1,
+      "id": "a33267c7-d20e-46e8-a3c5-3a11e6bfbc1b",
+      "name": "Sticky Note2",
+      "disabled": true
+    },
+    {
+      "parameters": {
+        "operation": "update",
+        "base": {
+          "__rl": true,
+          "value": "appg3ruheQ4j6jOxf",
+          "mode": "list",
+          "cachedResultName": "Manager_Lead_Task_Leads.csv",
+          "cachedResultUrl": "https://airtable.com/appg3ruheQ4j6jOxf"
+        },
+        "table": {
+          "__rl": true,
+          "value": "tbl3UIc5rBHsU72tG",
+          "mode": "list",
+          "cachedResultName": "Orders",
+          "cachedResultUrl": "https://airtable.com/appg3ruheQ4j6jOxf/tbl3UIc5rBHsU72tG"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "id": "={{ $json.order_record_id }}",
+            "manager": "={{ $json.manager }}"
+          },
+          "matchingColumns": [
+            "id"
+          ],
+          "schema": [
+            {
+              "id": "id",
+              "displayName": "id",
+              "required": false,
+              "defaultMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": true,
+              "removed": false
+            },
+            {
+              "id": "order_id",
+              "displayName": "order_id",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "name",
+              "displayName": "name",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "lead_email",
+              "displayName": "lead_email",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "total_sum",
+              "displayName": "total_sum",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "number",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "manager",
+              "displayName": "manager",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "created time",
+              "displayName": "created time",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": true,
+              "removed": true
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.airtable",
+      "typeVersion": 2.1,
+      "position": [
+        288,
+        528
+      ],
+      "id": "2b137f40-d3a2-418b-8756-65aea9bf0ba7",
+      "name": "Update Orders with Managers",
+      "alwaysOutputData": true,
+      "executeOnce": false,
+      "credentials": {
+        "airtableTokenApi": {
+          "id": "InfuD0tgusifqfcX",
+          "name": "Airtable Personal Access Token account 6"
+        }
+      },
+      "disabled": true
+    },
+    {
+      "parameters": {
+        "content": "## Сборка обогащённой таблицы Orders\n1. Используется объединение Right Join\n1. Около каждого заказа заполняется фамилия менеджера manager\n1. Без найденного менеджера узел **Has Manager?** не выполняет обновление таблицы",
+        "height": 416,
+        "width": 624,
+        "color": 2
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        -480,
+        336
+      ],
+      "typeVersion": 1,
+      "id": "395f3dac-faaa-4813-bc36-31a9670db21b",
+      "name": "Sticky Note3",
+      "disabled": true
+    },
+    {
+      "parameters": {
+        "mode": "raw",
+        "jsonOutput": "={\n  \"lead_email\": \"{{ $json.lead_email }}\",\n  \"manager\": \"{{ $json.manager }}\"\n}\n",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -736,
+        416
+      ],
+      "id": "67866b0e-3fb8-4910-9660-5be08729a98e",
+      "name": "Prep Leads",
+      "alwaysOutputData": false,
+      "disabled": true
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "b167eb42-80af-4ad6-9ed4-73157e9cb7cb",
+              "name": "order_record_id",
+              "value": "={{ $json.id }}",
+              "type": "string"
+            },
+            {
+              "id": "e519a010-0af0-497e-b5a9-8b6c3aa5f849",
+              "name": "lead_email",
+              "value": "={{ $json.lead_email }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -736,
+        672
+      ],
+      "id": "147ef6dc-0fee-4aca-a901-cb9529550840",
+      "name": "Prep Orders",
+      "disabled": true
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "d5adc44a-9988-462b-9452-43ae64ccc9a4",
+              "leftValue": "={{ $json.manager }}",
+              "rightValue": "",
+              "operator": {
+                "type": "string",
+                "operation": "notEmpty",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        -176,
+        496
+      ],
+      "id": "04ad0699-54cf-4c44-abad-cc84cc2ea756",
+      "name": "Has Manager?",
+      "disabled": true
+    },
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.noOp",
+      "typeVersion": 1,
+      "position": [
+        -16,
+        608
+      ],
+      "id": "176af059-c417-428d-b428-a2a836e5680f",
+      "name": "-> Log",
+      "disabled": true
+    },
+    {
+      "parameters": {
+        "pollTimes": {
+          "item": [
+            {
+              "mode": "everyMinute"
+            }
+          ]
+        },
+        "authentication": "airtableTokenApi",
+        "baseId": {
+          "__rl": true,
+          "value": "https://airtable.com/appg3ruheQ4j6jOxf/tbleprUuwSoaMc4jb",
+          "mode": "url"
+        },
+        "tableId": {
+          "__rl": true,
+          "value": "https://airtable.com/appg3ruheQ4j6jOxf/tbl3UIc5rBHsU72tG/viw21S8sTvEg1OzUK",
+          "mode": "url"
+        },
+        "triggerField": "created time",
+        "additionalFields": {}
+      },
+      "type": "n8n-nodes-base.airtableTrigger",
+      "typeVersion": 1,
+      "position": [
+        -1472,
+        1296
+      ],
+      "id": "fc26fdb4-20fc-455e-8738-469c7bbbb81d",
+      "name": "Airtable Trigger1",
+      "credentials": {
+        "airtableTokenApi": {
+          "id": "InfuD0tgusifqfcX",
+          "name": "Airtable Personal Access Token account 6"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "mode": "combine",
+        "fieldsToMatchString": "manager",
+        "joinMode": "enrichInput1",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        0,
+        1248
+      ],
+      "id": "6a30ead1-1909-4044-84d3-a23116ee7e07",
+      "name": "Merge1",
+      "alwaysOutputData": true,
+      "executeOnce": false,
+      "retryOnFail": false
+    },
+    {
+      "parameters": {
+        "content": "## Агрегация данных из таблицы Leads\n1. Поиск по таблице Leads\n1. Подсчёт количества менеджеров",
+        "height": 240,
+        "width": 656,
+        "color": 5
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        -1104,
+        1056
+      ],
+      "typeVersion": 1,
+      "id": "dd2c5f6d-0df3-4971-b277-233d5080aeb8",
+      "name": "Sticky Note4"
+    },
+    {
+      "parameters": {
+        "content": "## Агрегация данных из таблицы Orders\n1. Поиск по таблице Orders\n1. Подсчёт числа и суммы всех заказов по каждому менеджеру",
+        "height": 288,
+        "width": 640,
+        "color": 5
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        -1104,
+        1360
+      ],
+      "typeVersion": 1,
+      "id": "719493d6-9b58-45dc-a89b-11d56372849c",
+      "name": "Sticky Note5"
+    },
+    {
+      "parameters": {
+        "content": "## Подсчёт конверсии и установки метки\n1. Используется объединение Right Join\n1. Для каждого менеджера будут доступны количество лидов и сумма/количество заказов\n1. Формирование нужной структуры\n1. Определение метки **fire**",
+        "height": 320,
+        "width": 1184
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        -160,
+        1104
+      ],
+      "typeVersion": 1,
+      "id": "45b64f9d-898b-4d0b-847e-e90c5aaf07a6",
+      "name": "Sticky Note6",
+      "disabled": true
+    },
+    {
+      "parameters": {
+        "operation": "search",
+        "base": {
+          "__rl": true,
+          "value": "appg3ruheQ4j6jOxf",
+          "mode": "list",
+          "cachedResultName": "Manager_Lead_Task_Leads.csv",
+          "cachedResultUrl": "https://airtable.com/appg3ruheQ4j6jOxf"
+        },
+        "table": {
+          "__rl": true,
+          "value": "tblupb3L7GN8TTI7Z",
+          "mode": "list",
+          "cachedResultName": "Leads",
+          "cachedResultUrl": "https://airtable.com/appg3ruheQ4j6jOxf/tblupb3L7GN8TTI7Z"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.airtable",
+      "typeVersion": 2.1,
+      "position": [
+        -960,
+        1152
+      ],
+      "id": "2d105172-2de7-4a82-9eeb-cc4a3e08e0c7",
+      "name": "Get Leads",
+      "alwaysOutputData": true,
+      "executeOnce": false,
+      "credentials": {
+        "airtableTokenApi": {
+          "id": "InfuD0tgusifqfcX",
+          "name": "Airtable Personal Access Token account 6"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "search",
+        "base": {
+          "__rl": true,
+          "value": "appg3ruheQ4j6jOxf",
+          "mode": "list",
+          "cachedResultName": "Manager_Lead_Task_Leads.csv",
+          "cachedResultUrl": "https://airtable.com/appg3ruheQ4j6jOxf"
+        },
+        "table": {
+          "__rl": true,
+          "value": "tbl3UIc5rBHsU72tG",
+          "mode": "list",
+          "cachedResultName": "Orders",
+          "cachedResultUrl": "https://airtable.com/appg3ruheQ4j6jOxf/tbl3UIc5rBHsU72tG"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.airtable",
+      "typeVersion": 2.1,
+      "position": [
+        -960,
+        1472
+      ],
+      "id": "28636860-8b42-4a57-9115-59b11545df75",
+      "name": "Get Orders",
+      "alwaysOutputData": true,
+      "credentials": {
+        "airtableTokenApi": {
+          "id": "InfuD0tgusifqfcX",
+          "name": "Airtable Personal Access Token account 6"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "// items — это массив объектов от Airtable Leads\n// каждый item.json содержит поля: lead_id, lead_email, manager\n\nconst counts = {};\n\nfor (const item of items) {\n  const mgr = item.json.manager || 'Unknown';\n  if (!counts[mgr]) {\n    counts[mgr] = 0;\n  }\n  counts[mgr]++;\n}\n\nconst result = Object.keys(counts).map(mgr => ({\n  json: {\n    manager: mgr,\n    leads_count: counts[mgr],\n  }\n}));\n\nreturn result;"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -736,
+        1152
+      ],
+      "id": "bd174315-a9bd-411d-8883-1ca5c97711c6",
+      "name": "Count Leads"
+    },
+    {
+      "parameters": {
+        "jsCode": "// items — это массив объектов от Airtable Orders\n// каждый item.json содержит поля: order_id, total_sum, manager\n\nconst agg = {};\n\nfor (const item of items) {\n  const mgr = item.json.manager || 'Unknown';\n  const sum = Number(item.json.total_sum) || 0;\n  \n  if (!agg[mgr]) {\n    agg[mgr] = { full_sum: 0, orders_count: 0 };\n  }\n  agg[mgr].full_sum += sum;\n  agg[mgr].orders_count++;\n}\n\nconst result = Object.keys(agg).map(mgr => ({\n  json: {\n    manager: mgr,\n    full_sum: agg[mgr].full_sum,\n    orders_count: agg[mgr].orders_count,\n  }\n}));\n\nreturn result;"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -752,
+        1472
+      ],
+      "id": "a2479c94-e04c-4178-91e7-8488f8799e51",
+      "name": "Aggregate Orders"
+    },
+    {
+      "parameters": {
+        "jsCode": "for (const item of items) {\n  const leads = item.json.leads_count ;\n  const orders = item.json.orders_count ;\n  item.json.conversion = leads >= 0 ? orders / leads : 0;\n}\nreturn items;"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        208,
+        1248
+      ],
+      "id": "e002ac28-2e06-4f32-ac41-02ebda66b856",
+      "name": "Calculate Conversion"
+    },
+    {
+      "parameters": {
+        "sortFieldsUi": {
+          "sortField": [
+            {
+              "fieldName": "full_sum"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.sort",
+      "typeVersion": 1,
+      "position": [
+        624,
+        1248
+      ],
+      "id": "511a5bc8-aa45-43bb-a932-6b443fadcaa0",
+      "name": "Sort for Sum Orders"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "8352ae49-b8a6-4716-be21-a66b0da1fcc0",
+              "name": "manager",
+              "value": "={{ $json.manager }}",
+              "type": "string"
+            },
+            {
+              "id": "4d93bf8c-34cf-472b-9b81-bebc9f7a3ce6",
+              "name": "full_sum",
+              "value": "={{ $json.full_sum }}",
+              "type": "number"
+            },
+            {
+              "id": "d23fa5f6-9dd6-42d1-96d5-d19f0f6e1705",
+              "name": "conversion",
+              "value": "={{ $json.conversion }}",
+              "type": "number"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        416,
+        1248
+      ],
+      "id": "8d4da2e2-2c1c-4893-b570-46e0729717cd",
+      "name": "Edit Structure"
+    },
+    {
+      "parameters": {
+        "jsCode": "for (let i = 0; i < items.length; i++) {\n  items[i].json.fire = i < 3 ? \"Yes\" : \"No\";\n}\nreturn items;"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        832,
+        1248
+      ],
+      "id": "8d523542-af32-4527-8080-8971cd222435",
+      "name": "Mark Fire"
+    },
+    {
+      "parameters": {
+        "operation": "upsert",
+        "base": {
+          "__rl": true,
+          "value": "appg3ruheQ4j6jOxf",
+          "mode": "list",
+          "cachedResultName": "Manager_Lead_Task_Leads.csv",
+          "cachedResultUrl": "https://airtable.com/appg3ruheQ4j6jOxf"
+        },
+        "table": {
+          "__rl": true,
+          "value": "tblr9DrRs4OtW8R73",
+          "mode": "list",
+          "cachedResultName": "ManagerStats",
+          "cachedResultUrl": "https://airtable.com/appg3ruheQ4j6jOxf/tblr9DrRs4OtW8R73"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "manager": "={{ $json.manager }}",
+            "full_sum": "={{ $json.full_sum }}",
+            "conversion": "={{ $json.conversion }}",
+            "fire": "={{ $json.fire }}"
+          },
+          "matchingColumns": [
+            "manager"
+          ],
+          "schema": [
+            {
+              "id": "id",
+              "displayName": "id",
+              "required": false,
+              "defaultMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": true,
+              "removed": false
+            },
+            {
+              "id": "manager",
+              "displayName": "manager",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "full_sum",
+              "displayName": "full_sum",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "number",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "conversion",
+              "displayName": "conversion",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "number",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "fire",
+              "displayName": "fire",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.airtable",
+      "typeVersion": 2.1,
+      "position": [
+        1296,
+        1248
+      ],
+      "id": "f819474e-6d6a-4f10-8cd6-428dbe66fb26",
+      "name": "Create or update a record",
+      "credentials": {
+        "airtableTokenApi": {
+          "id": "InfuD0tgusifqfcX",
+          "name": "Airtable Personal Access Token account 6"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "content": "## Запись результатов в таблицу ManagerStats\n",
+        "height": 384,
+        "width": 608,
+        "color": 4
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        1072,
+        1120
+      ],
+      "typeVersion": 1,
+      "id": "383d2055-8b1b-4844-bce7-190cd0fb5148",
+      "name": "Sticky Note7"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Airtable Trigger": {
+      "main": [
+        [
+          {
+            "node": "Search for Leads",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Search for Orders",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Search for Leads": {
+      "main": [
+        [
+          {
+            "node": "Prep Leads",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Search for Orders": {
+      "main": [
+        [
+          {
+            "node": "Prep Orders",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Merge": {
+      "main": [
+        [
+          {
+            "node": "Has Manager?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Prep Leads": {
+      "main": [
+        [
+          {
+            "node": "Merge",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Prep Orders": {
+      "main": [
+        [
+          {
+            "node": "Merge",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "Has Manager?": {
+      "main": [
+        [
+          {
+            "node": "Update Orders with Managers",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "-> Log",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Airtable Trigger1": {
+      "main": [
+        [
+          {
+            "node": "Get Leads",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Get Orders",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Merge1": {
+      "main": [
+        [
+          {
+            "node": "Calculate Conversion",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get Leads": {
+      "main": [
+        [
+          {
+            "node": "Count Leads",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get Orders": {
+      "main": [
+        [
+          {
+            "node": "Aggregate Orders",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Count Leads": {
+      "main": [
+        [
+          {
+            "node": "Merge1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Aggregate Orders": {
+      "main": [
+        [
+          {
+            "node": "Merge1",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "Calculate Conversion": {
+      "main": [
+        [
+          {
+            "node": "Edit Structure",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Sort for Sum Orders": {
+      "main": [
+        [
+          {
+            "node": "Mark Fire",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Structure": {
+      "main": [
+        [
+          {
+            "node": "Sort for Sum Orders",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Mark Fire": {
+      "main": [
+        [
+          {
+            "node": "Create or update a record",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Create or update a record": {
+      "main": [
+        []
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "c491c8bb-1695-4106-8732-47322a8da981",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "b85f0d09f3d863b4b665ea0e3475dac5af387c16ba8aaf52f137a98c26bd5361"
+  },
+  "id": "kr5iSNXUVmNp9zOn",
+  "tags": []
+}
