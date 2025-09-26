@@ -25,8 +25,10 @@
     {
       "parameters": {
         "chunkSize": 700,
-        "chunkOverlap": 140,
-        "options": {}
+        "chunkOverlap": 100,
+        "options": {
+          "splitCode": "markdown"
+        }
       },
       "type": "@n8n/n8n-nodes-langchain.textSplitterRecursiveCharacterTextSplitter",
       "typeVersion": 1,
@@ -163,15 +165,13 @@
       "parameters": {
         "chunkSize": 700,
         "chunkOverlap": 140,
-        "options": {
-          "splitCode": "markdown"
-        }
+        "options": {}
       },
       "type": "@n8n/n8n-nodes-langchain.textSplitterRecursiveCharacterTextSplitter",
       "typeVersion": 1,
       "position": [
-        976,
-        928
+        784,
+        1040
       ],
       "id": "23c368e5-7f1a-4c2a-8a47-b9329a261af1",
       "name": "Recursive Character Text Splitter1",
@@ -187,8 +187,8 @@
       "type": "@n8n/n8n-nodes-langchain.documentDefaultDataLoader",
       "typeVersion": 1.1,
       "position": [
-        848,
-        736
+        656,
+        848
       ],
       "id": "9131b4a7-1155-4e05-a860-fba0c3c9eca4",
       "name": "Default Data Loader",
@@ -441,7 +441,6 @@
           "value": "=documents",
           "mode": "id"
         },
-        "embeddingBatchSize": "={{ 200 }}",
         "options": {
           "queryName": "match_documents"
         }
@@ -487,7 +486,7 @@
     {
       "parameters": {
         "content": "## Воркфлоу №1: Индексация базы знаний\n\n1. Запуск: Вручную через 'Manual Trigger'.\n\n1. Загрузка: Чтение гугл-документа как текста.\n\n1. Векторизация: Преобразование текста в эмбеддинги. Есть две ветки:\n\n    - Активная: OpenAI text-embedding-3-large для максимальной точности.\n\n    - Неактивная: Hugging Face cointegrated/LaBSE-en-ru как альтернатива.\n\n1. Сохранение: Загрузка чанков и векторов в Supabase Vector Store.",
-        "height": 1360,
+        "height": 1424,
         "width": 2480
       },
       "type": "n8n-nodes-base.stickyNote",
@@ -529,6 +528,27 @@
           "name": "Google Drive account 14"
         }
       }
+    },
+    {
+      "parameters": {
+        "modelName": "cointegrated/LaBSE-en-ru",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.embeddingsHuggingFaceInference",
+      "typeVersion": 1,
+      "position": [
+        3856,
+        1584
+      ],
+      "id": "a8f4e6df-7748-42e5-b86f-d966c0477dec",
+      "name": "Hugging Face Embeddings1",
+      "credentials": {
+        "huggingFaceApi": {
+          "id": "CxmfClmZUdsk7IH5",
+          "name": "HuggingFaceApi Embeddings"
+        }
+      },
+      "disabled": true
     }
   ],
   "pinData": {},
@@ -751,13 +771,18 @@
       "ai_reranker": [
         []
       ]
+    },
+    "Hugging Face Embeddings1": {
+      "ai_embedding": [
+        []
+      ]
     }
   },
   "active": false,
   "settings": {
     "executionOrder": "v1"
   },
-  "versionId": "fc393296-9fbb-4feb-b2e3-498fbbeef8bf",
+  "versionId": "95c79aeb-ce08-446e-b6d4-c094eed7453b",
   "meta": {
     "templateCredsSetupCompleted": true,
     "instanceId": "b85f0d09f3d863b4b665ea0e3475dac5af387c16ba8aaf52f137a98c26bd5361"
