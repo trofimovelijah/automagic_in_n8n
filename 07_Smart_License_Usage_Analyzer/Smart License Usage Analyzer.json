@@ -11,8 +11,8 @@
       "type": "n8n-nodes-base.telegramTrigger",
       "typeVersion": 1.2,
       "position": [
-        -4048,
-        -208
+        -4096,
+        -1584
       ],
       "id": "255774f6-d648-4425-ac99-76ec7ce2dbf2",
       "name": "Webhook - Telegram Bot",
@@ -28,6 +28,30 @@
       "parameters": {
         "rules": {
           "values": [
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "id": "6a0aebe7-3cc2-436b-9e72-97a6755e7829",
+                    "leftValue": "={{ $('Edit Fields').item.json.text }}",
+                    "rightValue": "/",
+                    "operator": {
+                      "type": "string",
+                      "operation": "notContains"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "4 - User Input"
+            },
             {
               "conditions": {
                 "options": {
@@ -122,31 +146,7 @@
                 "combinator": "and"
               },
               "renameOutput": true,
-              "outputKey": "4 - Помощь"
-            },
-            {
-              "conditions": {
-                "options": {
-                  "caseSensitive": true,
-                  "leftValue": "",
-                  "typeValidation": "strict",
-                  "version": 2
-                },
-                "conditions": [
-                  {
-                    "id": "6a0aebe7-3cc2-436b-9e72-97a6755e7829",
-                    "leftValue": "={{ $('Edit Fields').item.json.text }}",
-                    "rightValue": "/",
-                    "operator": {
-                      "type": "string",
-                      "operation": "notContains"
-                    }
-                  }
-                ],
-                "combinator": "and"
-              },
-              "renameOutput": true,
-              "outputKey": "5 - User Input"
+              "outputKey": "5 - Помощь"
             }
           ]
         },
@@ -158,8 +158,8 @@
       "type": "n8n-nodes-base.switch",
       "typeVersion": 3.3,
       "position": [
-        32,
-        656
+        -1168,
+        -1216
       ],
       "id": "b65b5dca-3aff-42b2-9f41-652bfdac43b0",
       "name": "Command Router",
@@ -194,8 +194,8 @@
       "type": "n8n-nodes-base.if",
       "typeVersion": 2.2,
       "position": [
-        2704,
-        -1344
+        2496,
+        -1296
       ],
       "id": "efae6dd4-b61b-4b94-af0d-a5d0cea59d23",
       "name": "User Registered?"
@@ -207,8 +207,8 @@
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        3248,
-        -1360
+        3040,
+        -1312
       ],
       "id": "b06fcfbf-0471-4ca6-aa11-03b8e40f2234",
       "name": "Check License Limit",
@@ -242,8 +242,8 @@
       "type": "n8n-nodes-base.if",
       "typeVersion": 2.2,
       "position": [
-        3472,
-        -1296
+        3264,
+        -1248
       ],
       "id": "adfab979-0385-4f08-83dc-b7a016ab4f23",
       "name": "Can Create VM?"
@@ -255,8 +255,8 @@
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        4592,
-        -512
+        2896,
+        -688
       ],
       "id": "d94c4803-742f-4665-8588-58fcfe08dd48",
       "name": "Create VM with Software"
@@ -423,8 +423,8 @@
       "type": "n8n-nodes-base.googleSheets",
       "typeVersion": 4.7,
       "position": [
-        4848,
-        -752
+        3248,
+        -864
       ],
       "id": "58c1836b-a025-4517-a810-5ccf7110d55d",
       "name": "Save VM to Sheet",
@@ -446,8 +446,8 @@
       "type": "n8n-nodes-base.telegram",
       "typeVersion": 1.2,
       "position": [
-        5104,
-        -528
+        3536,
+        -704
       ],
       "id": "961fa40d-600f-4dc5-bf7a-7605d30247d4",
       "name": "Send: VM Created",
@@ -462,14 +462,14 @@
     {
       "parameters": {
         "content": "## Обработчик 2: Создание ВМ (/create_vm)\n\n",
-        "height": 1376,
-        "width": 3472,
+        "height": 1200,
+        "width": 2464,
         "color": 2
       },
       "type": "n8n-nodes-base.stickyNote",
       "position": [
-        1904,
-        -1616
+        2128,
+        -1568
       ],
       "typeVersion": 1,
       "id": "9c6d80cd-51c3-417c-a782-be00a58d4ca1",
@@ -482,8 +482,8 @@
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        3488,
-        544
+        2816,
+        528
       ],
       "id": "a124ed41-eebf-45ba-95b7-ff90020780b8",
       "name": "Calculate Summary"
@@ -499,8 +499,8 @@
       "type": "n8n-nodes-base.telegram",
       "typeVersion": 1.2,
       "position": [
-        3696,
-        544
+        3024,
+        528
       ],
       "id": "47ada2b0-29fd-41cf-8ecc-e0ae70e2ab75",
       "name": "Send: Resources Summary",
@@ -521,8 +521,8 @@
       },
       "type": "n8n-nodes-base.stickyNote",
       "position": [
-        2496,
-        448
+        1824,
+        432
       ],
       "typeVersion": 1,
       "id": "98464509-71f0-40cb-bc25-2c3b1d9bdef1",
@@ -666,8 +666,8 @@
       },
       "type": "n8n-nodes-base.stickyNote",
       "position": [
-        2816,
-        -144
+        1792,
+        -272
       ],
       "typeVersion": 1,
       "id": "7031cc4d-7d50-4e38-8e7c-3ea555f77c80",
@@ -694,8 +694,8 @@
       "type": "n8n-nodes-base.googleSheets",
       "typeVersion": 4.7,
       "position": [
-        3056,
-        -32
+        2032,
+        -160
       ],
       "id": "90a2b2c5-3884-4718-aaad-0fb28b81523f",
       "name": "Load Software Catalog",
@@ -713,8 +713,8 @@
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        3856,
-        80
+        2832,
+        -48
       ],
       "id": "2aef7410-9ccb-4c84-949f-5dd943029ed5",
       "name": "Format Catalog Message"
@@ -730,8 +730,8 @@
       "type": "n8n-nodes-base.telegram",
       "typeVersion": 1.2,
       "position": [
-        4080,
-        80
+        3056,
+        -48
       ],
       "id": "d0574893-7eb2-4af0-8c5c-ba585dafde40",
       "name": "Send: Software Catalog",
@@ -746,7 +746,7 @@
     {
       "parameters": {
         "chatId": "={{ $('Edit Fields').item.json.chat_id }}",
-        "text": "=👋 Добро пожаловать в POSASPR Helper!\n\nЭто прототип системы управления виртуальными машинами с инженерным ПО.\n\n📋 Доступные команды:\n\n👤 /register\n   Регистрация в системе\n\n➕ /createvm [ID_ПО]\n   Создать виртуальную машину\n   Пример: /createvm 1,3,5\n   Без параметров - случайный выбор ПО\n\n📊 /myresources\n   Посмотреть свои ресурсы и статистику\n\n🤖 /optimize\n   AI-анализ и рекомендации по оптимизации\n\n🔍 /checkidle\n   Проверить простаивающие ВМ\n\n💿 /softwarecatalog\n   Каталог доступного ПО\n\n❓ /help\n   Эта справка\n\n━━━━━━━━━━━━━━━\n💡 Начните с /register",
+        "text": "=👋 Добро пожаловать в POSASPR Helper!\n\nЭто прототип системы управления виртуальными машинами с инженерным ПО.\n\n📋 Доступные команды:\n\n➕ /createvm [ID_ПО]\n   Создать виртуальную машину\n   Пример: /createvm 1,3,5\n   Без параметров - случайный выбор ПО\n\n📊 /myresources\n   Посмотреть свои ресурсы и статистику\n\n🤖 /optimize\n   AI-анализ и рекомендации по оптимизации\n\n🔍 /checkidle\n   Проверить простаивающие ВМ\n\n💿 /softwarecatalog\n   Каталог доступного ПО\n\n👤 /register\n   Регистрация в системе (на всякий пожарный)\n\n❓ /help\n   Эта справка\n\n━━━━━━━━━━━━━━━\n💡 Начните с /softwarecatalog",
         "additionalFields": {
           "appendAttribution": false
         }
@@ -754,8 +754,8 @@
       "type": "n8n-nodes-base.telegram",
       "typeVersion": 1.2,
       "position": [
-        672,
-        1056
+        -576,
+        -640
       ],
       "id": "1dbc0485-0da9-4942-9bcc-0231d1469b48",
       "name": "Send: Help",
@@ -778,8 +778,8 @@
       "type": "n8n-nodes-base.telegram",
       "typeVersion": 1.2,
       "position": [
-        672,
-        1376
+        -576,
+        -400
       ],
       "id": "54f6268e-eb31-4b46-a4cf-fe6eafeb6977",
       "name": "Send: Unknown Command",
@@ -979,8 +979,8 @@
       "type": "n8n-nodes-base.telegram",
       "typeVersion": 1.2,
       "position": [
-        2960,
-        -1216
+        2752,
+        -1168
       ],
       "id": "aeb3c76d-be9f-4e9c-8005-b146e83f191c",
       "name": "Send: Not Registered",
@@ -1003,8 +1003,8 @@
       "type": "n8n-nodes-base.telegram",
       "typeVersion": 1.2,
       "position": [
-        3904,
-        -1072
+        3760,
+        -1008
       ],
       "id": "e9b749a5-6fd7-4641-92ae-a8c096f4519f",
       "name": "Send: Limit Exceeded",
@@ -1051,8 +1051,8 @@
       "type": "n8n-nodes-base.set",
       "typeVersion": 3.4,
       "position": [
-        -3520,
-        -224
+        -3568,
+        -1600
       ],
       "id": "7f0dc639-21f8-4352-9d8c-65c124bbcfa9",
       "name": "Edit Fields"
@@ -1126,8 +1126,8 @@
       "type": "n8n-nodes-base.if",
       "typeVersion": 2.2,
       "position": [
-        3072,
-        544
+        2400,
+        528
       ],
       "id": "392f6288-30cb-4f34-9152-7e5882117684",
       "name": "User Found for Resources?"
@@ -1141,8 +1141,8 @@
       "type": "n8n-nodes-base.telegram",
       "typeVersion": 1.2,
       "position": [
-        3328,
-        688
+        2656,
+        672
       ],
       "id": "d8d2f7e8-8997-45b9-bef0-ebd1237d19b3",
       "name": "Send: Not Registered for Resources",
@@ -1451,8 +1451,8 @@
       "type": "n8n-nodes-base.googleSheets",
       "typeVersion": 4.7,
       "position": [
-        2864,
-        544
+        2192,
+        528
       ],
       "id": "0421317a-a511-4ccf-88a3-48294a72023a",
       "name": "Get User for Resources",
@@ -1485,8 +1485,8 @@
       "type": "n8n-nodes-base.googleSheets",
       "typeVersion": 4.7,
       "position": [
-        3280,
-        544
+        2608,
+        528
       ],
       "id": "24d430a0-fe5f-4731-9eef-b896a6b0dfe4",
       "name": "Get VMs for Resources",
@@ -1527,8 +1527,8 @@
       "type": "n8n-nodes-base.googleSheets",
       "typeVersion": 4.7,
       "position": [
-        2496,
-        -1344
+        2256,
+        -1280
       ],
       "id": "4384c801-bb76-4d4e-bfe6-c87bcbb9183f",
       "name": "Get User for VM Creation",
@@ -1561,8 +1561,8 @@
       "type": "n8n-nodes-base.googleSheets",
       "typeVersion": 4.7,
       "position": [
-        3008,
-        -1456
+        2800,
+        -1408
       ],
       "id": "f9255d75-c7dd-44ea-a832-c2d8576b9e81",
       "name": "Get Existing VMs for User",
@@ -1648,8 +1648,8 @@
       "type": "n8n-nodes-base.googleSheets",
       "typeVersion": 4.7,
       "position": [
-        4400,
-        -1104
+        4256,
+        -1040
       ],
       "id": "0813fb13-9a48-4d7b-8e11-07db3270ee0d",
       "name": "Set User State",
@@ -1689,8 +1689,8 @@
       "type": "n8n-nodes-base.googleSheets",
       "typeVersion": 4.7,
       "position": [
-        2320,
-        -576
+        -848,
+        -1552
       ],
       "id": "ba183aa9-9635-4bee-97ca-9034087cef27",
       "name": "Check User State",
@@ -1709,8 +1709,8 @@
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        3232,
-        -992
+        208,
+        -2016
       ],
       "id": "80f8d9c3-c282-4230-96a5-91ee14d67e1c",
       "name": "Save Email & Request Org"
@@ -1736,7 +1736,7 @@
           "mappingMode": "defineBelow",
           "value": {
             "telegram_id": "={{ $json.telegram_id }}",
-            "state": "awaiting_org",
+            "state": "awaiting_organization",
             "data": "={\"email\": \"{{ $json.email }}\"}",
             "timestamp": "={{ $now }}"
           },
@@ -1790,8 +1790,8 @@
       "type": "n8n-nodes-base.googleSheets",
       "typeVersion": 4.7,
       "position": [
-        3440,
-        -992
+        624,
+        -2016
       ],
       "id": "b81d870b-f3be-476e-9a2d-d4fb77a995f3",
       "name": "Update State with Email",
@@ -1804,15 +1804,17 @@
     },
     {
       "parameters": {
-        "chatId": "={{ $json.chat_id }}",
-        "text": "=🏢 Регистрация - Шаг 2/2\n\nВведите название вашей организации:\nНапример: ООО \"Техстрой\"\n\nИли отправьте /cancel для отмены",
-        "additionalFields": {}
+        "chatId": "={{ $('Is Register Command?').item.json.chat_id }}",
+        "text": "=✅ Email сохранён!\n\nТеперь укажите название вашей организации:\n\nПример: ООО \"Рога и Копыта\"",
+        "additionalFields": {
+          "appendAttribution": false
+        }
       },
       "type": "n8n-nodes-base.telegram",
       "typeVersion": 1.2,
       "position": [
-        3648,
-        -992
+        848,
+        -2016
       ],
       "id": "4bde413b-e6d3-4f64-81dd-be8e9a5d0b23",
       "name": "Send Request Organization",
@@ -1853,8 +1855,8 @@
       "type": "n8n-nodes-base.set",
       "typeVersion": 3.4,
       "position": [
-        3680,
-        -1504
+        3536,
+        -1440
       ],
       "id": "754e249a-5bec-409c-a551-b2cd5da1fb32",
       "name": "Prepare Software Menu",
@@ -1866,7 +1868,7 @@
     {
       "parameters": {
         "chatId": "={{ $('Edit Fields').item.json.chat_id }}",
-        "text": "=👋 Добро пожаловать, {{ $('Edit Fields').item.json.username }}!\n\n📊 Ваша лицензия: {{ $json.license_type }}\n💼 Может быть использовано: {{ $json.license_limit }}\n\n📋 Доступные команды:\n\n➕ /createvm [ID_ПО]\n   Создать виртуальную машину\n   Пример: /createvm 1,3,5\n\n📊 /myresources\n   Посмотреть свои ресурсы и статистику\n\n🤖 /optimize\n   AI-анализ и рекомендации по оптимизации\n\n🔍 /checkidle\n   Проверить простаивающие ВМ\n\n💿 /softwarecatalog\n   Каталог доступного ПО\n\n❓ /help\n   Эта справка\n\n━━━━━━━━━━━━━━━\nИспользуйте команды для управления вашими ресурсами!",
+        "text": "=👋 Добро пожаловать, {{ $('Edit Fields').item.json.username }}!\n\n✅ Теперь укажите Ваш Email, с которым будете работать с инженерным ПО:\n",
         "additionalFields": {
           "appendAttribution": false
         }
@@ -1874,8 +1876,8 @@
       "type": "n8n-nodes-base.telegram",
       "typeVersion": 1.2,
       "position": [
-        -336,
-        -816
+        272,
+        -2272
       ],
       "id": "5cb3f76f-3119-46dc-8c65-0c031219d3ce",
       "name": "Send Request Email",
@@ -1890,41 +1892,17 @@
     {
       "parameters": {
         "content": "## Запуск регистрации\n",
-        "height": 576,
-        "width": 1536
+        "height": 1296,
+        "width": 2256
       },
       "type": "n8n-nodes-base.stickyNote",
       "position": [
-        -1472,
-        -896
+        -1136,
+        -2624
       ],
       "typeVersion": 1,
       "id": "87f72626-1e09-4de8-a2ec-3e9301b6e7ee",
       "name": "Sticky Note"
-    },
-    {
-      "parameters": {
-        "chatId": "={{ $json.telegram_id }}",
-        "text": "=🎉 Регистрация завершена!\n\n👤 Пользователь: {{ $('Add New User').item.json.username }}\n💼 Лицензия: {{ $json.license_type }} (до 3 ВМ)\n💰 Стоимость: 5000₽/мес\n\nДоступные команды:\n/createvm - Создать виртуальную машину\n/myresources - Посмотреть свои ресурсы\n/softwarecatalog - Каталог доступного ПО",
-        "additionalFields": {
-          "appendAttribution": false
-        }
-      },
-      "type": "n8n-nodes-base.telegram",
-      "typeVersion": 1.2,
-      "position": [
-        -96,
-        -544
-      ],
-      "id": "15bb32a8-1110-4da6-8a24-757eb4852306",
-      "name": "Send: Registration Success",
-      "webhookId": "072f2c8b-2b5e-4039-960d-39c2eadeefce",
-      "credentials": {
-        "telegramApi": {
-          "id": "DDex8oHA77ADeVpY",
-          "name": "SmartLicenseUsageAnalyzer_bot"
-        }
-      }
     },
     {
       "parameters": {
@@ -2038,8 +2016,8 @@
       "type": "n8n-nodes-base.googleSheets",
       "typeVersion": 4.7,
       "position": [
-        -544,
-        -544
+        -208,
+        -2272
       ],
       "id": "ec2dcbaa-45b7-49f7-98b4-bcf45fd30472",
       "name": "Add New User",
@@ -2057,8 +2035,8 @@
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        -752,
-        -544
+        -416,
+        -2272
       ],
       "id": "cb5b922c-59c8-4934-82e9-e9ffbe752b63",
       "name": "Generate Registration Data"
@@ -2092,8 +2070,8 @@
       "type": "n8n-nodes-base.if",
       "typeVersion": 2.2,
       "position": [
-        -1008,
-        -656
+        -672,
+        -2384
       ],
       "id": "46e29815-aeeb-4e3d-9c3a-86345e084ee6",
       "name": "Already Registered?"
@@ -2127,8 +2105,8 @@
       "type": "n8n-nodes-base.googleSheets",
       "typeVersion": 4.7,
       "position": [
-        -1216,
-        -656
+        -880,
+        -2384
       ],
       "id": "0753a08a-2485-4fbf-bf88-e22099781730",
       "name": "Check If User Exists",
@@ -2168,8 +2146,8 @@
       "type": "n8n-nodes-base.if",
       "typeVersion": 2.2,
       "position": [
-        -3792,
-        -208
+        -3840,
+        -1584
       ],
       "id": "43f0ff7a-b5cd-4eb2-8240-82ec01349ee2",
       "name": "Has Message"
@@ -2178,30 +2156,6 @@
       "parameters": {
         "rules": {
           "values": [
-            {
-              "conditions": {
-                "options": {
-                  "caseSensitive": true,
-                  "leftValue": "",
-                  "typeValidation": "strict",
-                  "version": 2
-                },
-                "conditions": [
-                  {
-                    "leftValue": "={{ $('Edit Fields').item.json.text }}",
-                    "rightValue": "/myresources",
-                    "operator": {
-                      "type": "string",
-                      "operation": "equals"
-                    },
-                    "id": "56cbe9ef-c4cf-46ea-925d-a95795418f6f"
-                  }
-                ],
-                "combinator": "and"
-              },
-              "renameOutput": true,
-              "outputKey": "Мои ресурсы"
-            },
             {
               "conditions": {
                 "options": {
@@ -2237,6 +2191,30 @@
                 },
                 "conditions": [
                   {
+                    "leftValue": "={{ $('Edit Fields').item.json.text }}",
+                    "rightValue": "/myresources",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    },
+                    "id": "56cbe9ef-c4cf-46ea-925d-a95795418f6f"
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "Мои ресурсы"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
                     "id": "d41b2f57-2360-451b-9581-734edde4171a",
                     "leftValue": "={{ $('Edit Fields').item.json.text }}",
                     "rightValue": "/vmdetails",
@@ -2258,8 +2236,8 @@
       "type": "n8n-nodes-base.switch",
       "typeVersion": 3.3,
       "position": [
-        992,
-        608
+        -224,
+        -1072
       ],
       "id": "b837a5df-db3b-431a-8a9d-55753a5f8f9f",
       "name": "Switch View"
@@ -2359,8 +2337,8 @@
       "type": "n8n-nodes-base.googleSheets",
       "typeVersion": 4.7,
       "position": [
-        -2944,
-        -544
+        -2832,
+        -1872
       ],
       "id": "08e6c6fe-da92-43c0-a81d-430042fdbce0",
       "name": "Check Registration for Start",
@@ -2399,8 +2377,8 @@
       "type": "n8n-nodes-base.if",
       "typeVersion": 2.2,
       "position": [
-        -2720,
-        -688
+        -2608,
+        -2016
       ],
       "id": "63f1dcea-ccfc-45c6-84b2-569e0c4bbe8a",
       "name": "User Registered for Start?"
@@ -2416,8 +2394,8 @@
       "type": "n8n-nodes-base.telegram",
       "typeVersion": 1.2,
       "position": [
-        -2416,
-        -800
+        -2304,
+        -2128
       ],
       "id": "8f28d6d2-b726-4193-9e3d-214a6c6a436e",
       "name": "Send: Welcome (Registered)",
@@ -2456,8 +2434,8 @@
       "type": "n8n-nodes-base.if",
       "typeVersion": 2.2,
       "position": [
-        -2720,
-        -176
+        -2608,
+        -1504
       ],
       "id": "8568ef81-6343-4601-ba48-c317e498a29e",
       "name": "Is Register Command?"
@@ -2491,8 +2469,8 @@
       "type": "n8n-nodes-base.googleSheets",
       "typeVersion": 4.7,
       "position": [
-        -2416,
-        -48
+        -2304,
+        -1376
       ],
       "id": "ea66711e-49d2-47e1-94c9-e83ada476d04",
       "name": "Check Registration for Commands",
@@ -2531,8 +2509,8 @@
       "type": "n8n-nodes-base.if",
       "typeVersion": 2.2,
       "position": [
-        -2176,
-        -32
+        -2064,
+        -1360
       ],
       "id": "f80f85ac-8695-4b85-814d-a78e0babd4a6",
       "name": "User Registered for Commands?",
@@ -2546,8 +2524,8 @@
       },
       "type": "n8n-nodes-base.stickyNote",
       "position": [
-        -3312,
-        -928
+        -3200,
+        -2256
       ],
       "typeVersion": 1,
       "id": "f24d8507-6ad2-4f35-97b3-bda95a728c88",
@@ -2564,8 +2542,8 @@
       "type": "n8n-nodes-base.telegram",
       "typeVersion": 1.2,
       "position": [
-        -1920,
-        96
+        -1808,
+        -1232
       ],
       "id": "c9cc58fc-7c4b-40a3-b0d4-6a46f0e7c82d",
       "name": "Send: Please Register First",
@@ -2579,13 +2557,13 @@
     },
     {
       "parameters": {
-        "jsCode": "const items = $input.all();\n\n// Если нет данных о состоянии\nif (items.length === 0) {\n  return [];\n}\n\nconst state = items[0].json.state;\nconst stateStr = typeof state === 'string' ? state : String(state || '');\n\n// Определяем направление\nif (stateStr === 'awaiting_email') {\n  return [{\n    json: {\n      ...items[0].json,\n      route: 'awaiting_email'\n    }\n  }];\n} else if (stateStr === 'awaiting_org') {\n  return [{\n    json: {\n      ...items[0].json,\n      route: 'awaiting_org'\n    }\n  }];\n} else if (stateStr === 'awaiting_software') {\n  return [{\n    json: {\n      ...items[0].json,\n      route: 'awaiting_software'\n    }\n  }];\n} else {\n  return [{\n    json: {\n      ...items[0].json,\n      route: 'unknown'\n    }\n  }];\n}"
+        "jsCode": "const items = $input.all();\n\n// Если нет данных о состоянии\nif (items.length === 0) {\n  return [];\n}\n\nconst state = items[0].json.state;\nconst stateStr = typeof state === 'string' ? state : String(state || '');\n\n// Определяем направление\nif (stateStr === 'awaiting_email') {\n  return [{\n    json: {\n      ...items[0].json,\n      route: 'awaiting_email'\n    }\n  }];\n} else if (stateStr === 'awaiting_organization') {\n  return [{\n    json: {\n      ...items[0].json,\n      route: 'awaiting_organization'\n    }\n  }];\n} else if (stateStr === 'awaiting_license_coun') {\n  return [{\n    json: {\n      ...items[0].json,\n      route: 'awaiting_license_coun'\n    }\n  }];\n} else if (stateStr === 'awaiting_software') {\n  return [{\n    json: {\n      ...items[0].json,\n      route: 'awaiting_software'\n    }\n  }];\n} else {\n  return [{\n    json: {\n      ...items[0].json,\n      route: 'unknown'\n    }\n  }];\n}"
       },
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        2576,
-        -576
+        -592,
+        -1552
       ],
       "id": "4d3d29f6-6e7e-4504-9603-1d35237c0606",
       "name": "Route by State"
@@ -2604,7 +2582,32 @@
                 },
                 "conditions": [
                   {
+                    "id": "8576fa43-24e9-4000-a00d-6108b2089682",
                     "leftValue": "={{ $json.route }}",
+                    "rightValue": "registered",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals",
+                      "name": "filter.operator.equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "Register"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.state }}",
                     "rightValue": "awaiting_email",
                     "operator": {
                       "type": "string",
@@ -2629,8 +2632,8 @@
                 "conditions": [
                   {
                     "id": "b8267457-1161-4f4c-87f8-81ec580cabc5",
-                    "leftValue": "={{ $json.route }}",
-                    "rightValue": "awaiting_org",
+                    "leftValue": "={{ $json.state }}",
+                    "rightValue": "awaiting_organization",
                     "operator": {
                       "type": "string",
                       "operation": "equals",
@@ -2653,8 +2656,33 @@
                 },
                 "conditions": [
                   {
+                    "id": "f30d0684-230d-45ee-9fb2-d94da9e6d15b",
+                    "leftValue": "={{ $json.state }}",
+                    "rightValue": "awaiting_license_count",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals",
+                      "name": "filter.operator.equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "License"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
                     "id": "b17aedd7-c7ae-4d2b-b3f9-65f628479597",
-                    "leftValue": "={{ $json.route }}",
+                    "leftValue": "={{ $json.state }}",
                     "rightValue": "awaiting_software",
                     "operator": {
                       "type": "string",
@@ -2677,8 +2705,8 @@
       "type": "n8n-nodes-base.switch",
       "typeVersion": 3.3,
       "position": [
-        2768,
-        -608
+        -336,
+        -1648
       ],
       "id": "1696a269-87ee-41cd-92ed-5a6fd9cb525c",
       "name": "State Router"
@@ -2690,8 +2718,8 @@
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        3232,
-        -768
+        208,
+        -1808
       ],
       "id": "777af290-1ad8-481b-8383-ab93d1d4a4fb",
       "name": "Save Organization & Finish"
@@ -2716,12 +2744,10 @@
         "columns": {
           "mappingMode": "defineBelow",
           "value": {
-            "telegram_id": "{{ $json.telegram_id }}",
-            "email": "{{ $json.email }}",
-            "organization": "{{ $json.organization }}",
-            "license_type": "basic",
-            "license_limit": "3",
-            "created_at": "={{ $now.toISOString().split('T')[0] }}"
+            "telegram_id": "={{ $json.telegram_id }}",
+            "email": "={{ $json.email }}",
+            "organization": "={{ $json.organization }}",
+            "created_at": "={{ $('Check Registration for Commands').item.json.created_at }}"
           },
           "matchingColumns": [
             "telegram_id"
@@ -2811,8 +2837,8 @@
       "type": "n8n-nodes-base.googleSheets",
       "typeVersion": 4.7,
       "position": [
-        3440,
-        -768
+        432,
+        -1808
       ],
       "id": "a8f4d248-9810-4fdb-80f5-342fafeff602",
       "name": "Update User with Org",
@@ -2820,128 +2846,6 @@
         "googleSheetsOAuth2Api": {
           "id": "m2R34e9UAiHNipjw",
           "name": "Google Sheets - POSASPR"
-        }
-      }
-    },
-    {
-      "parameters": {
-        "operation": "update",
-        "documentId": {
-          "__rl": true,
-          "value": "1xmPo_70mAeo9xHI7m_uCk9hjJaKGKWixYMDTSQ9h8kw",
-          "mode": "list",
-          "cachedResultName": "POSASPR_Prototype",
-          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1xmPo_70mAeo9xHI7m_uCk9hjJaKGKWixYMDTSQ9h8kw/edit?usp=drivesdk"
-        },
-        "sheetName": {
-          "__rl": true,
-          "value": 1022480061,
-          "mode": "list",
-          "cachedResultName": "User_States",
-          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1xmPo_70mAeo9xHI7m_uCk9hjJaKGKWixYMDTSQ9h8kw/edit#gid=1022480061"
-        },
-        "columns": {
-          "mappingMode": "defineBelow",
-          "value": {
-            "telegram_id": "{{ $('Edit Fields').item.json.user_id }}",
-            "state": "=completed",
-            "data": "{}"
-          },
-          "matchingColumns": [
-            "telegram_id"
-          ],
-          "schema": [
-            {
-              "id": "telegram_id",
-              "displayName": "telegram_id",
-              "required": false,
-              "defaultMatch": false,
-              "display": true,
-              "type": "string",
-              "canBeUsedToMatch": true,
-              "removed": false
-            },
-            {
-              "id": "state",
-              "displayName": "state",
-              "required": false,
-              "defaultMatch": false,
-              "display": true,
-              "type": "string",
-              "canBeUsedToMatch": true
-            },
-            {
-              "id": "data",
-              "displayName": "data",
-              "required": false,
-              "defaultMatch": false,
-              "display": true,
-              "type": "string",
-              "canBeUsedToMatch": true
-            },
-            {
-              "id": "timestamp",
-              "displayName": "timestamp",
-              "required": false,
-              "defaultMatch": false,
-              "display": true,
-              "type": "string",
-              "canBeUsedToMatch": true,
-              "removed": true
-            },
-            {
-              "id": "row_number",
-              "displayName": "row_number",
-              "required": false,
-              "defaultMatch": false,
-              "display": true,
-              "type": "number",
-              "canBeUsedToMatch": true,
-              "readOnly": true,
-              "removed": true
-            }
-          ],
-          "attemptToConvertTypes": false,
-          "convertFieldsToString": false
-        },
-        "options": {}
-      },
-      "type": "n8n-nodes-base.googleSheets",
-      "typeVersion": 4.7,
-      "position": [
-        3648,
-        -768
-      ],
-      "id": "9a2a82ca-9fbd-4393-80f8-b5366ffe9371",
-      "name": "Clear User State After Org",
-      "credentials": {
-        "googleSheetsOAuth2Api": {
-          "id": "m2R34e9UAiHNipjw",
-          "name": "Google Sheets - POSASPR"
-        }
-      }
-    },
-    {
-      "parameters": {
-        "chatId": "={{ $('Save Organization & Finish').item.json.chat_id }}",
-        "text": "=✅ Регистрация завершена!\n\n👤 Email: {{ $json.email }}\n🏢 Организация: {{ $json.organization }}\n💼 Лицензия: Basic (до 3 ВМ)\n\n📋 Доступные команды:\n/createvm - Создать виртуальную машину\n/myresources - Мои ресурсы\n/help - Справка\n\nИспользуйте /createvm для создания вашей первой ВМ!\n",
-        "additionalFields": {
-          "appendAttribution": false
-        }
-      },
-      "type": "n8n-nodes-base.telegram",
-      "typeVersion": 1.2,
-      "position": [
-        3856,
-        -768
-      ],
-      "id": "4155f7cb-a3d0-4551-8083-eab9f556f7c0",
-      "name": "Send: Registration Complete",
-      "webhookId": "8e12afc6-5b7c-4bfd-8196-6a49eb0424ca",
-      "credentials": {
-        "telegramApi": {
-          "id": "DDex8oHA77ADeVpY",
-          "name": "SmartLicenseUsageAnalyzer_bot"
         }
       }
     },
@@ -2972,8 +2876,8 @@
       "type": "n8n-nodes-base.if",
       "typeVersion": 2.2,
       "position": [
-        -3184,
-        -288
+        -3072,
+        -1616
       ],
       "id": "1ae58036-8cfc-4c69-8b39-f2c5acd9b7c1",
       "name": "Is Start Command?"
@@ -2989,8 +2893,8 @@
       "type": "n8n-nodes-base.telegram",
       "typeVersion": 1.2,
       "position": [
-        -2416,
-        -592
+        -2304,
+        -1920
       ],
       "id": "55185d74-da80-4a45-acad-1109ac945ada",
       "name": "Send: Please Register",
@@ -3013,8 +2917,8 @@
       "type": "n8n-nodes-base.telegram",
       "typeVersion": 1.2,
       "position": [
-        3904,
-        -1312
+        3760,
+        -1248
       ],
       "id": "991dd373-936a-4b14-bc4e-e0e1baf08539",
       "name": "Send Software Menu",
@@ -3025,29 +2929,6 @@
           "name": "SmartLicenseUsageAnalyzer_bot"
         }
       }
-    },
-    {
-      "parameters": {
-        "chatId": "={{ $json.telegram_id }}",
-        "text": "=📧 Регистрация - Шаг 2/2\n\nВведите ваш email:\nНапример: user@example.com\n\nИли отправьте /cancel для отмены",
-        "additionalFields": {}
-      },
-      "type": "n8n-nodes-base.telegram",
-      "typeVersion": 1.2,
-      "position": [
-        -336,
-        -544
-      ],
-      "id": "b6915ffe-250e-4644-b183-ac57bae73e56",
-      "name": "Send a text message",
-      "webhookId": "4c659979-05b1-4722-8a97-f3806f964300",
-      "credentials": {
-        "telegramApi": {
-          "id": "DDex8oHA77ADeVpY",
-          "name": "SmartLicenseUsageAnalyzer_bot"
-        }
-      },
-      "disabled": true
     },
     {
       "parameters": {
@@ -3108,8 +2989,8 @@
       "type": "n8n-nodes-base.switch",
       "typeVersion": 3.3,
       "position": [
-        3600,
-        -16
+        2576,
+        -144
       ],
       "id": "d7f06350-cdad-47ea-b1f7-9c6d4d02a9a3",
       "name": "Route Catalog Output"
@@ -3121,8 +3002,8 @@
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        3344,
-        -32
+        2320,
+        -160
       ],
       "id": "dd719326-537d-4078-9293-622f494cf72a",
       "name": "Add Context Info"
@@ -3134,8 +3015,8 @@
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        4144,
-        -1312
+        4000,
+        -1248
       ],
       "id": "22efdc28-5899-4d86-a512-f23bee15e92b",
       "name": "Prepare State Data"
@@ -3345,6 +3226,639 @@
       ],
       "id": "b7c2fedc-20c4-4af8-9ee0-637ff1d0065d",
       "name": "Add Footer to Message"
+    },
+    {
+      "parameters": {
+        "chatId": "={{ $('Save Organization & Finish').item.json.chat_id }}",
+        "text": "=✅ Организация сохранена!\n\nТеперь укажите количество виртуальных машин, которое вам необходимо:\n\n💼 Тарифы:\n• 3-9 ВМ → Basic (5000₽/мес)\n• 10-49 ВМ → Standard (15000₽/мес)\n• 50+ ВМ → Premium (40000₽/мес)\n\nВведите число от 3 до 999:\n",
+        "additionalFields": {
+          "appendAttribution": false
+        }
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        848,
+        -1808
+      ],
+      "id": "a20770c5-2255-4346-a69d-1be8599c6c10",
+      "name": "Send Request License Count",
+      "webhookId": "e10db502-b7d8-4dc6-a04a-42ea5ddcd49f",
+      "credentials": {
+        "telegramApi": {
+          "id": "DDex8oHA77ADeVpY",
+          "name": "SmartLicenseUsageAnalyzer_bot"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "// Узел: Save License Count & Finish (Code)\nconst userInput = $('Edit Fields').item.json.text;\nconst licenseCount = parseInt(userInput);\n\n// Валидация\nif (isNaN(licenseCount) || licenseCount < 3 || licenseCount > 999) {\n  return {\n    json: {\n      error: true,\n      message: `❌ Некорректное число: \"${userInput}\"\n\nУкажите количество ВМ от 3 до 999\n\nПримеры:\n• 5 → Basic (до 9 ВМ)\n• 15 → Standard (до 49 ВМ)\n• 60 → Premium (50+ ВМ)`,\n      chat_id: $('Edit Fields').item.json.chat_id\n    }\n  };\n}\n\n// Определяем тип лицензии\nlet licenseType;\nlet licenseLimit;\n\nif (licenseCount >= 3 && licenseCount <= 9) {\n  licenseType = \"basic\";\n  licenseLimit = licenseCount;\n} else if (licenseCount >= 10 && licenseCount <= 49) {\n  licenseType = \"standard\";\n  licenseLimit = licenseCount;\n} else {\n  licenseType = \"premium\";\n  licenseLimit = licenseCount;\n}\n\n// Получаем данные из состояния\nconst stateData = $('Check User State').first().json;\nlet parsedData = {};\ntry {\n  parsedData = typeof stateData.data === 'string' \n    ? JSON.parse(stateData.data) \n    : stateData.data || {};\n} catch (e) {\n  parsedData = {};\n}\n\nreturn {\n  json: {\n    telegram_id: $('Edit Fields').item.json.user_id,\n    email: parsedData.email,\n    organization: parsedData.organization,\n    license_type: licenseType,\n    license_limit: licenseLimit,\n    chat_id: $('Edit Fields').item.json.chat_id\n  }\n};"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        208,
+        -1600
+      ],
+      "id": "07ab76a4-e665-4b24-ba9b-f4159dbfdd7c",
+      "name": "Save License Count & Finish"
+    },
+    {
+      "parameters": {
+        "chatId": "={{ $json.telegram_id }}",
+        "text": "=🎉 Регистрация уже выполнена!\n\n👤 Пользователь: {{ $json.username }}\n💼 Лицензия: {{ $json.license_type }} \n\nДоступные команды:\n/myresources - Посмотреть свои ресурсы\n/createvm - Создать виртуальную машину\n/softwarecatalog - Каталог доступного ПО",
+        "additionalFields": {
+          "appendAttribution": false
+        }
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        -416,
+        -2480
+      ],
+      "id": "15bb32a8-1110-4da6-8a24-757eb4852306",
+      "name": "Send: Already Registered",
+      "webhookId": "072f2c8b-2b5e-4039-960d-39c2eadeefce",
+      "credentials": {
+        "telegramApi": {
+          "id": "DDex8oHA77ADeVpY",
+          "name": "SmartLicenseUsageAnalyzer_bot"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "append",
+        "documentId": {
+          "__rl": true,
+          "value": "1xmPo_70mAeo9xHI7m_uCk9hjJaKGKWixYMDTSQ9h8kw",
+          "mode": "list",
+          "cachedResultName": "POSASPR_Prototype",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1xmPo_70mAeo9xHI7m_uCk9hjJaKGKWixYMDTSQ9h8kw/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": 1022480061,
+          "mode": "list",
+          "cachedResultName": "User_States",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1xmPo_70mAeo9xHI7m_uCk9hjJaKGKWixYMDTSQ9h8kw/edit#gid=1022480061"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "telegram_id": "={{ $json.telegram_id }}",
+            "state": "=awaiting_email",
+            "timestamp": "={{ new Date().toISOString() }}",
+            "data": "={{ JSON.stringify($json.data) }}"
+          },
+          "matchingColumns": [
+            "telegram_id"
+          ],
+          "schema": [
+            {
+              "id": "telegram_id",
+              "displayName": "telegram_id",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "state",
+              "displayName": "state",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "data",
+              "displayName": "data",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "timestamp",
+              "displayName": "timestamp",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        16,
+        -2272
+      ],
+      "id": "e60d845c-0ec4-4015-8509-738306417a25",
+      "name": "Update User State in DB",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "m2R34e9UAiHNipjw",
+          "name": "Google Sheets - POSASPR"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "update",
+        "documentId": {
+          "__rl": true,
+          "value": "1xmPo_70mAeo9xHI7m_uCk9hjJaKGKWixYMDTSQ9h8kw",
+          "mode": "list",
+          "cachedResultName": "POSASPR_Prototype",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1xmPo_70mAeo9xHI7m_uCk9hjJaKGKWixYMDTSQ9h8kw/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "Users",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1xmPo_70mAeo9xHI7m_uCk9hjJaKGKWixYMDTSQ9h8kw/edit#gid=0"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "telegram_id": "={{ $('Check Registration for Commands').item.json.telegram_id }}",
+            "user_id": "={{ $('Check Registration for Commands').item.json.user_id }}",
+            "username": "={{ $('Check Registration for Commands').item.json.username }}",
+            "license_type": "=",
+            "license_limit": "=",
+            "created_at": "={{ $('Check Registration for Commands').item.json.created_at }}",
+            "email": "={{ $('Save Email & Request Org').item.json.email }}"
+          },
+          "matchingColumns": [
+            "telegram_id"
+          ],
+          "schema": [
+            {
+              "id": "user_id",
+              "displayName": "user_id",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "username",
+              "displayName": "username",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "email",
+              "displayName": "email",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "organization",
+              "displayName": "organization",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "license_type",
+              "displayName": "license_type",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "license_limit",
+              "displayName": "license_limit",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "created_at",
+              "displayName": "created_at",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "telegram_id",
+              "displayName": "telegram_id",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "row_number",
+              "displayName": "row_number",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "number",
+              "canBeUsedToMatch": true,
+              "readOnly": true,
+              "removed": true
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        432,
+        -2016
+      ],
+      "id": "5123e2a5-756e-424b-aabb-54fac5e12c21",
+      "name": "Update User with Email",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "m2R34e9UAiHNipjw",
+          "name": "Google Sheets - POSASPR"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "appendOrUpdate",
+        "documentId": {
+          "__rl": true,
+          "value": "1xmPo_70mAeo9xHI7m_uCk9hjJaKGKWixYMDTSQ9h8kw",
+          "mode": "list",
+          "cachedResultName": "POSASPR_Prototype",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1xmPo_70mAeo9xHI7m_uCk9hjJaKGKWixYMDTSQ9h8kw/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": 1022480061,
+          "mode": "list",
+          "cachedResultName": "User_States",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1xmPo_70mAeo9xHI7m_uCk9hjJaKGKWixYMDTSQ9h8kw/edit#gid=1022480061"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "telegram_id": "={{ $json.telegram_id }}",
+            "state": "awaiting_software",
+            "data": "={\"license_limit\": \"{{ $json.license_limit }}\"}",
+            "timestamp": "={{ new Date().toISOString() }}"
+          },
+          "matchingColumns": [
+            "telegram_id"
+          ],
+          "schema": [
+            {
+              "id": "telegram_id",
+              "displayName": "telegram_id",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "state",
+              "displayName": "state",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "data",
+              "displayName": "data",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "timestamp",
+              "displayName": "timestamp",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        624,
+        -1600
+      ],
+      "id": "14a51237-2b8c-4386-89c3-5e1af30263af",
+      "name": "Update State with Limit",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "m2R34e9UAiHNipjw",
+          "name": "Google Sheets - POSASPR"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "update",
+        "documentId": {
+          "__rl": true,
+          "value": "1xmPo_70mAeo9xHI7m_uCk9hjJaKGKWixYMDTSQ9h8kw",
+          "mode": "list",
+          "cachedResultName": "POSASPR_Prototype",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1xmPo_70mAeo9xHI7m_uCk9hjJaKGKWixYMDTSQ9h8kw/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "Users",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1xmPo_70mAeo9xHI7m_uCk9hjJaKGKWixYMDTSQ9h8kw/edit#gid=0"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "telegram_id": "={{ $('Check Registration for Commands').item.json.telegram_id }}",
+            "user_id": "={{ $('Check Registration for Commands').item.json.user_id }}",
+            "username": "={{ $('Check Registration for Commands').item.json.username }}",
+            "license_type": "={{ $json.license_type }}",
+            "license_limit": "={{ $json.license_limit }}",
+            "created_at": "={{ $('Check Registration for Commands').item.json.created_at }}",
+            "email": "={{ $('Check Registration for Commands').item.json.email }}",
+            "organization": "={{ $json.organization }}"
+          },
+          "matchingColumns": [
+            "telegram_id"
+          ],
+          "schema": [
+            {
+              "id": "user_id",
+              "displayName": "user_id",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "username",
+              "displayName": "username",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "email",
+              "displayName": "email",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "organization",
+              "displayName": "organization",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "license_type",
+              "displayName": "license_type",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "license_limit",
+              "displayName": "license_limit",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "created_at",
+              "displayName": "created_at",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "telegram_id",
+              "displayName": "telegram_id",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "row_number",
+              "displayName": "row_number",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "number",
+              "canBeUsedToMatch": true,
+              "readOnly": true,
+              "removed": true
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        432,
+        -1600
+      ],
+      "id": "9f097b90-258e-45ea-9286-6a5d660b980d",
+      "name": "Update User with Limit",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "m2R34e9UAiHNipjw",
+          "name": "Google Sheets - POSASPR"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "chatId": "={{ $('Save License Count & Finish').item.json.chat_id }}",
+        "text": "=✅ Регистрация организации завершена!\n\n👤 Email: {{ $('Update User with Limit').item.json.email }}\n🏢 Организация: {{ $('Update User with Limit').item.json.organization }}\n💼 Лицензия: {{ $('Update User with Limit').item.json.license_type }} на {{ $('Update User with Limit').item.json.license_limit }} ВМ\n\n📋 Доступные команды:\n/createvm - Создать виртуальную машину\n/myresources - Мои ресурсы\n/help - Справка\n\nИспользуйте /createvm для создания вашей первой ВМ!\n",
+        "additionalFields": {
+          "appendAttribution": false
+        }
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        848,
+        -1600
+      ],
+      "id": "480430ff-cfa9-43d3-aeb0-50a05f963a7b",
+      "name": "Send: Registration Finish",
+      "webhookId": "8e12afc6-5b7c-4bfd-8196-6a49eb0424ca",
+      "credentials": {
+        "telegramApi": {
+          "id": "DDex8oHA77ADeVpY",
+          "name": "SmartLicenseUsageAnalyzer_bot"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "update",
+        "documentId": {
+          "__rl": true,
+          "value": "1xmPo_70mAeo9xHI7m_uCk9hjJaKGKWixYMDTSQ9h8kw",
+          "mode": "list",
+          "cachedResultName": "POSASPR_Prototype",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1xmPo_70mAeo9xHI7m_uCk9hjJaKGKWixYMDTSQ9h8kw/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": 1022480061,
+          "mode": "list",
+          "cachedResultName": "User_States",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1xmPo_70mAeo9xHI7m_uCk9hjJaKGKWixYMDTSQ9h8kw/edit#gid=1022480061"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "telegram_id": "={{ $('Edit Fields').item.json.user_id }}",
+            "state": "=awaiting_license_count",
+            "data": "={\"organization\": \"{{ $json.organization }}\"}",
+            "timestamp": "={{ new Date().toISOString() }}"
+          },
+          "matchingColumns": [
+            "telegram_id"
+          ],
+          "schema": [
+            {
+              "id": "telegram_id",
+              "displayName": "telegram_id",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "state",
+              "displayName": "state",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "data",
+              "displayName": "data",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "timestamp",
+              "displayName": "timestamp",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "row_number",
+              "displayName": "row_number",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "number",
+              "canBeUsedToMatch": true,
+              "readOnly": true,
+              "removed": true
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        624,
+        -1808
+      ],
+      "id": "9a2a82ca-9fbd-4393-80f8-b5366ffe9371",
+      "name": "Update User State After Org",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "m2R34e9UAiHNipjw",
+          "name": "Google Sheets - POSASPR"
+        }
+      }
     }
   ],
   "pinData": {},
@@ -3362,6 +3876,13 @@
     },
     "Command Router": {
       "main": [
+        [
+          {
+            "node": "Check User State",
+            "type": "main",
+            "index": 0
+          }
+        ],
         [
           {
             "node": "Get User for VM Creation",
@@ -3386,13 +3907,6 @@
         [
           {
             "node": "Send: Help",
-            "type": "main",
-            "index": 0
-          }
-        ],
-        [
-          {
-            "node": "Check User State",
             "type": "main",
             "index": 0
           }
@@ -3792,7 +4306,7 @@
       "main": [
         [
           {
-            "node": "Update State with Email",
+            "node": "Update User with Email",
             "type": "main",
             "index": 0
           }
@@ -3830,7 +4344,7 @@
       "main": [
         [
           {
-            "node": "Send a text message",
+            "node": "Update User State in DB",
             "type": "main",
             "index": 0
           }
@@ -3852,7 +4366,7 @@
       "main": [
         [
           {
-            "node": "Send Request Email",
+            "node": "Send: Already Registered",
             "type": "main",
             "index": 0
           }
@@ -3892,14 +4406,14 @@
       "main": [
         [
           {
-            "node": "Get User for Resources",
+            "node": "Load Software Catalog",
             "type": "main",
             "index": 0
           }
         ],
         [
           {
-            "node": "Load Software Catalog",
+            "node": "Get User for Resources",
             "type": "main",
             "index": 0
           }
@@ -4020,6 +4534,7 @@
     },
     "State Router": {
       "main": [
+        [],
         [
           {
             "node": "Save Email & Request Org",
@@ -4030,6 +4545,13 @@
         [
           {
             "node": "Save Organization & Finish",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Save License Count & Finish",
             "type": "main",
             "index": 0
           }
@@ -4058,18 +4580,7 @@
       "main": [
         [
           {
-            "node": "Clear User State After Org",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Clear User State After Org": {
-      "main": [
-        [
-          {
-            "node": "Send: Registration Complete",
+            "node": "Update User State After Org",
             "type": "main",
             "index": 0
           }
@@ -4099,17 +4610,6 @@
         [
           {
             "node": "Prepare State Data",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Send a text message": {
-      "main": [
-        [
-          {
-            "node": "Send: Registration Success",
             "type": "main",
             "index": 0
           }
@@ -4228,13 +4728,89 @@
           }
         ]
       ]
+    },
+    "Send Request License Count": {
+      "main": [
+        []
+      ]
+    },
+    "Send Request Organization": {
+      "main": [
+        []
+      ]
+    },
+    "Update User State in DB": {
+      "main": [
+        [
+          {
+            "node": "Send Request Email",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Update User with Email": {
+      "main": [
+        [
+          {
+            "node": "Update State with Email",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Save License Count & Finish": {
+      "main": [
+        [
+          {
+            "node": "Update User with Limit",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Update State with Limit": {
+      "main": [
+        [
+          {
+            "node": "Send: Registration Finish",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Update User with Limit": {
+      "main": [
+        [
+          {
+            "node": "Update State with Limit",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Update User State After Org": {
+      "main": [
+        [
+          {
+            "node": "Send Request License Count",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
     }
   },
   "active": false,
   "settings": {
     "executionOrder": "v1"
   },
-  "versionId": "6c83b570-1016-4b60-a6be-7061d707b5ad",
+  "versionId": "f7415c8e-e1ab-4cba-a854-75802469d761",
   "meta": {
     "templateCredsSetupCompleted": true,
     "instanceId": "f4300700b5a89163b88ad6a908ff9e3076c705e8b03a3f40f03ff2f29f7e4289"
