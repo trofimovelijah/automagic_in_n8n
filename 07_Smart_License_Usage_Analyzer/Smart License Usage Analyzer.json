@@ -15,7 +15,7 @@
         -1584
       ],
       "id": "255774f6-d648-4425-ac99-76ec7ce2dbf2",
-      "name": "Webhook - Telegram Bot", 
+      "name": "Webhook - Telegram Bot",
       "webhookId": "87ddb7ae-afa2-4c10-8268-5aac0252165b",
       "credentials": {
         "telegramApi": {
@@ -158,8 +158,8 @@
       "type": "n8n-nodes-base.switch",
       "typeVersion": 3.3,
       "position": [
-        -1168,
-        -1216
+        -1360,
+        -1200
       ],
       "id": "b65b5dca-3aff-42b2-9f41-652bfdac43b0",
       "name": "Command Router",
@@ -194,8 +194,8 @@
       "type": "n8n-nodes-base.if",
       "typeVersion": 2.2,
       "position": [
-        2496,
-        -1296
+        2000,
+        -1328
       ],
       "id": "efae6dd4-b61b-4b94-af0d-a5d0cea59d23",
       "name": "User Registered?"
@@ -207,8 +207,8 @@
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        3040,
-        -1312
+        2544,
+        -1344
       ],
       "id": "b06fcfbf-0471-4ca6-aa11-03b8e40f2234",
       "name": "Check License Limit",
@@ -242,8 +242,8 @@
       "type": "n8n-nodes-base.if",
       "typeVersion": 2.2,
       "position": [
-        3264,
-        -1248
+        2768,
+        -1280
       ],
       "id": "adfab979-0385-4f08-83dc-b7a016ab4f23",
       "name": "Can Create VM?"
@@ -255,8 +255,8 @@
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        2896,
-        -688
+        2400,
+        -720
       ],
       "id": "d94c4803-742f-4665-8588-58fcfe08dd48",
       "name": "Create VM with Software"
@@ -423,8 +423,8 @@
       "type": "n8n-nodes-base.googleSheets",
       "typeVersion": 4.7,
       "position": [
-        3248,
-        -864
+        2752,
+        -896
       ],
       "id": "58c1836b-a025-4517-a810-5ccf7110d55d",
       "name": "Save VM to Sheet",
@@ -438,7 +438,7 @@
     {
       "parameters": {
         "chatId": "={{ $('Create VM with Software').item.json.chat_id }}",
-        "text": "=✅ ВМ создана!\n\n📦 Название ВИ: {{ $json.vm_name }}\n💿 Установленное ПО: {{ $json.software_installed }}\n📊 Статус: {{ $json.status }}\n💰 Стоимость: {{ $json.monthly_cost }} ₽/мес\n\n⚙️ Ресурсы:\n• CPU: {{ $json.cpu_usage_avg }} %\n• RAM: {{ $json.ram_usage_avg }} %\n• Использование: {{ $json.usage_hours_week }} ч/неделю\n\nКоманды:\n📱 /myresources — все ресурсы\n🔍 /vmdetails {{ $json.vm_id }} — подробности",
+        "text": "=✅ ВМ создана!\n\n📦 Название ВИ: {{ $json.vm_name }}\n💿 Установленное ПО: {{ $json.software_installed }}\n📊 Статус: {{ $json.status }}\n💰 Стоимость: {{ $json.monthly_cost }} ₽/мес\n\n⚙️ Ресурсы:\n• CPU: ____ %\n• RAM: ____ %\n• Использование: ____ ч/неделю\n\nКоманды:\n📱 /myresources — все ресурсы\n🔍 /vmdetails {{ $json.vm_id }} — подробности",
         "additionalFields": {
           "appendAttribution": false
         }
@@ -446,8 +446,8 @@
       "type": "n8n-nodes-base.telegram",
       "typeVersion": 1.2,
       "position": [
-        3536,
-        -704
+        3040,
+        -736
       ],
       "id": "961fa40d-600f-4dc5-bf7a-7605d30247d4",
       "name": "Send: VM Created",
@@ -468,8 +468,8 @@
       },
       "type": "n8n-nodes-base.stickyNote",
       "position": [
-        2128,
-        -1568
+        1632,
+        -1600
       ],
       "typeVersion": 1,
       "id": "9c6d80cd-51c3-417c-a782-be00a58d4ca1",
@@ -666,8 +666,8 @@
       },
       "type": "n8n-nodes-base.stickyNote",
       "position": [
-        1792,
-        -272
+        1296,
+        -304
       ],
       "typeVersion": 1,
       "id": "7031cc4d-7d50-4e38-8e7c-3ea555f77c80",
@@ -694,8 +694,8 @@
       "type": "n8n-nodes-base.googleSheets",
       "typeVersion": 4.7,
       "position": [
-        2032,
-        -160
+        1536,
+        -192
       ],
       "id": "90a2b2c5-3884-4718-aaad-0fb28b81523f",
       "name": "Load Software Catalog",
@@ -713,8 +713,8 @@
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        2832,
-        -48
+        2336,
+        -80
       ],
       "id": "2aef7410-9ccb-4c84-949f-5dd943029ed5",
       "name": "Format Catalog Message"
@@ -730,8 +730,8 @@
       "type": "n8n-nodes-base.telegram",
       "typeVersion": 1.2,
       "position": [
-        3056,
-        -48
+        2560,
+        -80
       ],
       "id": "d0574893-7eb2-4af0-8c5c-ba585dafde40",
       "name": "Send: Software Catalog",
@@ -979,8 +979,8 @@
       "type": "n8n-nodes-base.telegram",
       "typeVersion": 1.2,
       "position": [
-        2752,
-        -1168
+        2256,
+        -1200
       ],
       "id": "aeb3c76d-be9f-4e9c-8005-b146e83f191c",
       "name": "Send: Not Registered",
@@ -1003,8 +1003,8 @@
       "type": "n8n-nodes-base.telegram",
       "typeVersion": 1.2,
       "position": [
-        3760,
-        -1008
+        3264,
+        -1040
       ],
       "id": "e9b749a5-6fd7-4641-92ae-a8c096f4519f",
       "name": "Send: Limit Exceeded",
@@ -1527,8 +1527,8 @@
       "type": "n8n-nodes-base.googleSheets",
       "typeVersion": 4.7,
       "position": [
-        2256,
-        -1280
+        1760,
+        -1312
       ],
       "id": "4384c801-bb76-4d4e-bfe6-c87bcbb9183f",
       "name": "Get User for VM Creation",
@@ -1561,8 +1561,8 @@
       "type": "n8n-nodes-base.googleSheets",
       "typeVersion": 4.7,
       "position": [
-        2800,
-        -1408
+        2304,
+        -1440
       ],
       "id": "f9255d75-c7dd-44ea-a832-c2d8576b9e81",
       "name": "Get Existing VMs for User",
@@ -1648,8 +1648,8 @@
       "type": "n8n-nodes-base.googleSheets",
       "typeVersion": 4.7,
       "position": [
-        4256,
-        -1040
+        3760,
+        -1072
       ],
       "id": "0813fb13-9a48-4d7b-8e11-07db3270ee0d",
       "name": "Set User State",
@@ -1689,8 +1689,8 @@
       "type": "n8n-nodes-base.googleSheets",
       "typeVersion": 4.7,
       "position": [
-        -848,
-        -1552
+        -768,
+        -1328
       ],
       "id": "ba183aa9-9635-4bee-97ca-9034087cef27",
       "name": "Check User State",
@@ -1855,8 +1855,8 @@
       "type": "n8n-nodes-base.set",
       "typeVersion": 3.4,
       "position": [
-        3536,
-        -1440
+        3040,
+        -1472
       ],
       "id": "754e249a-5bec-409c-a551-b2cd5da1fb32",
       "name": "Prepare Software Menu",
@@ -1892,7 +1892,7 @@
     {
       "parameters": {
         "content": "## Запуск регистрации\n",
-        "height": 1296,
+        "height": 1488,
         "width": 2256
       },
       "type": "n8n-nodes-base.stickyNote",
@@ -2562,8 +2562,8 @@
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        -592,
-        -1552
+        -512,
+        -1328
       ],
       "id": "4d3d29f6-6e7e-4504-9603-1d35237c0606",
       "name": "Route by State"
@@ -2705,8 +2705,8 @@
       "type": "n8n-nodes-base.switch",
       "typeVersion": 3.3,
       "position": [
-        -336,
-        -1648
+        -256,
+        -1424
       ],
       "id": "1696a269-87ee-41cd-92ed-5a6fd9cb525c",
       "name": "State Router"
@@ -2917,8 +2917,8 @@
       "type": "n8n-nodes-base.telegram",
       "typeVersion": 1.2,
       "position": [
-        3760,
-        -1248
+        3264,
+        -1280
       ],
       "id": "991dd373-936a-4b14-bc4e-e0e1baf08539",
       "name": "Send Software Menu",
@@ -2989,8 +2989,8 @@
       "type": "n8n-nodes-base.switch",
       "typeVersion": 3.3,
       "position": [
-        2576,
-        -144
+        2080,
+        -176
       ],
       "id": "d7f06350-cdad-47ea-b1f7-9c6d4d02a9a3",
       "name": "Route Catalog Output"
@@ -3002,8 +3002,8 @@
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        2320,
-        -160
+        1824,
+        -192
       ],
       "id": "dd719326-537d-4078-9293-622f494cf72a",
       "name": "Add Context Info"
@@ -3015,8 +3015,8 @@
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        4000,
-        -1248
+        3504,
+        -1280
       ],
       "id": "22efdc28-5899-4d86-a512-f23bee15e92b",
       "name": "Prepare State Data"
@@ -4810,7 +4810,7 @@
   "settings": {
     "executionOrder": "v1"
   },
-  "versionId": "f7415c8e-e1ab-4cba-a854-75802469d761",
+  "versionId": "a066e1a4-303f-43fe-bef8-258145d32360",
   "meta": {
     "templateCredsSetupCompleted": true,
     "instanceId": "f4300700b5a89163b88ad6a908ff9e3076c705e8b03a3f40f03ff2f29f7e4289"
