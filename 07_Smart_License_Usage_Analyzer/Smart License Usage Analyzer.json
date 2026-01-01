@@ -1,5 +1,5 @@
 {
-  "name": "Smart License Usage Analyzer",
+  "name": "Smart License Usage Analyzer 2",
   "nodes": [
     {
       "parameters": {
@@ -11,12 +11,12 @@
       "type": "n8n-nodes-base.telegramTrigger",
       "typeVersion": 1.2,
       "position": [
-        -4096,
-        -1584
+        -4064,
+        -1264
       ],
-      "id": "255774f6-d648-4425-ac99-76ec7ce2dbf2",
+      "id": "c6251667-4918-4c51-b593-8256200970eb",
       "name": "Webhook - Telegram Bot",
-      "webhookId": "87ddb7ae-afa2-4c10-8268-5aac0252165b",
+      "webhookId": "555c8ccf-741d-46c2-9d44-c92899e63274",
       "credentials": {
         "telegramApi": {
           "id": "DDex8oHA77ADeVpY",
@@ -158,10 +158,10 @@
       "type": "n8n-nodes-base.switch",
       "typeVersion": 3.3,
       "position": [
-        -1344,
-        -1136
+        -688,
+        -1168
       ],
-      "id": "b65b5dca-3aff-42b2-9f41-652bfdac43b0",
+      "id": "762e56ef-bccf-4d38-aaae-c636aa41e21c",
       "name": "Command Router",
       "retryOnFail": false,
       "executeOnce": false,
@@ -194,10 +194,10 @@
       "type": "n8n-nodes-base.if",
       "typeVersion": 2.2,
       "position": [
-        1936,
-        -1568
+        2976,
+        -2288
       ],
-      "id": "efae6dd4-b61b-4b94-af0d-a5d0cea59d23",
+      "id": "194596e1-c58d-4983-a075-33e815f34c67",
       "name": "User Registered?"
     },
     {
@@ -207,10 +207,10 @@
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        2480,
-        -1584
+        4112,
+        -2320
       ],
-      "id": "b06fcfbf-0471-4ca6-aa11-03b8e40f2234",
+      "id": "bc5dda3a-cf37-41f6-a1d1-d93088b27f42",
       "name": "Check License Limit",
       "retryOnFail": true
     },
@@ -242,203 +242,29 @@
       "type": "n8n-nodes-base.if",
       "typeVersion": 2.2,
       "position": [
-        2704,
-        -1520
+        4352,
+        -2320
       ],
-      "id": "adfab979-0385-4f08-83dc-b7a016ab4f23",
+      "id": "9a2d9155-9b3b-44da-a693-a51cb5f47bca",
       "name": "Can Create VM?"
     },
     {
       "parameters": {
-        "jsCode": "// Безопасная проверка: откуда пришли данные?\nlet userData = null;\n\ntry {\n  const userNode = $('Get User for VM Creation');\n  if (userNode && userNode.all().length > 0) {\n    userData = userNode.first().json;\n  }\n} catch (e) {\n  // Узел не выполнялся — значит пришли через State Router\n}\n\n// Если userData нет — получаем из State Router\nif (!userData) {\n  const stateData = $('Check User State').first().json;\n  \n  // Парсим данные из поля data\n  let parsedData = {};\n  try {\n    parsedData = typeof stateData.data === 'string' \n      ? JSON.parse(stateData.data) \n      : stateData.data || {};\n  } catch (e) {\n    console.error('Ошибка парсинга data:', e);\n    parsedData = {};\n  }\n  \n  // ОБЯЗАТЕЛЬНО берём user_id из data, НЕ из telegram_id!\n  if (!parsedData.user_id) {\n    throw new Error('❌ В состоянии пользователя нет user_id! Обратитесь к администратору.');\n  }\n  \n  userData = {\n    user_id: parsedData.user_id,\n    telegram_id: stateData.telegram_id,\n    username: parsedData.username || `User${parsedData.user_id}`\n  };\n}\n\n// Получаем входной текст (номера ПО)\nconst userInput = $('Edit Fields').item.json.text;\n\n// Парсим выбранные ID ПО\nlet selectedSoftwareIds = [];\n\n// Убираем команду /createvm если есть\nconst cleanInput = userInput.replace(/^\\/createvm\\s*/i, '').trim();\n\nif (cleanInput) {\n  // Пользователь ввёл номера\n  selectedSoftwareIds = cleanInput.split(',')\n    .map(id => parseInt(id.trim()))\n    .filter(id => !isNaN(id));\n}\n\n// Если не указано ПО — ошибка!\nif (selectedSoftwareIds.length === 0) {\n  throw new Error('Не указано ПО для установки! Выберите из меню.');\n}\n\n// Загружаем каталог ПО (БЕЗОПАСНО!)\nlet softwareCatalog = [];\ntry {\n  const catalogNode = $('Load Software Catalog').first();\n  \n  if (Array.isArray(catalogNode.json)) {\n    softwareCatalog = catalogNode.json;\n  } else {\n    const allCatalog = $('Load Software Catalog').all();\n    if (Array.isArray(allCatalog)) {\n      softwareCatalog = allCatalog.map(item => item.json);\n    }\n  }\n} catch (e) {\n  console.error('Ошибка загрузки каталога:', e);\n  softwareCatalog = [];\n}\n\n// Рассчитываем стоимость и список ПО\nlet monthlyCost = 0;\nconst installedSoftware = [];\n\nselectedSoftwareIds.forEach(id => {\n  const sw = softwareCatalog.find(s => parseInt(s.software_id) === id);\n  if (sw) {\n    monthlyCost += parseInt(sw.cost_per_month);\n    installedSoftware.push(sw.name);\n  }\n});\n\n// Получаем все существующие ВМ для генерации нового ID (БЕЗОПАСНО!)\nlet allVMs = [];\ntry {\n  const vmsNode = $('Get Existing VMs for User');\n  if (vmsNode && vmsNode.all) {\n    const vmsData = vmsNode.all();\n    if (Array.isArray(vmsData)) {\n      allVMs = vmsData;\n    }\n  }\n} catch (e) {\n  allVMs = [];\n}\n\n// Генерируем УНИКАЛЬНЫЙ vmid\n// Используем timestamp + случайное число для гарантии уникальности\nconst timestamp = Date.now();\nconst random = Math.floor(Math.random() * 1000);\nconst newVmId = parseInt(`${timestamp}${random}`.slice(-10)); // Берём последние 10 цифр\n\n// Генерируем УНИКАЛЬНОЕ имя ВМ\n// Формат: VM-[user_id]-[timestamp]-[ПО]\nconst shortTimestamp = timestamp.toString().slice(-6); // Последние 6 цифр\nconst softwareAbbr = installedSoftware.length > 0 \n  ? installedSoftware[0].substring(0, 3).toUpperCase() \n  : 'SYS';\nconst vmName = `VM-${userData.user_id}-${shortTimestamp}-${softwareAbbr}`;\n\n// Симулируем метрики\nconst usageHours = Math.floor(Math.random() * 36) + 5; // 5-40 часов\nconst cpuUsage = Math.floor(Math.random() * 70) + 15; // 15-85%\nconst ramUsage = Math.floor(Math.random() * 60) + 30; // 30-90%\n\nlet status = 'active';\nif (usageHours < 5) status = 'stopped';\nelse if (usageHours < 20) status = 'idle';\n\nconst now = new Date();\nconst createdAt = now.toISOString().split('T')[0];\n\nreturn {\n  json: {\n    vm_id: newVmId,\n    user_id: userData.user_id,\n    vm_name: vmName,\n    software_installed: selectedSoftwareIds.join(','),\n    created_at: createdAt,\n    last_active: createdAt,\n    cpu_usage_avg: cpuUsage,\n    ram_usage_avg: ramUsage,\n    status: status,\n    monthly_cost: monthlyCost,\n    usage_hours_week: usageHours,\n    inactivity_days: 0,\n    alert_sent: false,\n    installed_software_names: installedSoftware.join(', '),\n    chat_id: $('Edit Fields').item.json.chat_id\n  }\n};"
+        "jsCode": "// Безопасная проверка: откуда пришли данные?\nlet userData = null;\n\ntry {\n  const userNode = $('Get User for VM Creation');\n  if (userNode && userNode.all().length > 0) {\n    userData = userNode.first().json;\n  }\n} catch (e) {\n  // Узел не выполнялся — значит пришли через State Router\n}\n\n// Если userData нет — получаем из State Router\nif (!userData) {\n  const stateData = $('Check User State').first().json;\n  \n  // Парсим данные из поля data\n  let parsedData = {};\n  try {\n    parsedData = typeof stateData.data === 'string' \n      ? JSON.parse(stateData.data) \n      : stateData.data || {};\n  } catch (e) {\n    console.error('Ошибка парсинга data:', e);\n    parsedData = {};\n  }\n  \n  // ОБЯЗАТЕЛЬНО берём user_id из data, НЕ из telegram_id!\n  if (!parsedData.user_id) {\n    throw new Error('❌ В состоянии пользователя нет user_id! Обратитесь к администратору.');\n  }\n  \n  userData = {\n    user_id: parsedData.user_id,\n    telegram_id: stateData.telegram_id,\n    username: parsedData.username || `User${parsedData.user_id}`\n  };\n}\n\n// Получаем входной текст (номера ПО)\nconst userInput = $('Edit Fields').item.json.text;\n\n// Парсим выбранные ID ПО\nlet selectedSoftwareIds = [];\n\n// Убираем команду /createvm если есть\nconst cleanInput = userInput.replace(/^\\/createvm\\s*/i, '').trim();\n\nif (cleanInput) {\n  // Пользователь ввёл номера\n  selectedSoftwareIds = cleanInput.split(',')\n    .map(id => parseInt(id.trim()))\n    .filter(id => !isNaN(id));\n}\n\n// Если не указано ПО — ошибка!\nif (selectedSoftwareIds.length === 0) {\n  throw new Error('Не указано ПО для установки! Выберите из меню.');\n}\n\n// Загружаем каталог ПО (БЕЗОПАСНО!)\nlet softwareCatalog = [];\ntry {\n  const catalogNode = $('Load Software Catalog').first();\n  \n  if (Array.isArray(catalogNode.json)) {\n    softwareCatalog = catalogNode.json;\n  } else {\n    const allCatalog = $('Load Software Catalog').all();\n    if (Array.isArray(allCatalog)) {\n      softwareCatalog = allCatalog.map(item => item.json);\n    }\n  }\n} catch (e) {\n  console.error('Ошибка загрузки каталога:', e);\n  softwareCatalog = [];\n}\n\n// Рассчитываем стоимость и список ПО\nlet monthlyCost = 0;\nconst installedSoftware = [];\n\nselectedSoftwareIds.forEach(id => {\n  const sw = softwareCatalog.find(s => parseInt(s.software_id) === id);\n  if (sw) {\n    monthlyCost += parseInt(sw.cost_per_month);\n    installedSoftware.push(sw.name);\n  }\n});\n\n// Получаем все существующие ВМ для генерации нового ID (БЕЗОПАСНО!)\nlet allVMs = [];\ntry {\n  const vmsNode = $('Load Software Catalog2');\n  if (vmsNode && vmsNode.all) {\n    const vmsData = vmsNode.all();\n    if (Array.isArray(vmsData)) {\n      allVMs = vmsData;\n    }\n  }\n} catch (e) {\n  allVMs = [];\n}\n\n// Генерируем УНИКАЛЬНЫЙ vmid\n// Используем timestamp + случайное число для гарантии уникальности\nconst timestamp = Date.now();\nconst random = Math.floor(Math.random() * 1000);\nconst newVmId = parseInt(`${timestamp}${random}`.slice(-10)); // Берём последние 10 цифр\n\n// Генерируем УНИКАЛЬНОЕ имя ВМ\n// Формат: VM-[user_id]-[timestamp]-[ПО]\nconst shortTimestamp = timestamp.toString().slice(-6); // Последние 6 цифр\nconst softwareAbbr = installedSoftware.length > 0 \n  ? installedSoftware[0].substring(0, 3).toUpperCase() \n  : 'SYS';\nconst vmName = `VM-${userData.user_id}-${shortTimestamp}-${softwareAbbr}`;\n\n// Симулируем метрики\nconst usageHours = Math.floor(Math.random() * 36) + 5; // 5-40 часов\nconst cpuUsage = Math.floor(Math.random() * 70) + 15; // 15-85%\nconst ramUsage = Math.floor(Math.random() * 60) + 30; // 30-90%\n\nlet status = 'active';\nif (usageHours < 5) status = 'stopped';\nelse if (usageHours < 20) status = 'idle';\n\nconst now = new Date();\nconst createdAt = now.toISOString().split('T')[0];\n\nreturn {\n  json: {\n    vm_id: newVmId,\n    user_id: userData.user_id,\n    vm_name: vmName,\n    software_installed: selectedSoftwareIds.join(','),\n    created_at: createdAt,\n    last_active: createdAt,\n    cpu_usage_avg: cpuUsage,\n    ram_usage_avg: ramUsage,\n    status: status,\n    monthly_cost: monthlyCost,\n    usage_hours_week: usageHours,\n    inactivity_days: 0,\n    alert_sent: false,\n    installed_software_names: installedSoftware.join(', '),\n    chat_id: $('Edit Fields').item.json.chat_id\n  }\n};"
       },
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        2336,
-        -960
+        4688,
+        -1968
       ],
-      "id": "d94c4803-742f-4665-8588-58fcfe08dd48",
+      "id": "d824493a-e444-4b75-98e6-df0a0cae263b",
       "name": "Create VM with Software"
     },
     {
       "parameters": {
-        "operation": "append",
-        "documentId": {
-          "__rl": true,
-          "value": "1xmPo_70mAeo9xHI7m_uCk9hjJaKGKWixYMDTSQ9h8kw",
-          "mode": "list",
-          "cachedResultName": "POSASPR_Prototype",
-          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1xmPo_70mAeo9xHI7m_uCk9hjJaKGKWixYMDTSQ9h8kw/edit?usp=drivesdk"
-        },
-        "sheetName": {
-          "__rl": true,
-          "value": 1215742180,
-          "mode": "list",
-          "cachedResultName": "Virtual_Machines",
-          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1xmPo_70mAeo9xHI7m_uCk9hjJaKGKWixYMDTSQ9h8kw/edit#gid=1215742180"
-        },
-        "columns": {
-          "mappingMode": "defineBelow",
-          "value": {
-            "vm_id": "={{ $json.vm_id }}",
-            "user_id": "={{ $json.user_id }}",
-            "vm_name": "={{ $json.vm_name }}",
-            "software_installed": "={{ $json.software_installed }}",
-            "created_at": "={{ $json.created_at }}",
-            "last_active": "={{ $json.last_active }}",
-            "cpu_usage_avg": "={{ $json.cpu_usage_avg }}",
-            "ram_usage_avg": "={{ $json.ram_usage_avg }}",
-            "status": "={{ $json.status }}",
-            "monthly_cost": "={{ $json.monthly_cost }}",
-            "usage_hours_week": "={{ $json.usage_hours_week }}",
-            "inactivity_days": "={{ $json.inactivity_days }}",
-            "alert_sent": "={{ $json.alert_sent }}"
-          },
-          "matchingColumns": [],
-          "schema": [
-            {
-              "id": "vm_id",
-              "displayName": "vm_id",
-              "required": false,
-              "defaultMatch": false,
-              "display": true,
-              "type": "string",
-              "canBeUsedToMatch": true
-            },
-            {
-              "id": "user_id",
-              "displayName": "user_id",
-              "required": false,
-              "defaultMatch": false,
-              "display": true,
-              "type": "string",
-              "canBeUsedToMatch": true
-            },
-            {
-              "id": "vm_name",
-              "displayName": "vm_name",
-              "required": false,
-              "defaultMatch": false,
-              "display": true,
-              "type": "string",
-              "canBeUsedToMatch": true
-            },
-            {
-              "id": "software_installed",
-              "displayName": "software_installed",
-              "required": false,
-              "defaultMatch": false,
-              "display": true,
-              "type": "string",
-              "canBeUsedToMatch": true
-            },
-            {
-              "id": "created_at",
-              "displayName": "created_at",
-              "required": false,
-              "defaultMatch": false,
-              "display": true,
-              "type": "string",
-              "canBeUsedToMatch": true
-            },
-            {
-              "id": "last_active",
-              "displayName": "last_active",
-              "required": false,
-              "defaultMatch": false,
-              "display": true,
-              "type": "string",
-              "canBeUsedToMatch": true
-            },
-            {
-              "id": "cpu_usage_avg",
-              "displayName": "cpu_usage_avg",
-              "required": false,
-              "defaultMatch": false,
-              "display": true,
-              "type": "string",
-              "canBeUsedToMatch": true
-            },
-            {
-              "id": "ram_usage_avg",
-              "displayName": "ram_usage_avg",
-              "required": false,
-              "defaultMatch": false,
-              "display": true,
-              "type": "string",
-              "canBeUsedToMatch": true
-            },
-            {
-              "id": "status",
-              "displayName": "status",
-              "required": false,
-              "defaultMatch": false,
-              "display": true,
-              "type": "string",
-              "canBeUsedToMatch": true
-            },
-            {
-              "id": "monthly_cost",
-              "displayName": "monthly_cost",
-              "required": false,
-              "defaultMatch": false,
-              "display": true,
-              "type": "string",
-              "canBeUsedToMatch": true
-            },
-            {
-              "id": "usage_hours_week",
-              "displayName": "usage_hours_week",
-              "required": false,
-              "defaultMatch": false,
-              "display": true,
-              "type": "string",
-              "canBeUsedToMatch": true
-            },
-            {
-              "id": "inactivity_days",
-              "displayName": "inactivity_days",
-              "required": false,
-              "defaultMatch": false,
-              "display": true,
-              "type": "string",
-              "canBeUsedToMatch": true
-            },
-            {
-              "id": "alert_sent",
-              "displayName": "alert_sent",
-              "required": false,
-              "defaultMatch": false,
-              "display": true,
-              "type": "string",
-              "canBeUsedToMatch": true
-            }
-          ],
-          "attemptToConvertTypes": false,
-          "convertFieldsToString": false
-        },
-        "options": {}
-      },
-      "type": "n8n-nodes-base.googleSheets",
-      "typeVersion": 4.7,
-      "position": [
-        2688,
-        -1136
-      ],
-      "id": "58c1836b-a025-4517-a810-5ccf7110d55d",
-      "name": "Save VM to Sheet",
-      "credentials": {
-        "googleSheetsOAuth2Api": {
-          "id": "m2R34e9UAiHNipjw",
-          "name": "Google Sheets - POSASPR"
-        }
-      }
-    },
-    {
-      "parameters": {
         "chatId": "={{ $('Create VM with Software').item.json.chat_id }}",
-        "text": "=✅ ВМ создана!\n\n📦 Название ВИ: {{ $json.vm_name }}\n💿 Установленное ПО: {{ $json.software_installed }}\n📊 Статус: {{ $json.status }}\n💰 Стоимость: {{ $json.monthly_cost }} ₽/мес\n\n⚙️ Ресурсы:\n• CPU: ____ %\n• RAM: ____ %\n• Использование: ____ ч/неделю\n\nКоманды:\n📱 /myresources — все ресурсы\n🔍 /vmdetails {{ $json.vm_id }} — подробности",
+        "text": "=✅ ВМ создана!\n\n📦 Название ВИ: {{ $json.vm_name }}\n💿 Установленное ПО: {{ $('Create VM with Software').item.json.installed_software_names }}\n📊 Статус: {{ $json.status }}\n💰 Стоимость: {{ $json.monthly_cost }} ₽/мес\n\n⚙️ Ресурсы:\n• CPU: ____ %\n• RAM: ____ %\n• Использование: ____ ч/неделю\n\nКоманды:\n📱 /myresources — все ресурсы\n🔍 /vmdetails {{ $json.vm_id }} — подробности",
         "additionalFields": {
           "appendAttribution": false
         }
@@ -446,12 +272,12 @@
       "type": "n8n-nodes-base.telegram",
       "typeVersion": 1.2,
       "position": [
-        2976,
-        -976
+        5200,
+        -1968
       ],
-      "id": "961fa40d-600f-4dc5-bf7a-7605d30247d4",
+      "id": "71f24402-c0be-4470-b215-d70cafd1ef1a",
       "name": "Send: VM Created",
-      "webhookId": "dc4f3e65-b34f-4f4d-89f7-c398efd6638e",
+      "webhookId": "ee05d908-8316-461b-b370-6f150dbf510b",
       "credentials": {
         "telegramApi": {
           "id": "DDex8oHA77ADeVpY",
@@ -462,30 +288,30 @@
     {
       "parameters": {
         "content": "## Обработчик: Создание ВМ (/create_vm)\n\n1. Пользователь отправляет команду `/createvm`, сообщение попадает из `Webhook - Telegram Bot` в `Edit Fields`\n1. Затем через `Command Router` в ветку «**1 - Создание ВМ**».\n1. Узел `Get User for VM Creation` загружает данные пользователя из таблицы, а `User Registered?` проверяет, зарегистрирован ли он\n1. При отрицательном результате выполняется `Send: Not Registered`.\n1. Если пользователь зарегистрирован, `Get Existing VMs for User` подтягивает список его ВМ, затем `Check License Limit` считает количество ВМ и сравнивает с лимитом лицензии, результат уходит в `Can Create VM?`.\n1. В `Can Create VM?` при наличии свободного лимита формируется меню ПО через `Prepare Software Menu` (далее — узел отправки этого меню в Telegram), а при превышении лимита срабатывает `Send: Limit Exceeded`.\n1. После того как пользователь выбрал ПО, кодовый узел `Create VM with Software` рассчитывает параметры новой ВМ и формирует запись, `Save VM to Sheet` добавляет строку в таблицу **Virtual_Machines**\n1. `Send: VM Created` отправляет в Telegram итоговое сообщение о созданной ВМ и подсказки по дальнейшим командам.\n",
-        "height": 1312,
-        "width": 2464,
+        "height": 1152,
+        "width": 3040,
         "color": 2
       },
       "type": "n8n-nodes-base.stickyNote",
       "position": [
-        1568,
-        -1952
+        2640,
+        -2736
       ],
       "typeVersion": 1,
-      "id": "9c6d80cd-51c3-417c-a782-be00a58d4ca1",
+      "id": "ee6b75ec-84c2-423c-b32b-44f68811793a",
       "name": "Sticky Note1"
     },
     {
       "parameters": {
-        "jsCode": "const userData = $('Get User for Resources').first().json;\nconst allVMs = $('Get VMs for Resources').all();\n\n// Фильтруем ВМ текущего пользователя\nconst userVMs = allVMs.filter(vm => vm.json.user_id === userData.user_id);\n\nlet totalCost = 0;\nlet activeCount = 0;\nlet idleCount = 0;\nlet stoppedCount = 0;\nlet activeCost = 0;\nlet idleCost = 0;\nlet stoppedCost = 0;\n\nuserVMs.forEach(vm => {\n  totalCost += vm.json.monthly_cost;\n  \n  if (vm.json.status === 'active') {\n    activeCount++;\n    activeCost += vm.json.monthly_cost;\n  } else if (vm.json.status === 'idle') {\n    idleCount++;\n    idleCost += vm.json.monthly_cost;\n  } else {\n    stoppedCount++;\n    stoppedCost += vm.json.monthly_cost;\n  }\n});\n\nconst licenseMap = {\n  basic: { name: 'Basic', limit: 3, cost: 5000 },\n  standard: { name: 'Standard', limit: 10, cost: 15000 },\n  premium: { name: 'Premium', limit: 50, cost: 40000 }\n};\n\nconst license = licenseMap[userData.license_type];\n\nlet message = `📊 Ваши ресурсы\\n━━━━━━━━━━━━━━━\\n\\n`;\nmessage += `👤 Пользователь: ${userData.username}\\n`;\nmessage += `💼 Лицензия: ${license.name} (${userVMs.length}/${license.limit} ВМ)\\n`;\nmessage += `💰 Затраты: ${totalCost.toLocaleString()}₽/мес\\n\\n`;\n\nmessage += `🖥️ Виртуальные машины:\\n`;\nmessage += `✅ Активных: ${activeCount} (${activeCost.toLocaleString()}₽)\\n`;\nmessage += `⚠️ Простаивающих: ${idleCount} (${idleCost.toLocaleString()}₽)\\n`;\nmessage += `❌ Остановленных: ${stoppedCount} (${stoppedCost.toLocaleString()}₽)\\n\\n`;\n\n// ДОБАВЛЯЕМ СПИСОК ВМ\nif (userVMs.length > 0) {\n  message += `📋 Список ВМ:\\n`;\n  userVMs.forEach((vm, index) => {\n    const statusIcon = vm.json.status === 'active' ? '✅' : \n                       vm.json.status === 'idle' ? '⚠️' : '❌';\n    message += `${index + 1}. ${statusIcon} ${vm.json.vm_name}\\n`;\n    message += `   💿 ПО: ${vm.json.software_installed}\\n`;\n    message += `   💰 ${vm.json.monthly_cost.toLocaleString()}₽/мес\\n`;\n    message += `   🔍 /vmdetails ${vm.json.vm_id}\\n\\n`;\n  });\n}\n\nmessage += `━━━━━━━━━━━━━━━\\n`;\nmessage += `💡 Используйте:\\n`;\nmessage += `/optimize - Получить рекомендации\\n`;\nmessage += `/checkidle - Проверить простаивающие ВМ`;\n\nreturn {\n  json: {\n    message,\n    chat_id: $('Webhook - Telegram Bot').item.json.message.chat.id\n  }\n};"
+        "jsCode": "const userData = $('Get User').first().json;\nconst allVMs = $('Get VMs for Resources').all();\n\n// Фильтруем ВМ текущего пользователя\nconst userVMs = allVMs.filter(vm => vm.json.user_id === userData.user_id);\n\nlet totalCost = 0;\nlet activeCount = 0;\nlet idleCount = 0;\nlet stoppedCount = 0;\nlet activeCost = 0;\nlet idleCost = 0;\nlet stoppedCost = 0;\n\nuserVMs.forEach(vm => {\n  totalCost += vm.json.monthly_cost;\n  \n  if (vm.json.status === 'active') {\n    activeCount++;\n    activeCost += vm.json.monthly_cost;\n  } else if (vm.json.status === 'idle') {\n    idleCount++;\n    idleCost += vm.json.monthly_cost;\n  } else {\n    stoppedCount++;\n    stoppedCost += vm.json.monthly_cost;\n  }\n});\n\nconst licenseMap = {\n  basic: { name: 'Basic', limit: 3, cost: 5000 },\n  standard: { name: 'Standard', limit: 10, cost: 15000 },\n  premium: { name: 'Premium', limit: 50, cost: 40000 }\n};\n\nconst license = licenseMap[userData.license_type];\n\nlet message = `📊 Ваши ресурсы\\n━━━━━━━━━━━━━━━\\n\\n`;\nmessage += `👤 Пользователь: ${userData.username}\\n`;\nmessage += `💼 Лицензия: ${license.name} (${userVMs.length}/${license.limit} ВМ)\\n`;\nmessage += `💰 Затраты: ${totalCost.toLocaleString()}₽/мес\\n\\n`;\n\nmessage += `🖥️ Виртуальные машины:\\n`;\nmessage += `✅ Активных: ${activeCount} (${activeCost.toLocaleString()}₽)\\n`;\nmessage += `⚠️ Простаивающих: ${idleCount} (${idleCost.toLocaleString()}₽)\\n`;\nmessage += `❌ Остановленных: ${stoppedCount} (${stoppedCost.toLocaleString()}₽)\\n\\n`;\n\n// ДОБАВЛЯЕМ СПИСОК ВМ\nif (userVMs.length > 0) {\n  message += `📋 Список ВМ:\\n`;\n  userVMs.forEach((vm, index) => {\n    const statusIcon = vm.json.status === 'active' ? '✅' : \n                       vm.json.status === 'idle' ? '⚠️' : '❌';\n    message += `${index + 1}. ${statusIcon} ${vm.json.vm_name}\\n`;\n    message += `   💿 ПО: ${vm.json.software_installed}\\n`;\n    message += `   💰 ${vm.json.monthly_cost.toLocaleString()}₽/мес\\n`;\n    message += `   🔍 /vmdetails ${vm.json.vm_id}\\n\\n`;\n  });\n}\n\nmessage += `━━━━━━━━━━━━━━━\\n`;\nmessage += `💡 Используйте:\\n`;\nmessage += `/optimize - Получить рекомендации\\n`;\nmessage += `/checkidle - Проверить простаивающие ВМ`;\n\nreturn {\n  json: {\n    message,\n    chat_id: $('Webhook - Telegram Bot').item.json.message.chat.id\n  }\n};"
       },
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        1776,
-        528
+        4240,
+        208
       ],
-      "id": "a124ed41-eebf-45ba-95b7-ff90020780b8",
+      "id": "d6ec69c9-bbad-437d-8169-4ac1407613bd",
       "name": "Calculate Summary"
     },
     {
@@ -499,12 +325,12 @@
       "type": "n8n-nodes-base.telegram",
       "typeVersion": 1.2,
       "position": [
-        1984,
-        528
+        4448,
+        208
       ],
-      "id": "47ada2b0-29fd-41cf-8ecc-e0ae70e2ab75",
+      "id": "0870e412-ba63-4e79-9a91-f1b8c43c5b29",
       "name": "Send: Resources Summary",
-      "webhookId": "93478464-7aa2-42d3-b91d-00effe75322d",
+      "webhookId": "27f16c26-00f4-440b-8b19-5fe8c1f385e5",
       "credentials": {
         "telegramApi": {
           "id": "DDex8oHA77ADeVpY",
@@ -515,33 +341,33 @@
     {
       "parameters": {
         "content": "## Обработчик: Мои ресурсы (/my_resources)\n\n1. Команда `/myresources` маршрутизируется через `Command Router` в ветку просмотра ресурсов, где узел `Get User for Resources` получает профиль пользователя, а `Get VMs for Resources` — все его виртуальные машины из таблицы.\n1. Кодовый узел `Calculate Summary` агрегирует статистику по ВМ: считает общее количество, распределение по статусам (**active**/**idle**/**stopped**), общую стоимость и формирует текстовый отчёт с кратким списком ВМ и командами для детального анализа.\n1. Узел `Send: Resources Summary` отправляет пользователю этот отчёт в Telegram, чтобы он видел картину по своим ресурсам и мог перейти к `/vmdetails`, `/optimize` или `/checkidle`.",
-        "height": 592,
-        "width": 1648,
+        "height": 688,
+        "width": 1568,
         "color": 3
       },
       "type": "n8n-nodes-base.stickyNote",
       "position": [
-        784,
-        288
+        3136,
+        -48
       ],
       "typeVersion": 1,
-      "id": "98464509-71f0-40cb-bc25-2c3b1d9bdef1",
+      "id": "1f4afba8-fffe-4981-9857-5b999b0776a1",
       "name": "Sticky Note2"
     },
     {
       "parameters": {
         "content": "## Обработчик: AI-Оптимизация (/optimize)\n\n1. При команде` /optimize` Command Router направляет сообщение в ветку анализа, где `Get User for Optimize` загружает данные пользователя и его лицензии, а `Get VMs for Optimize` — список всех его ВМ.\n1. Параллельно в workflow уже загружен каталог ПО (через Load Software Catalog), и узел `Build Optimization Prompt` на основе данных по ВМ, лицензии и ПО собирает подробный текстовый промпт для LLM.\n1. Узел OpenRouter Chat Model (через внутренний узел `AI Optimization Analysis`) обрабатывает этот промпт, `Add Footer to Message` добавляет стандартные пояснения и подсказки\n1.  `Send: AI Recommendations` возвращает пользователю готовый текст с рекомендациями по удалению, объединению ВМ и оптимизации лицензии.",
-        "height": 544,
-        "width": 2048,
+        "height": 592,
+        "width": 2000,
         "color": 4
       },
       "type": "n8n-nodes-base.stickyNote",
       "position": [
-        1312,
-        1792
+        3264,
+        848
       ],
       "typeVersion": 1,
-      "id": "e96f8c34-9cea-4b79-ba80-f293d1bf9037",
+      "id": "436b1b9d-e5eb-48e5-9bcd-04ed2f9a9dd5",
       "name": "Sticky Note3"
     },
     {
@@ -551,15 +377,14 @@
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        2320,
-        1968
+        4160,
+        1040
       ],
-      "id": "305aa05e-6baa-47b4-b604-f6e1c4d653aa",
+      "id": "b41246c9-33ee-4b8c-9c84-2827f1214e79",
       "name": "Build Optimization Prompt"
     },
     {
       "parameters": {
-        "model": "mistralai/mistral-7b-instruct",
         "options": {
           "maxTokens": 1000,
           "temperature": 0.7
@@ -568,10 +393,10 @@
       "type": "@n8n/n8n-nodes-langchain.lmChatOpenRouter",
       "typeVersion": 1,
       "position": [
-        2480,
-        2160
+        4368,
+        1248
       ],
-      "id": "24e42efa-b599-4695-9fd5-63a12d474d72",
+      "id": "75e3c87b-96dc-4a06-91a5-7fdea3b8b61d",
       "name": "OpenRouter Chat Model",
       "credentials": {
         "openRouterApi": {
@@ -592,12 +417,12 @@
       "type": "n8n-nodes-base.telegram",
       "typeVersion": 1.2,
       "position": [
-        3120,
-        1952
+        5008,
+        1040
       ],
-      "id": "7d78fd12-f2bb-46ab-b069-ca85186691df",
+      "id": "7f8836ea-6f2f-4d62-8968-50408ad96f1a",
       "name": "Send: AI Recommendations",
-      "webhookId": "8e79902a-e5c9-411d-be06-9bd37e23f7bb",
+      "webhookId": "735c4e5c-923d-4d62-a2d4-e31d28f70f42",
       "credentials": {
         "telegramApi": {
           "id": "DDex8oHA77ADeVpY",
@@ -608,16 +433,16 @@
     {
       "parameters": {
         "content": "## Обработчик: Проверка простоя (/check_idle)\n\n1. Команда `/checkidle` также попадает через Command Router в ветку анализа, где `Get User for Idle Check` получает данные пользователя\n1. Узел `Get VMs for Idle Check` подтягивает все его ВМ с метриками использования и простоя.\n1. Кодовый узел `Detect Idle VMs` классифицирует машины по уровням критичности (катастрофический, критический, высокий, средний, нормальный и т.д.), рассчитывает потенциальную экономию и формирует детализированный отчёт по каждой группе.\n1. Узел `Send: Idle Report` отправляет этот отчёт в Telegram, включая статистику по количеству ВМ, простоям и рекомендации по дальнейшим действиям (в том числе ссылку на `/optimize`).\n",
-        "height": 576,
-        "width": 1440
+        "height": 624,
+        "width": 1568
       },
       "type": "n8n-nodes-base.stickyNote",
       "position": [
-        1328,
-        2384
+        3664,
+        1744
       ],
       "typeVersion": 1,
-      "id": "83f57a39-8372-40ee-9ec4-ef5224c61248",
+      "id": "67d68421-fc1b-4073-b529-410564f2dd59",
       "name": "Sticky Note4"
     },
     {
@@ -627,10 +452,10 @@
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        2288,
-        2592
+        4752,
+        2032
       ],
-      "id": "a691a219-db15-413c-809e-151b89035904",
+      "id": "bed67e04-c167-4823-b4ce-c9e4cd3c5479",
       "name": "Detect Idle VMs"
     },
     {
@@ -644,12 +469,12 @@
       "type": "n8n-nodes-base.telegram",
       "typeVersion": 1.2,
       "position": [
-        2496,
-        2592
+        4960,
+        2032
       ],
-      "id": "f98869f3-ea9b-4dfa-a2f8-842cdca23de2",
+      "id": "45f1b667-8fea-46e1-be0a-ccbc97b381b2",
       "name": "Send: Idle Report",
-      "webhookId": "88bf8701-c882-4d20-aa8a-6cf72294bba2",
+      "webhookId": "b0dd063d-12f5-4765-b025-f54802ffec12",
       "credentials": {
         "telegramApi": {
           "id": "DDex8oHA77ADeVpY",
@@ -661,50 +486,17 @@
       "parameters": {
         "content": "## Обработчик: Каталог ПО (/software_catalog)\n\n1. При вводе команды `/softwarecatalog` (или эквивалентной формы в regex) Command Router направляет поток в ветку каталога ПО.\n1. Узел `Load Software Catalog` загружает таблицу **Software_Catalog** из Google Sheets\n1. После чего `Add Context Info` обогащает сырые записи дополнительными полями (например, визуальной оценкой ресурсоёмкости).\n1. Кодовый узел `Format Catalog Message` превращает список ПО в структурированное текстовое сообщение с ID, названием, категорией, ценой и кратким описанием\n1. Узел `Send: Software Catalog` отправляет его пользователю вместе с инструкцией, как использовать номера ПО в команде `/createvm`.",
         "height": 512,
-        "width": 1520,
+        "width": 1600,
         "color": 2
       },
       "type": "n8n-nodes-base.stickyNote",
       "position": [
-        1248,
-        -560
+        3360,
+        -1440
       ],
       "typeVersion": 1,
-      "id": "7031cc4d-7d50-4e38-8e7c-3ea555f77c80",
+      "id": "f2634ec0-07b5-4f14-a45b-b1a3fed607fc",
       "name": "Sticky Note5"
-    },
-    {
-      "parameters": {
-        "documentId": {
-          "__rl": true,
-          "value": "1xmPo_70mAeo9xHI7m_uCk9hjJaKGKWixYMDTSQ9h8kw",
-          "mode": "list",
-          "cachedResultName": "POSASPR_Prototype",
-          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1xmPo_70mAeo9xHI7m_uCk9hjJaKGKWixYMDTSQ9h8kw/edit?usp=drivesdk"
-        },
-        "sheetName": {
-          "__rl": true,
-          "value": 1497436515,
-          "mode": "list",
-          "cachedResultName": "Software_Catalog",
-          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1xmPo_70mAeo9xHI7m_uCk9hjJaKGKWixYMDTSQ9h8kw/edit#gid=1497436515"
-        },
-        "options": {}
-      },
-      "type": "n8n-nodes-base.googleSheets",
-      "typeVersion": 4.7,
-      "position": [
-        1504,
-        -336
-      ],
-      "id": "90a2b2c5-3884-4718-aaad-0fb28b81523f",
-      "name": "Load Software Catalog",
-      "credentials": {
-        "googleSheetsOAuth2Api": {
-          "id": "m2R34e9UAiHNipjw",
-          "name": "Google Sheets - POSASPR"
-        }
-      }
     },
     {
       "parameters": {
@@ -713,10 +505,10 @@
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        2304,
-        -224
+        4400,
+        -1120
       ],
-      "id": "2aef7410-9ccb-4c84-949f-5dd943029ed5",
+      "id": "6d49c7ad-d88c-40b1-9aa2-b6cc8901da94",
       "name": "Format Catalog Message"
     },
     {
@@ -730,12 +522,12 @@
       "type": "n8n-nodes-base.telegram",
       "typeVersion": 1.2,
       "position": [
-        2528,
-        -224
+        4656,
+        -1120
       ],
-      "id": "d0574893-7eb2-4af0-8c5c-ba585dafde40",
+      "id": "61ba462e-9b47-483b-acbf-90e46bcd18d9",
       "name": "Send: Software Catalog",
-      "webhookId": "cd3482b1-ff27-4bac-828c-31da50453b49",
+      "webhookId": "8eee79df-63c9-4821-b741-ac1101f76c79",
       "credentials": {
         "telegramApi": {
           "id": "DDex8oHA77ADeVpY",
@@ -754,12 +546,12 @@
       "type": "n8n-nodes-base.telegram",
       "typeVersion": 1.2,
       "position": [
-        -864,
-        -560
+        -48,
+        -432
       ],
-      "id": "1dbc0485-0da9-4942-9bcc-0231d1469b48",
+      "id": "83bbbcf8-4e25-4813-b73c-9d5a96c048ff",
       "name": "Send: Help",
-      "webhookId": "ad620208-1b15-40b4-a847-75ae06d8893e",
+      "webhookId": "89600108-b8ac-4022-965d-b37f38555fe3",
       "credentials": {
         "telegramApi": {
           "id": "DDex8oHA77ADeVpY",
@@ -778,12 +570,12 @@
       "type": "n8n-nodes-base.telegram",
       "typeVersion": 1.2,
       "position": [
-        -864,
-        -320
+        -48,
+        -224
       ],
-      "id": "54f6268e-eb31-4b46-a4cf-fe6eafeb6977",
+      "id": "522f7233-9435-4afe-8f00-84ef6c1e7a9c",
       "name": "Send: Unknown Command",
-      "webhookId": "c7a0d21b-1728-47ac-aec8-fe333678e31d",
+      "webhookId": "5c15bd88-23b4-4035-8e67-1920978b1007",
       "credentials": {
         "telegramApi": {
           "id": "DDex8oHA77ADeVpY",
@@ -805,26 +597,26 @@
       "type": "@n8n/n8n-nodes-langchain.chainLlm",
       "typeVersion": 1.7,
       "position": [
-        2544,
-        1952
+        4432,
+        1040
       ],
-      "id": "62a18e2d-c119-4340-a61b-5319e1f151bd",
+      "id": "722c261a-da63-4a6d-8b49-7fdf2016b60d",
       "name": "AI Optimization Analysis"
     },
     {
       "parameters": {
         "content": "## Обработчик 7: Детали ВМ (/vm_details)\n\n1. Команда `/vmdetails` попадает из Webhook - Telegram Bot через Edit Fields и Command Router в ветку просмотра **2 - Просмотр (объединённое)**, где далее обрабатывается узлом Switch View`. \n1. Узел `Get User for VM Details` загружает информацию о пользователе и его правах доступа к ВМ.\n1. Узел `Parse VM ID` разбирает введённый пользователем идентификатор или имя ВМ (из текста сообщения).\n1. Узел `Valid VM ID?` проверяет, что идентификатор корректен; при ошибке сразу вызывается `Send: VM Error` с подсказкой пользователю.\n1. Узел `Route VM Lookup` направляет поток либо в `Get VM by ID`, либо в `Get VM by Name` (таблица **Virtual_Machines**), в зависимости от того, что именно ввёл пользователь.\n1. Узел `Merge VM Lookup` объединяет результаты поиска по ID/имени в единый объект ВМ, а затем Get Software Info for VM подгружает описание установленного ПО из каталога **Software_Catalog**.\n1. Узел `Format VM Details Message` формирует человекочитаемое описание ВМ (ресурсы, статус, простой, установленное ПО, стоимость) и передаёт его в `Send: VM Details` для отправки пользователю в Telegram.",
-        "height": 720,
-        "width": 2512,
+        "height": 752,
+        "width": 2176,
         "color": 4
       },
       "type": "n8n-nodes-base.stickyNote",
       "position": [
-        720,
-        960
+        2944,
+        -832
       ],
       "typeVersion": 1,
-      "id": "87458785-e57f-40ec-919f-7d826e59334b",
+      "id": "bf972a42-3c75-4fed-8aab-1a1d71f7be67",
       "name": "Sticky Note7"
     },
     {
@@ -834,10 +626,10 @@
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        1072,
-        1376
+        3728,
+        -432
       ],
-      "id": "2e1e599f-ecbf-420f-8ea5-77fa15db0979",
+      "id": "63979e02-ffed-41ff-8456-b5271ed0e00e",
       "name": "Parse VM ID"
     },
     {
@@ -868,56 +660,23 @@
       "type": "n8n-nodes-base.if",
       "typeVersion": 2.2,
       "position": [
-        1280,
-        1376
+        3936,
+        -432
       ],
-      "id": "0075a054-fceb-4cb8-881f-f6df0c474bdf",
+      "id": "b782ebaa-b0ad-477a-a7b3-717bbf4e2d46",
       "name": "Valid VM ID?"
     },
     {
       "parameters": {
-        "documentId": {
-          "__rl": true,
-          "value": "1xmPo_70mAeo9xHI7m_uCk9hjJaKGKWixYMDTSQ9h8kw",
-          "mode": "list",
-          "cachedResultName": "POSASPR_Prototype",
-          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1xmPo_70mAeo9xHI7m_uCk9hjJaKGKWixYMDTSQ9h8kw/edit?usp=drivesdk"
-        },
-        "sheetName": {
-          "__rl": true,
-          "value": 1497436515,
-          "mode": "list",
-          "cachedResultName": "Software_Catalog",
-          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1xmPo_70mAeo9xHI7m_uCk9hjJaKGKWixYMDTSQ9h8kw/edit#gid=1497436515"
-        },
-        "options": {}
-      },
-      "type": "n8n-nodes-base.googleSheets",
-      "typeVersion": 4.7,
-      "position": [
-        2400,
-        1312
-      ],
-      "id": "5b4c96e1-93a8-4417-87f1-dd2a32d8529e",
-      "name": "Get Software Info for VM",
-      "credentials": {
-        "googleSheetsOAuth2Api": {
-          "id": "m2R34e9UAiHNipjw",
-          "name": "Google Sheets - POSASPR"
-        }
-      }
-    },
-    {
-      "parameters": {
-        "jsCode": "// БЕЗОПАСНО получаем данные ВМ (из любого узла, который выполнился)\nlet vmData = null;\n\ntry {\n  const byId = $('Get VM by ID');\n  if (byId && byId.first) {\n    vmData = byId.first().json;\n  }\n} catch (e) {\n  // Узел не выполнялся\n}\n\nif (!vmData) {\n  try {\n    const byName = $('Get VM by Name');\n    if (byName && byName.first) {\n      vmData = byName.first().json;\n    }\n  } catch (e) {\n    // Узел не выполнялся\n  }\n}\n\n// Если данных нет — ошибка\nif (!vmData) {\n  return {\n    json: {\n      error: true,\n      message: '❌ ВМ не найдена\\n\\nИспользуйте /myresources для просмотра списка'\n    }\n  };\n}\n\nconst userData = $('Get User for VM Details').first().json;\nconst softwareCatalog = $input.all();\n\n// Проверяем, принадлежит ли ВМ пользователю\nif (parseInt(vmData.user_id) !== parseInt(userData.user_id)) {\n  return {\n    json: {\n      error: true,\n      message: '❌ У вас нет доступа к этой ВМ'\n    }\n  };\n}\n\n// БЕЗОПАСНО парсим software_installed (может быть числом или строкой)\nlet softwareIds = [];\nif (vmData.software_installed) {\n  const softwareStr = String(vmData.software_installed); // Преобразуем в строку\n  softwareIds = softwareStr.split(',').map(id => parseInt(id.trim())).filter(id => !isNaN(id));\n}\n\nlet softwareList = '';\nlet totalCost = 0;\n\nsoftwareIds.forEach(id => {\n  const sw = softwareCatalog.find(s => parseInt(s.json.software_id) === id);\n  if (sw) {\n    softwareList += `   - ${sw.json.name} (${sw.json.cost_per_month}₽/мес)\\n`;\n    totalCost += parseInt(sw.json.cost_per_month);\n  }\n});\n\n// Если ПО не найдено\nif (softwareList === '') {\n  softwareList = '   - Не установлено\\n';\n}\n\n// Формируем статус-индикатор\nconst statusEmoji = {\n  'active': '✅',\n  'idle': '⚠️',\n  'stopped': '❌'\n};\n\n// Создаём прогресс-бар\nconst createProgressBar = (value, max = 100) => {\n  const filled = Math.round((value / max) * 10);\n  return '▓'.repeat(filled) + '░'.repeat(10 - filled);\n};\n\n// Рассчитываем потери от простоя\nconst inactivityDays = parseInt(vmData.inactivity_days || 0);\nconst monthlyCost = parseInt(vmData.monthly_cost || 0);\nconst dailyCost = Math.round(monthlyCost / 30);\nconst wastedCost = dailyCost * inactivityDays;\n\nlet message = `🖥️ Детали ВМ: ${vmData.vm_name}\\n━━━━━━━━━━━━━━━\\n\\n`;\nmessage += `📅 Создана: ${vmData.created_at}\\n`;\nmessage += `🕐 Последняя активность: ${vmData.last_active}\\n`;\nmessage += `⏱️ Простой: ${inactivityDays} дней\\n`;\nmessage += `${statusEmoji[vmData.status] || '❓'} Статус: ${vmData.status}\\n\\n`;\n\nmessage += `📊 Использование:\\n`;\nmessage += `CPU: ${createProgressBar(vmData.cpu_usage_avg)} ${vmData.cpu_usage_avg}%\\n`;\nmessage += `RAM: ${createProgressBar(vmData.ram_usage_avg)} ${vmData.ram_usage_avg}%\\n`;\nmessage += `Часов в неделю: ${vmData.usage_hours_week}\\n\\n`;\n\nmessage += `💻 Установленное ПО:\\n${softwareList}\\n`;\n\nmessage += `💰 Затраты: ${monthlyCost.toLocaleString()}₽/мес\\n`;\n\nif (inactivityDays > 0) {\n  message += `💸 Потеряно за простой: ${wastedCost.toLocaleString()}₽\\n\\n`;\n}\n\nmessage += `━━━━━━━━━━━━━━━\\n`;\n\n// Рекомендации в зависимости от статуса\nif (vmData.status === 'stopped' || inactivityDays >= 14) {\n  message += `⚠️ Рекомендация: Удалить ВМ\\n`;\n  message += `Используйте /optimize для анализа`;\n} else if (vmData.status === 'idle' || inactivityDays >= 7) {\n  message += `💡 Рекомендация: Проверить необходимость\\n`;\n  message += `Используйте /checkidle для деталей`;\n} else {\n  message += `✅ ВМ используется эффективно`;\n}\n\nreturn {\n  json: {\n    message,\n    chat_id: $('Webhook - Telegram Bot').item.json.message.chat.id,\n    error: false\n  }\n};"
+        "jsCode": "// БЕЗОПАСНО получаем данные ВМ (из любого узла, который выполнился)\nlet vmData = null;\n\ntry {\n  const byId = $('Get VM by NameID');\n  if (byId && byId.first) {\n    vmData = byId.first().json;\n  }\n} catch (e) {\n  // Узел не выполнялся\n}\n\nif (!vmData) {\n  try {\n    const byName = $('Get VM by NameID');\n    if (byName && byName.first) {\n      vmData = byName.first().json;\n    }\n  } catch (e) {\n    // Узел не выполнялся\n  }\n}\n\n// Если данных нет — ошибка\nif (!vmData) {\n  return {\n    json: {\n      error: true,\n      message: '❌ ВМ не найдена\\n\\nИспользуйте /myresources для просмотра списка'\n    }\n  };\n}\n\nconst userData = $('Get User for VM Details').first().json;\nconst softwareCatalog = $input.all();\n\n// Проверяем, принадлежит ли ВМ пользователю\nif (parseInt(vmData.user_id) !== parseInt(userData.user_id)) {\n  return {\n    json: {\n      error: true,\n      message: '❌ У вас нет доступа к этой ВМ'\n    }\n  };\n}\n\n// БЕЗОПАСНО парсим software_installed (может быть числом или строкой)\nlet softwareIds = [];\nif (vmData.software_installed) {\n  const softwareStr = String(vmData.software_installed); // Преобразуем в строку\n  softwareIds = softwareStr.split(',').map(id => parseInt(id.trim())).filter(id => !isNaN(id));\n}\n\nlet softwareList = '';\nlet totalCost = 0;\n\nsoftwareIds.forEach(id => {\n  const sw = softwareCatalog.find(s => parseInt(s.json.software_id) === id);\n  if (sw) {\n    softwareList += `   - ${sw.json.name} (${sw.json.cost_per_month}₽/мес)\\n`;\n    totalCost += parseInt(sw.json.cost_per_month);\n  }\n});\n\n// Если ПО не найдено\nif (softwareList === '') {\n  softwareList = '   - Не установлено\\n';\n}\n\n// Формируем статус-индикатор\nconst statusEmoji = {\n  'active': '✅',\n  'idle': '⚠️',\n  'stopped': '❌'\n};\n\n// Создаём прогресс-бар\nconst createProgressBar = (value, max = 100) => {\n  const filled = Math.round((value / max) * 10);\n  return '▓'.repeat(filled) + '░'.repeat(10 - filled);\n};\n\n// Рассчитываем потери от простоя\nconst inactivityDays = parseInt(vmData.inactivity_days || 0);\nconst monthlyCost = parseInt(vmData.monthly_cost || 0);\nconst dailyCost = Math.round(monthlyCost / 30);\nconst wastedCost = dailyCost * inactivityDays;\n\nlet message = `🖥️ Детали ВМ: ${vmData.vm_name}\\n━━━━━━━━━━━━━━━\\n\\n`;\nmessage += `📅 Создана: ${vmData.created_at}\\n`;\nmessage += `🕐 Последняя активность: ${vmData.last_active}\\n`;\nmessage += `⏱️ Простой: ${inactivityDays} дней\\n`;\nmessage += `${statusEmoji[vmData.status] || '❓'} Статус: ${vmData.status}\\n\\n`;\n\nmessage += `📊 Использование:\\n`;\nmessage += `CPU: ${createProgressBar(vmData.cpu_usage_avg)} ${vmData.cpu_usage_avg}%\\n`;\nmessage += `RAM: ${createProgressBar(vmData.ram_usage_avg)} ${vmData.ram_usage_avg}%\\n`;\nmessage += `Часов в неделю: ${vmData.usage_hours_week}\\n\\n`;\n\nmessage += `💻 Установленное ПО:\\n${softwareList}\\n`;\n\nmessage += `💰 Затраты: ${monthlyCost.toLocaleString()}₽/мес\\n`;\n\nif (inactivityDays > 0) {\n  message += `💸 Потеряно за простой: ${wastedCost.toLocaleString()}₽\\n\\n`;\n}\n\nmessage += `━━━━━━━━━━━━━━━\\n`;\n\n// Рекомендации в зависимости от статуса\nif (vmData.status === 'stopped' || inactivityDays >= 14) {\n  message += `⚠️ Рекомендация: Удалить ВМ\\n`;\n  message += `Используйте /optimize для анализа`;\n} else if (vmData.status === 'idle' || inactivityDays >= 7) {\n  message += `💡 Рекомендация: Проверить необходимость\\n`;\n  message += `Используйте /checkidle для деталей`;\n} else {\n  message += `✅ ВМ используется эффективно`;\n}\n\nreturn {\n  json: {\n    message,\n    chat_id: $('Webhook - Telegram Bot').item.json.message.chat.id,\n    error: false\n  }\n};"
       },
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        2608,
-        1312
+        4592,
+        -528
       ],
-      "id": "8af9b652-f7d9-4933-92ea-5db02e8c6b84",
+      "id": "d9894173-1507-4f9d-bc70-f69a4f777799",
       "name": "Format VM Details Message"
     },
     {
@@ -931,12 +690,12 @@
       "type": "n8n-nodes-base.telegram",
       "typeVersion": 1.2,
       "position": [
-        2816,
-        1312
+        4848,
+        -528
       ],
-      "id": "6e51d0f6-f541-4cf5-b40c-5392bbb6ac2d",
+      "id": "069aafbb-5bed-49a9-90c6-2e6a12d0347c",
       "name": "Send: VM Details",
-      "webhookId": "be524acc-ca93-4a4a-bbca-1e8fd97b4457",
+      "webhookId": "0360f2c3-23a0-4270-b12a-7eb1354128f3",
       "credentials": {
         "telegramApi": {
           "id": "DDex8oHA77ADeVpY",
@@ -955,12 +714,12 @@
       "type": "n8n-nodes-base.telegram",
       "typeVersion": 1.2,
       "position": [
-        1616,
-        1488
+        4272,
+        -304
       ],
-      "id": "81c24395-3b79-41ed-ad3c-9971be299e49",
+      "id": "8418d063-4247-4841-a9ac-d6c35452cf37",
       "name": "Send: VM Error",
-      "webhookId": "816d45c8-580d-4bbd-af51-fb6f8f3e6d12",
+      "webhookId": "65f931dc-c175-47df-a0e9-92b25afd9f8c",
       "credentials": {
         "telegramApi": {
           "id": "DDex8oHA77ADeVpY",
@@ -979,12 +738,12 @@
       "type": "n8n-nodes-base.telegram",
       "typeVersion": 1.2,
       "position": [
-        2192,
-        -1440
+        3152,
+        -1936
       ],
-      "id": "aeb3c76d-be9f-4e9c-8005-b146e83f191c",
+      "id": "5acfb95b-455d-43ec-ba07-1e1a3d11973d",
       "name": "Send: Not Registered",
-      "webhookId": "4fe1ef05-c004-4b39-bd2a-36cfe52189b5",
+      "webhookId": "eec625cb-b3b2-4cd4-b8bc-f75db2cd9cae",
       "credentials": {
         "telegramApi": {
           "id": "DDex8oHA77ADeVpY",
@@ -1003,12 +762,12 @@
       "type": "n8n-nodes-base.telegram",
       "typeVersion": 1.2,
       "position": [
-        3200,
-        -1280
+        4688,
+        -2176
       ],
-      "id": "e9b749a5-6fd7-4641-92ae-a8c096f4519f",
+      "id": "37684bcc-ef48-4976-8ef2-6653208409e4",
       "name": "Send: Limit Exceeded",
-      "webhookId": "5f32605f-a685-4109-b29d-d3fb6f5ea4cb",
+      "webhookId": "49cfb367-0ba0-4470-b5c0-bcfb39858fde",
       "credentials": {
         "telegramApi": {
           "id": "DDex8oHA77ADeVpY",
@@ -1051,53 +810,11 @@
       "type": "n8n-nodes-base.set",
       "typeVersion": 3.4,
       "position": [
-        -3568,
-        -1600
+        -3536,
+        -1280
       ],
-      "id": "7f0dc639-21f8-4352-9d8c-65c124bbcfa9",
+      "id": "52091f17-1fc7-4067-8e7c-7ee923b05102",
       "name": "Edit Fields"
-    },
-    {
-      "parameters": {
-        "documentId": {
-          "__rl": true,
-          "value": "1xmPo_70mAeo9xHI7m_uCk9hjJaKGKWixYMDTSQ9h8kw",
-          "mode": "list",
-          "cachedResultName": "POSASPR_Prototype",
-          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1xmPo_70mAeo9xHI7m_uCk9hjJaKGKWixYMDTSQ9h8kw/edit?usp=drivesdk"
-        },
-        "sheetName": {
-          "__rl": true,
-          "value": "gid=0",
-          "mode": "list",
-          "cachedResultName": "Users",
-          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1xmPo_70mAeo9xHI7m_uCk9hjJaKGKWixYMDTSQ9h8kw/edit#gid=0"
-        },
-        "filtersUI": {
-          "values": [
-            {
-              "lookupColumn": "telegram_id",
-              "lookupValue": "={{ $('Edit Fields').item.json.user_id }}"
-            }
-          ]
-        },
-        "options": {}
-      },
-      "type": "n8n-nodes-base.googleSheets",
-      "typeVersion": 4.7,
-      "position": [
-        848,
-        1376
-      ],
-      "id": "875b6e4b-f659-442d-9980-6f6e44aa0633",
-      "name": "Get User for VM Details",
-      "alwaysOutputData": true,
-      "credentials": {
-        "googleSheetsOAuth2Api": {
-          "id": "m2R34e9UAiHNipjw",
-          "name": "Google Sheets - POSASPR"
-        }
-      }
     },
     {
       "parameters": {
@@ -1126,10 +843,10 @@
       "type": "n8n-nodes-base.if",
       "typeVersion": 2.2,
       "position": [
-        1360,
-        528
+        3792,
+        304
       ],
-      "id": "392f6288-30cb-4f34-9152-7e5882117684",
+      "id": "044e43af-0259-41eb-9894-0a35bdc751ee",
       "name": "User Found for Resources?"
     },
     {
@@ -1141,12 +858,12 @@
       "type": "n8n-nodes-base.telegram",
       "typeVersion": 1.2,
       "position": [
-        1616,
-        672
+        4048,
+        432
       ],
-      "id": "d8d2f7e8-8997-45b9-bef0-ebd1237d19b3",
+      "id": "f0a69a15-53bf-4a0f-bb51-df3bfe33c294",
       "name": "Send: Not Registered for Resources",
-      "webhookId": "b495fd62-160a-466e-b57c-88c9df880975",
+      "webhookId": "6e6f072e-a190-4952-b3da-37cd6a534dc1",
       "credentials": {
         "telegramApi": {
           "id": "DDex8oHA77ADeVpY",
@@ -1181,10 +898,10 @@
       "type": "n8n-nodes-base.if",
       "typeVersion": 2.2,
       "position": [
-        1664,
-        1968
+        3664,
+        1056
       ],
-      "id": "727f0338-c6f0-4b00-a993-498e5abc3667",
+      "id": "e03afe6d-5c8a-4fb5-88d4-fcccde57439e",
       "name": "User Found for Optimize?"
     },
     {
@@ -1196,12 +913,12 @@
       "type": "n8n-nodes-base.telegram",
       "typeVersion": 1.2,
       "position": [
-        1904,
-        2144
+        3904,
+        1232
       ],
-      "id": "fa326114-f70c-4009-be4b-33d8f7685343",
+      "id": "eb22042c-661e-4e48-b8bc-c2d0c635d445",
       "name": "Send: Not Registered for Optimize",
-      "webhookId": "1504e0e5-fcb1-4fa8-b367-ca8f509438fe",
+      "webhookId": "babea0b8-b362-401b-9358-19162498f7d3",
       "credentials": {
         "telegramApi": {
           "id": "DDex8oHA77ADeVpY",
@@ -1236,10 +953,10 @@
       "type": "n8n-nodes-base.if",
       "typeVersion": 2.2,
       "position": [
-        1872,
-        2592
+        4224,
+        2032
       ],
-      "id": "d2500af8-f665-4452-8180-761cff2d6f51",
+      "id": "fb9c8dfe-d815-43a4-ae28-97caefc2baf6",
       "name": "User Found for Idle Check?"
     },
     {
@@ -1251,325 +968,16 @@
       "type": "n8n-nodes-base.telegram",
       "typeVersion": 1.2,
       "position": [
-        2096,
-        2752
+        4496,
+        2160
       ],
-      "id": "a6191849-29eb-4497-a12a-98e1434e9dce",
+      "id": "da1c44c8-5088-4cb6-83a9-8968dd28746a",
       "name": "Send: Not Registered for Idle Check",
-      "webhookId": "1504e0e5-fcb1-4fa8-b367-ca8f509438fe",
+      "webhookId": "483b1df8-f3bb-4572-a0f9-e3f84c4cb358",
       "credentials": {
         "telegramApi": {
           "id": "DDex8oHA77ADeVpY",
           "name": "SmartLicenseUsageAnalyzer_bot"
-        }
-      }
-    },
-    {
-      "parameters": {
-        "documentId": {
-          "__rl": true,
-          "value": "1xmPo_70mAeo9xHI7m_uCk9hjJaKGKWixYMDTSQ9h8kw",
-          "mode": "list",
-          "cachedResultName": "POSASPR_Prototype",
-          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1xmPo_70mAeo9xHI7m_uCk9hjJaKGKWixYMDTSQ9h8kw/edit?usp=drivesdk"
-        },
-        "sheetName": {
-          "__rl": true,
-          "value": "gid=0",
-          "mode": "list",
-          "cachedResultName": "Users",
-          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1xmPo_70mAeo9xHI7m_uCk9hjJaKGKWixYMDTSQ9h8kw/edit#gid=0"
-        },
-        "filtersUI": {
-          "values": [
-            {
-              "lookupColumn": "telegram_id",
-              "lookupValue": "={{ $('Edit Fields').item.json.user_id }}"
-            }
-          ]
-        },
-        "options": {}
-      },
-      "type": "n8n-nodes-base.googleSheets",
-      "typeVersion": 4.7,
-      "position": [
-        1472,
-        1968
-      ],
-      "id": "fa56e53d-8b12-41f3-aefa-12f0840c7b98",
-      "name": "Get User for Optimize",
-      "alwaysOutputData": true,
-      "credentials": {
-        "googleSheetsOAuth2Api": {
-          "id": "m2R34e9UAiHNipjw",
-          "name": "Google Sheets - POSASPR"
-        }
-      }
-    },
-    {
-      "parameters": {
-        "documentId": {
-          "__rl": true,
-          "value": "1xmPo_70mAeo9xHI7m_uCk9hjJaKGKWixYMDTSQ9h8kw",
-          "mode": "list",
-          "cachedResultName": "POSASPR_Prototype",
-          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1xmPo_70mAeo9xHI7m_uCk9hjJaKGKWixYMDTSQ9h8kw/edit?usp=drivesdk"
-        },
-        "sheetName": {
-          "__rl": true,
-          "value": 1215742180,
-          "mode": "list",
-          "cachedResultName": "Virtual_Machines",
-          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1xmPo_70mAeo9xHI7m_uCk9hjJaKGKWixYMDTSQ9h8kw/edit#gid=1215742180"
-        },
-        "filtersUI": {
-          "values": [
-            {
-              "lookupColumn": "user_id",
-              "lookupValue": "={{ $json.user_id }}"
-            }
-          ]
-        },
-        "options": {}
-      },
-      "type": "n8n-nodes-base.googleSheets",
-      "typeVersion": 4.7,
-      "position": [
-        1904,
-        1968
-      ],
-      "id": "990d2c65-63fb-456f-82f6-50ed14065c57",
-      "name": "Get VMs for Optimize",
-      "credentials": {
-        "googleSheetsOAuth2Api": {
-          "id": "m2R34e9UAiHNipjw",
-          "name": "Google Sheets - POSASPR"
-        }
-      }
-    },
-    {
-      "parameters": {
-        "documentId": {
-          "__rl": true,
-          "value": "1xmPo_70mAeo9xHI7m_uCk9hjJaKGKWixYMDTSQ9h8kw",
-          "mode": "list",
-          "cachedResultName": "POSASPR_Prototype",
-          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1xmPo_70mAeo9xHI7m_uCk9hjJaKGKWixYMDTSQ9h8kw/edit?usp=drivesdk"
-        },
-        "sheetName": {
-          "__rl": true,
-          "value": "gid=0",
-          "mode": "list",
-          "cachedResultName": "Users",
-          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1xmPo_70mAeo9xHI7m_uCk9hjJaKGKWixYMDTSQ9h8kw/edit#gid=0"
-        },
-        "filtersUI": {
-          "values": [
-            {
-              "lookupColumn": "telegram_id",
-              "lookupValue": "={{ $('Edit Fields').item.json.user_id }}"
-            }
-          ]
-        },
-        "options": {}
-      },
-      "type": "n8n-nodes-base.googleSheets",
-      "typeVersion": 4.7,
-      "position": [
-        1664,
-        2592
-      ],
-      "id": "ffff2e25-e592-493d-93d5-0698dba35245",
-      "name": "Get User for Idle Check",
-      "alwaysOutputData": true,
-      "credentials": {
-        "googleSheetsOAuth2Api": {
-          "id": "m2R34e9UAiHNipjw",
-          "name": "Google Sheets - POSASPR"
-        }
-      }
-    },
-    {
-      "parameters": {
-        "documentId": {
-          "__rl": true,
-          "value": "1xmPo_70mAeo9xHI7m_uCk9hjJaKGKWixYMDTSQ9h8kw",
-          "mode": "list",
-          "cachedResultName": "POSASPR_Prototype",
-          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1xmPo_70mAeo9xHI7m_uCk9hjJaKGKWixYMDTSQ9h8kw/edit?usp=drivesdk"
-        },
-        "sheetName": {
-          "__rl": true,
-          "value": 1215742180,
-          "mode": "list",
-          "cachedResultName": "Virtual_Machines",
-          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1xmPo_70mAeo9xHI7m_uCk9hjJaKGKWixYMDTSQ9h8kw/edit#gid=1215742180"
-        },
-        "options": {}
-      },
-      "type": "n8n-nodes-base.googleSheets",
-      "typeVersion": 4.7,
-      "position": [
-        2080,
-        2592
-      ],
-      "id": "4e953632-4df4-4920-aa3c-bce933026580",
-      "name": "Get VMs for Idle Check",
-      "credentials": {
-        "googleSheetsOAuth2Api": {
-          "id": "m2R34e9UAiHNipjw",
-          "name": "Google Sheets - POSASPR"
-        }
-      }
-    },
-    {
-      "parameters": {
-        "documentId": {
-          "__rl": true,
-          "value": "1xmPo_70mAeo9xHI7m_uCk9hjJaKGKWixYMDTSQ9h8kw",
-          "mode": "list",
-          "cachedResultName": "POSASPR_Prototype",
-          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1xmPo_70mAeo9xHI7m_uCk9hjJaKGKWixYMDTSQ9h8kw/edit?usp=drivesdk"
-        },
-        "sheetName": {
-          "__rl": true,
-          "value": "gid=0",
-          "mode": "list",
-          "cachedResultName": "Users",
-          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1xmPo_70mAeo9xHI7m_uCk9hjJaKGKWixYMDTSQ9h8kw/edit#gid=0"
-        },
-        "filtersUI": {
-          "values": [
-            {
-              "lookupColumn": "telegram_id",
-              "lookupValue": "={{ $('Edit Fields').item.json.user_id }}"
-            }
-          ]
-        },
-        "options": {}
-      },
-      "type": "n8n-nodes-base.googleSheets",
-      "typeVersion": 4.7,
-      "position": [
-        1152,
-        528
-      ],
-      "id": "0421317a-a511-4ccf-88a3-48294a72023a",
-      "name": "Get User for Resources",
-      "alwaysOutputData": true,
-      "credentials": {
-        "googleSheetsOAuth2Api": {
-          "id": "m2R34e9UAiHNipjw",
-          "name": "Google Sheets - POSASPR"
-        }
-      }
-    },
-    {
-      "parameters": {
-        "documentId": {
-          "__rl": true,
-          "value": "1xmPo_70mAeo9xHI7m_uCk9hjJaKGKWixYMDTSQ9h8kw",
-          "mode": "list",
-          "cachedResultName": "POSASPR_Prototype",
-          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1xmPo_70mAeo9xHI7m_uCk9hjJaKGKWixYMDTSQ9h8kw/edit?usp=drivesdk"
-        },
-        "sheetName": {
-          "__rl": true,
-          "value": 1215742180,
-          "mode": "list",
-          "cachedResultName": "Virtual_Machines",
-          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1xmPo_70mAeo9xHI7m_uCk9hjJaKGKWixYMDTSQ9h8kw/edit#gid=1215742180"
-        },
-        "options": {}
-      },
-      "type": "n8n-nodes-base.googleSheets",
-      "typeVersion": 4.7,
-      "position": [
-        1568,
-        528
-      ],
-      "id": "24d430a0-fe5f-4731-9eef-b896a6b0dfe4",
-      "name": "Get VMs for Resources",
-      "alwaysOutputData": true,
-      "credentials": {
-        "googleSheetsOAuth2Api": {
-          "id": "m2R34e9UAiHNipjw",
-          "name": "Google Sheets - POSASPR"
-        }
-      }
-    },
-    {
-      "parameters": {
-        "documentId": {
-          "__rl": true,
-          "value": "1xmPo_70mAeo9xHI7m_uCk9hjJaKGKWixYMDTSQ9h8kw",
-          "mode": "list",
-          "cachedResultName": "POSASPR_Prototype",
-          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1xmPo_70mAeo9xHI7m_uCk9hjJaKGKWixYMDTSQ9h8kw/edit?usp=drivesdk"
-        },
-        "sheetName": {
-          "__rl": true,
-          "value": "gid=0",
-          "mode": "list",
-          "cachedResultName": "Users",
-          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1xmPo_70mAeo9xHI7m_uCk9hjJaKGKWixYMDTSQ9h8kw/edit#gid=0"
-        },
-        "filtersUI": {
-          "values": [
-            {
-              "lookupColumn": "telegram_id",
-              "lookupValue": "={{ $('Edit Fields').item.json.user_id }}"
-            }
-          ]
-        },
-        "options": {}
-      },
-      "type": "n8n-nodes-base.googleSheets",
-      "typeVersion": 4.7,
-      "position": [
-        1696,
-        -1552
-      ],
-      "id": "4384c801-bb76-4d4e-bfe6-c87bcbb9183f",
-      "name": "Get User for VM Creation",
-      "alwaysOutputData": true,
-      "credentials": {
-        "googleSheetsOAuth2Api": {
-          "id": "m2R34e9UAiHNipjw",
-          "name": "Google Sheets - POSASPR"
-        }
-      }
-    },
-    {
-      "parameters": {
-        "documentId": {
-          "__rl": true,
-          "value": "1xmPo_70mAeo9xHI7m_uCk9hjJaKGKWixYMDTSQ9h8kw",
-          "mode": "list",
-          "cachedResultName": "POSASPR_Prototype",
-          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1xmPo_70mAeo9xHI7m_uCk9hjJaKGKWixYMDTSQ9h8kw/edit?usp=drivesdk"
-        },
-        "sheetName": {
-          "__rl": true,
-          "value": 1215742180,
-          "mode": "list",
-          "cachedResultName": "Virtual_Machines",
-          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1xmPo_70mAeo9xHI7m_uCk9hjJaKGKWixYMDTSQ9h8kw/edit#gid=1215742180"
-        },
-        "options": {}
-      },
-      "type": "n8n-nodes-base.googleSheets",
-      "typeVersion": 4.7,
-      "position": [
-        2240,
-        -1680
-      ],
-      "id": "f9255d75-c7dd-44ea-a832-c2d8576b9e81",
-      "name": "Get Existing VMs for User",
-      "credentials": {
-        "googleSheetsOAuth2Api": {
-          "id": "m2R34e9UAiHNipjw",
-          "name": "Google Sheets - POSASPR"
         }
       }
     },
@@ -1648,10 +1056,10 @@
       "type": "n8n-nodes-base.googleSheets",
       "typeVersion": 4.7,
       "position": [
-        3696,
-        -1312
+        5424,
+        -2336
       ],
-      "id": "0813fb13-9a48-4d7b-8e11-07db3270ee0d",
+      "id": "c3cbd11e-bafe-4457-b501-bd215a10b7e4",
       "name": "Set User State",
       "credentials": {
         "googleSheetsOAuth2Api": {
@@ -1689,10 +1097,10 @@
       "type": "n8n-nodes-base.googleSheets",
       "typeVersion": 4.7,
       "position": [
-        -736,
-        -1728
+        -272,
+        -2384
       ],
-      "id": "ba183aa9-9635-4bee-97ca-9034087cef27",
+      "id": "777b701f-107a-4647-994b-69a0e4f85edd",
       "name": "Check User State",
       "alwaysOutputData": true,
       "credentials": {
@@ -1709,10 +1117,10 @@
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        240,
-        -2416
+        752,
+        -2816
       ],
-      "id": "80f8d9c3-c282-4230-96a5-91ee14d67e1c",
+      "id": "336bf09c-43a6-43be-938d-56bdaa3bbc2c",
       "name": "Save Email & Request Org"
     },
     {
@@ -1790,10 +1198,10 @@
       "type": "n8n-nodes-base.googleSheets",
       "typeVersion": 4.7,
       "position": [
-        656,
-        -2416
+        1152,
+        -2816
       ],
-      "id": "b81d870b-f3be-476e-9a2d-d4fb77a995f3",
+      "id": "0cb4d31e-39af-4437-ac66-fce8d99dcb4a",
       "name": "Update State with Email",
       "credentials": {
         "googleSheetsOAuth2Api": {
@@ -1813,12 +1221,12 @@
       "type": "n8n-nodes-base.telegram",
       "typeVersion": 1.2,
       "position": [
-        880,
-        -2416
+        1376,
+        -2816
       ],
-      "id": "4bde413b-e6d3-4f64-81dd-be8e9a5d0b23",
+      "id": "33e2a4bc-ec4c-4de2-aa24-3d16653f32a5",
       "name": "Send Request Organization",
-      "webhookId": "123a179a-66e5-4f6b-8436-9233568f6cbf",
+      "webhookId": "2120c152-e1ed-4e98-b3c1-8ce182720521",
       "credentials": {
         "telegramApi": {
           "id": "DDex8oHA77ADeVpY",
@@ -1833,7 +1241,7 @@
             {
               "id": "dda7c66e-1239-4d73-b40a-a1c9a3a214b1",
               "name": "chat_id",
-              "value": "={{ $json.chat_id }}",
+              "value": "={{ $('Can Create VM?').item.json.chat_id }}",
               "type": "string"
             },
             {
@@ -1845,7 +1253,7 @@
             {
               "id": "badfcae4-7e1b-4814-87ec-98cf6c5d478b",
               "name": "user_id",
-              "value": "={{ $json.user_id }}",
+              "value": "={{ $('Can Create VM?').item.json.user_id }}",
               "type": "string"
             }
           ]
@@ -1855,10 +1263,10 @@
       "type": "n8n-nodes-base.set",
       "typeVersion": 3.4,
       "position": [
-        2976,
-        -1712
+        4688,
+        -2480
       ],
-      "id": "754e249a-5bec-409c-a551-b2cd5da1fb32",
+      "id": "979d66ef-d4d4-4a17-8504-77a21ad463b6",
       "name": "Prepare Software Menu",
       "alwaysOutputData": false,
       "executeOnce": false,
@@ -1876,12 +1284,12 @@
       "type": "n8n-nodes-base.telegram",
       "typeVersion": 1.2,
       "position": [
-        304,
-        -2672
+        656,
+        -3072
       ],
-      "id": "5cb3f76f-3119-46dc-8c65-0c031219d3ce",
+      "id": "f6c215de-f75b-4526-8fcd-12a23bff3065",
       "name": "Send Request Email",
-      "webhookId": "1a7f7cf2-c502-4ab3-8bec-8c8d131440a7",
+      "webhookId": "fb079755-3fd3-4652-aa24-0c9929364d68",
       "credentials": {
         "telegramApi": {
           "id": "DDex8oHA77ADeVpY",
@@ -1893,140 +1301,16 @@
       "parameters": {
         "content": "## Регистрация пользователя\n\n1. Узел `Check User State` на основе последнего сообщения и хранилища состояний пользователя (таблица **User_States**) определяет, есть ли у пользователя активный «шаг» диалога (например, регистрация, ввод данных и т.п.).\n1. Узел `Route by State` направляет свободный пользовательский ввод (**4 - User Input** из Command Router) в нужную ветку: обычная работа, регистрация, ввод дополнительных атрибутов, шаги мастера и т.д.\n1. Для новых или незарегистрированных пользователей после `Send: Not Registered` отдельная ветка в Route by State устанавливает нужное состояние (например, «ожидание названия компании/почты/лицензии») и запускает последовательность узлов отправки сообщений (Send: ...) и кодовых узлов для записи введённых данных в таблицы.\n1. На каждом шаге регистрации кодовые узлы обновляют состояние пользователя (через обновление записи в таблице состояний **User_States**), а Route by State по этому состоянию решает, какой вопрос задать следующим и когда считать регистрацию завершённой.\n1. После успешного завершения регистрации состояние пользователя сбрасывается в «обычное» (без активного мастера), и дальше все основные команды (`/createvm`, `/myresources`, `/optimize`, `/checkidle`, `/softwarecatalog`) работают уже в режиме зарегистрированного пользователя.",
         "height": 1568,
-        "width": 2256
+        "width": 2992
       },
       "type": "n8n-nodes-base.stickyNote",
       "position": [
-        -1104,
-        -3104
+        -1056,
+        -3504
       ],
       "typeVersion": 1,
-      "id": "87f72626-1e09-4de8-a2ec-3e9301b6e7ee",
+      "id": "26a95861-777c-4451-a1a3-7d00fc1d570a",
       "name": "Sticky Note"
-    },
-    {
-      "parameters": {
-        "operation": "append",
-        "documentId": {
-          "__rl": true,
-          "value": "1xmPo_70mAeo9xHI7m_uCk9hjJaKGKWixYMDTSQ9h8kw",
-          "mode": "list",
-          "cachedResultName": "POSASPR_Prototype",
-          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1xmPo_70mAeo9xHI7m_uCk9hjJaKGKWixYMDTSQ9h8kw/edit?usp=drivesdk"
-        },
-        "sheetName": {
-          "__rl": true,
-          "value": "gid=0",
-          "mode": "list",
-          "cachedResultName": "Users",
-          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1xmPo_70mAeo9xHI7m_uCk9hjJaKGKWixYMDTSQ9h8kw/edit#gid=0"
-        },
-        "columns": {
-          "mappingMode": "defineBelow",
-          "value": {
-            "user_id": "={{ $json.user_id }}",
-            "username": "={{ $json.username }}",
-            "email": "=",
-            "organization": "=",
-            "license_type": "={{ $json.license_type }}",
-            "license_limit": "={{ $json.license_limit }}",
-            "created_at": "={{ $json.created_at }}",
-            "telegram_id": "={{ $json.telegram_id }}"
-          },
-          "matchingColumns": [],
-          "schema": [
-            {
-              "id": "user_id",
-              "displayName": "user_id",
-              "required": false,
-              "defaultMatch": false,
-              "display": true,
-              "type": "string",
-              "canBeUsedToMatch": true
-            },
-            {
-              "id": "username",
-              "displayName": "username",
-              "required": false,
-              "defaultMatch": false,
-              "display": true,
-              "type": "string",
-              "canBeUsedToMatch": true
-            },
-            {
-              "id": "email",
-              "displayName": "email",
-              "required": false,
-              "defaultMatch": false,
-              "display": true,
-              "type": "string",
-              "canBeUsedToMatch": true
-            },
-            {
-              "id": "organization",
-              "displayName": "organization",
-              "required": false,
-              "defaultMatch": false,
-              "display": true,
-              "type": "string",
-              "canBeUsedToMatch": true
-            },
-            {
-              "id": "license_type",
-              "displayName": "license_type",
-              "required": false,
-              "defaultMatch": false,
-              "display": true,
-              "type": "string",
-              "canBeUsedToMatch": true
-            },
-            {
-              "id": "license_limit",
-              "displayName": "license_limit",
-              "required": false,
-              "defaultMatch": false,
-              "display": true,
-              "type": "string",
-              "canBeUsedToMatch": true
-            },
-            {
-              "id": "created_at",
-              "displayName": "created_at",
-              "required": false,
-              "defaultMatch": false,
-              "display": true,
-              "type": "string",
-              "canBeUsedToMatch": true
-            },
-            {
-              "id": "telegram_id",
-              "displayName": "telegram_id",
-              "required": false,
-              "defaultMatch": false,
-              "display": true,
-              "type": "string",
-              "canBeUsedToMatch": true
-            }
-          ],
-          "attemptToConvertTypes": false,
-          "convertFieldsToString": false
-        },
-        "options": {}
-      },
-      "type": "n8n-nodes-base.googleSheets",
-      "typeVersion": 4.7,
-      "position": [
-        -176,
-        -2672
-      ],
-      "id": "ec2dcbaa-45b7-49f7-98b4-bcf45fd30472",
-      "name": "Add New User",
-      "credentials": {
-        "googleSheetsOAuth2Api": {
-          "id": "m2R34e9UAiHNipjw",
-          "name": "Google Sheets - POSASPR"
-        }
-      }
     },
     {
       "parameters": {
@@ -2035,10 +1319,10 @@
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        -384,
-        -2672
+        -80,
+        -3072
       ],
-      "id": "cb5b922c-59c8-4934-82e9-e9ffbe752b63",
+      "id": "bbdeea5b-27fb-46f9-bcfb-84118dcc15d7",
       "name": "Generate Registration Data"
     },
     {
@@ -2047,22 +1331,23 @@
           "options": {
             "caseSensitive": true,
             "leftValue": "",
-            "typeValidation": "strict",
+            "typeValidation": "loose",
             "version": 2
           },
           "conditions": [
             {
               "id": "524efa48-0de3-431c-95e7-c3fd7454961f",
-              "leftValue": "={{ $('Is Register Command?').item.json.user_id }}",
+              "leftValue": "={{ $('Is Register Command?').item.json.chat_id }}",
               "rightValue": "={{ $json.telegram_id }}",
               "operator": {
-                "type": "number",
+                "type": "string",
                 "operation": "equals"
               }
             }
           ],
           "combinator": "and"
         },
+        "looseTypeValidation": true,
         "options": {
           "ignoreCase": false
         }
@@ -2070,53 +1355,11 @@
       "type": "n8n-nodes-base.if",
       "typeVersion": 2.2,
       "position": [
-        -640,
-        -2784
+        -496,
+        -3168
       ],
-      "id": "46e29815-aeeb-4e3d-9c3a-86345e084ee6",
+      "id": "d90202c0-a2d3-49a9-b2d9-380c16f6fc5e",
       "name": "Already Registered?"
-    },
-    {
-      "parameters": {
-        "documentId": {
-          "__rl": true,
-          "value": "1xmPo_70mAeo9xHI7m_uCk9hjJaKGKWixYMDTSQ9h8kw",
-          "mode": "list",
-          "cachedResultName": "POSASPR_Prototype",
-          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1xmPo_70mAeo9xHI7m_uCk9hjJaKGKWixYMDTSQ9h8kw/edit?usp=drivesdk"
-        },
-        "sheetName": {
-          "__rl": true,
-          "value": "gid=0",
-          "mode": "list",
-          "cachedResultName": "Users",
-          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1xmPo_70mAeo9xHI7m_uCk9hjJaKGKWixYMDTSQ9h8kw/edit#gid=0"
-        },
-        "filtersUI": {
-          "values": [
-            {
-              "lookupColumn": "telegram_id",
-              "lookupValue": "={{ $('Edit Fields').item.json.user_id }}"
-            }
-          ]
-        },
-        "options": {}
-      },
-      "type": "n8n-nodes-base.googleSheets",
-      "typeVersion": 4.7,
-      "position": [
-        -848,
-        -2784
-      ],
-      "id": "0753a08a-2485-4fbf-bf88-e22099781730",
-      "name": "Check If User Exists",
-      "alwaysOutputData": true,
-      "credentials": {
-        "googleSheetsOAuth2Api": {
-          "id": "m2R34e9UAiHNipjw",
-          "name": "Google Sheets - POSASPR"
-        }
-      }
     },
     {
       "parameters": {
@@ -2146,10 +1389,10 @@
       "type": "n8n-nodes-base.if",
       "typeVersion": 2.2,
       "position": [
-        -3840,
-        -1584
+        -3808,
+        -1264
       ],
-      "id": "43f0ff7a-b5cd-4eb2-8240-82ec01349ee2",
+      "id": "26d593c5-c4ac-406d-b6c5-de6e0c455f29",
       "name": "Has Message"
     },
     {
@@ -2191,30 +1434,6 @@
                 },
                 "conditions": [
                   {
-                    "leftValue": "={{ $('Edit Fields').item.json.text }}",
-                    "rightValue": "/myresources",
-                    "operator": {
-                      "type": "string",
-                      "operation": "equals"
-                    },
-                    "id": "56cbe9ef-c4cf-46ea-925d-a95795418f6f"
-                  }
-                ],
-                "combinator": "and"
-              },
-              "renameOutput": true,
-              "outputKey": "Мои ресурсы"
-            },
-            {
-              "conditions": {
-                "options": {
-                  "caseSensitive": true,
-                  "leftValue": "",
-                  "typeValidation": "strict",
-                  "version": 2
-                },
-                "conditions": [
-                  {
                     "id": "d41b2f57-2360-451b-9581-734edde4171a",
                     "leftValue": "={{ $('Edit Fields').item.json.text }}",
                     "rightValue": "/vmdetails",
@@ -2228,6 +1447,30 @@
               },
               "renameOutput": true,
               "outputKey": "Подробности ВМ"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $('Edit Fields').item.json.text }}",
+                    "rightValue": "/myresources",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    },
+                    "id": "56cbe9ef-c4cf-46ea-925d-a95795418f6f"
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "Мои ресурсы"
             }
           ]
         },
@@ -2236,10 +1479,10 @@
       "type": "n8n-nodes-base.switch",
       "typeVersion": 3.3,
       "position": [
-        -400,
-        -960
+        1248,
+        -1024
       ],
-      "id": "b837a5df-db3b-431a-8a9d-55753a5f8f9f",
+      "id": "8945baf7-d9c1-4a6a-8028-e2d1eada9390",
       "name": "Switch View"
     },
     {
@@ -2302,53 +1545,11 @@
       "type": "n8n-nodes-base.switch",
       "typeVersion": 3.3,
       "position": [
-        784,
-        2112
+        1360,
+        624
       ],
-      "id": "b8dd0039-e128-4f0a-a112-3404c387519c",
+      "id": "73dd1f05-9f1e-4072-a765-148eb033db47",
       "name": "Switch Analyze"
-    },
-    {
-      "parameters": {
-        "documentId": {
-          "__rl": true,
-          "value": "1xmPo_70mAeo9xHI7m_uCk9hjJaKGKWixYMDTSQ9h8kw",
-          "mode": "list",
-          "cachedResultName": "POSASPR_Prototype",
-          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1xmPo_70mAeo9xHI7m_uCk9hjJaKGKWixYMDTSQ9h8kw/edit?usp=drivesdk"
-        },
-        "sheetName": {
-          "__rl": true,
-          "value": "gid=0",
-          "mode": "list",
-          "cachedResultName": "Users",
-          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1xmPo_70mAeo9xHI7m_uCk9hjJaKGKWixYMDTSQ9h8kw/edit#gid=0"
-        },
-        "filtersUI": {
-          "values": [
-            {
-              "lookupColumn": "telegram_id",
-              "lookupValue": "={{ $('Edit Fields').item.json.user_id }}"
-            }
-          ]
-        },
-        "options": {}
-      },
-      "type": "n8n-nodes-base.googleSheets",
-      "typeVersion": 4.7,
-      "position": [
-        -2832,
-        -1872
-      ],
-      "id": "08e6c6fe-da92-43c0-a81d-430042fdbce0",
-      "name": "Check Registration for Start",
-      "alwaysOutputData": true,
-      "credentials": {
-        "googleSheetsOAuth2Api": {
-          "id": "m2R34e9UAiHNipjw",
-          "name": "Google Sheets - POSASPR"
-        }
-      }
     },
     {
       "parameters": {
@@ -2363,7 +1564,7 @@
             {
               "id": "178a088d-9ae4-4527-8dc6-3eadce72c82f",
               "leftValue": "={{ $json.telegram_id }}",
-              "rightValue": "={{ $('Is Start Command?').item.json.user_id }}",
+              "rightValue": "={{ $('Is Start Command?').item.json.chat_id }}",
               "operator": {
                 "type": "number",
                 "operation": "equals"
@@ -2377,10 +1578,10 @@
       "type": "n8n-nodes-base.if",
       "typeVersion": 2.2,
       "position": [
-        -2608,
-        -2016
+        -2368,
+        -1696
       ],
-      "id": "63f1dcea-ccfc-45c6-84b2-569e0c4bbe8a",
+      "id": "c932d57f-d3cf-408e-8509-d6633be7f365",
       "name": "User Registered for Start?"
     },
     {
@@ -2394,12 +1595,12 @@
       "type": "n8n-nodes-base.telegram",
       "typeVersion": 1.2,
       "position": [
-        -2304,
-        -2128
+        -2064,
+        -1808
       ],
-      "id": "8f28d6d2-b726-4193-9e3d-214a6c6a436e",
+      "id": "4f7fd8f5-6585-4bab-9bb0-288cc7e38b87",
       "name": "Send: Welcome (Registered)",
-      "webhookId": "b51e9a89-f36d-46d0-a1c5-1af42d15e5b8",
+      "webhookId": "2df9641d-6340-4689-b5ea-cd0bcaf4bcfb",
       "credentials": {
         "telegramApi": {
           "id": "DDex8oHA77ADeVpY",
@@ -2434,53 +1635,11 @@
       "type": "n8n-nodes-base.if",
       "typeVersion": 2.2,
       "position": [
-        -2608,
-        -1504
+        -2368,
+        -1184
       ],
-      "id": "8568ef81-6343-4601-ba48-c317e498a29e",
+      "id": "a8642bbe-2594-4d89-bd1b-b479ee608f1f",
       "name": "Is Register Command?"
-    },
-    {
-      "parameters": {
-        "documentId": {
-          "__rl": true,
-          "value": "1xmPo_70mAeo9xHI7m_uCk9hjJaKGKWixYMDTSQ9h8kw",
-          "mode": "list",
-          "cachedResultName": "POSASPR_Prototype",
-          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1xmPo_70mAeo9xHI7m_uCk9hjJaKGKWixYMDTSQ9h8kw/edit?usp=drivesdk"
-        },
-        "sheetName": {
-          "__rl": true,
-          "value": "gid=0",
-          "mode": "list",
-          "cachedResultName": "Users",
-          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1xmPo_70mAeo9xHI7m_uCk9hjJaKGKWixYMDTSQ9h8kw/edit#gid=0"
-        },
-        "filtersUI": {
-          "values": [
-            {
-              "lookupColumn": "telegram_id",
-              "lookupValue": "={{ $('Edit Fields').item.json.user_id }}"
-            }
-          ]
-        },
-        "options": {}
-      },
-      "type": "n8n-nodes-base.googleSheets",
-      "typeVersion": 4.7,
-      "position": [
-        -2304,
-        -1376
-      ],
-      "id": "ea66711e-49d2-47e1-94c9-e83ada476d04",
-      "name": "Check Registration for Commands",
-      "alwaysOutputData": true,
-      "credentials": {
-        "googleSheetsOAuth2Api": {
-          "id": "m2R34e9UAiHNipjw",
-          "name": "Google Sheets - POSASPR"
-        }
-      }
     },
     {
       "parameters": {
@@ -2509,10 +1668,10 @@
       "type": "n8n-nodes-base.if",
       "typeVersion": 2.2,
       "position": [
-        -2064,
-        -1360
+        -1776,
+        -1088
       ],
-      "id": "f80f85ac-8695-4b85-814d-a78e0babd4a6",
+      "id": "99119dc7-6bde-4e19-9a02-65b80d9bf6ca",
       "name": "User Registered for Commands?",
       "alwaysOutputData": true
     },
@@ -2520,15 +1679,15 @@
       "parameters": {
         "content": "## Проверка регистрации\n\n1. Любое входящее сообщение пользователя после нормализации текстом в `Edit Fields` проходит через Command Router, где команда маршрутизируется по типам (создание ВМ, просмотр, анализ, помощь и т.п.).\n1. Для ветки создания ВМ команда направляется в узел `Get User for VM Creation`, который ищет пользователя в таблице **Users** по Telegram ID и поднимает его профиль (тип лицензии, лимит ВМ и т.д.).\n1. Узел `User Registered?` проверяет, найден ли пользователь; если пользователь не зарегистрирован, поток уходит в `Send: Not Registered`, который отправляет сообщение с инструкциями по регистрации.\n1. Если пользователь найден, его данные (user_id, license_type, license_limit и т.п.) используются далее в `Get Existing VMs for User` и `Check License Limit` для проверки доступности операций (создание ВМ, анализ, просмотр ресурсов).\n1. Аналогичная проверка регистрации используется в других ветках (ресурсы, оптимизация, простой), где узлы `Get User for Resources`, `Get User for Optimize`, `Get User for Idle Check` выполняют роль проверки существования пользователя и загрузки его профиля перед бизнес-логикой.",
         "height": 1408,
-        "width": 1680
+        "width": 1936
       },
       "type": "n8n-nodes-base.stickyNote",
       "position": [
-        -3200,
-        -2400
+        -3104,
+        -2080
       ],
       "typeVersion": 1,
-      "id": "f24d8507-6ad2-4f35-97b3-bda95a728c88",
+      "id": "7ca0318b-e3e6-42f1-a2d4-956b49b6496f",
       "name": "Sticky Note6"
     },
     {
@@ -2542,12 +1701,12 @@
       "type": "n8n-nodes-base.telegram",
       "typeVersion": 1.2,
       "position": [
-        -1856,
-        -1168
+        -1504,
+        -896
       ],
-      "id": "c9cc58fc-7c4b-40a3-b0d4-6a46f0e7c82d",
+      "id": "fa682c2d-68b9-4e94-a690-ac4ba2d6057f",
       "name": "Send: Please Register First",
-      "webhookId": "f1095d5c-9781-41fa-aaeb-09f47e9a0ac6",
+      "webhookId": "37486563-5a97-4c19-a951-b8f4dca9c0b5",
       "credentials": {
         "telegramApi": {
           "id": "DDex8oHA77ADeVpY",
@@ -2562,10 +1721,10 @@
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        -480,
-        -1728
+        -16,
+        -2384
       ],
-      "id": "4d3d29f6-6e7e-4504-9603-1d35237c0606",
+      "id": "a443c44d-04b3-4b1d-806b-51fb29d378b5",
       "name": "Route by State"
     },
     {
@@ -2705,10 +1864,10 @@
       "type": "n8n-nodes-base.switch",
       "typeVersion": 3.3,
       "position": [
-        -224,
-        -1824
+        240,
+        -2480
       ],
-      "id": "1696a269-87ee-41cd-92ed-5a6fd9cb525c",
+      "id": "db7d9fb6-4307-44fe-be6f-dcf590fb3b0d",
       "name": "State Router"
     },
     {
@@ -2718,136 +1877,11 @@
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        240,
-        -2208
+        752,
+        -2608
       ],
-      "id": "777af290-1ad8-481b-8383-ab93d1d4a4fb",
+      "id": "ca7c8dcf-5162-43db-a2be-c2f6a2d9c487",
       "name": "Save Organization & Finish"
-    },
-    {
-      "parameters": {
-        "operation": "appendOrUpdate",
-        "documentId": {
-          "__rl": true,
-          "value": "1xmPo_70mAeo9xHI7m_uCk9hjJaKGKWixYMDTSQ9h8kw",
-          "mode": "list",
-          "cachedResultName": "POSASPR_Prototype",
-          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1xmPo_70mAeo9xHI7m_uCk9hjJaKGKWixYMDTSQ9h8kw/edit?usp=drivesdk"
-        },
-        "sheetName": {
-          "__rl": true,
-          "value": "gid=0",
-          "mode": "list",
-          "cachedResultName": "Users",
-          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1xmPo_70mAeo9xHI7m_uCk9hjJaKGKWixYMDTSQ9h8kw/edit#gid=0"
-        },
-        "columns": {
-          "mappingMode": "defineBelow",
-          "value": {
-            "telegram_id": "={{ $json.telegram_id }}",
-            "email": "={{ $json.email }}",
-            "organization": "={{ $json.organization }}",
-            "created_at": "={{ $('Check Registration for Commands').item.json.created_at }}"
-          },
-          "matchingColumns": [
-            "telegram_id"
-          ],
-          "schema": [
-            {
-              "id": "user_id",
-              "displayName": "user_id",
-              "required": false,
-              "defaultMatch": false,
-              "display": true,
-              "type": "string",
-              "canBeUsedToMatch": true,
-              "removed": true
-            },
-            {
-              "id": "username",
-              "displayName": "username",
-              "required": false,
-              "defaultMatch": false,
-              "display": true,
-              "type": "string",
-              "canBeUsedToMatch": true,
-              "removed": true
-            },
-            {
-              "id": "email",
-              "displayName": "email",
-              "required": false,
-              "defaultMatch": false,
-              "display": true,
-              "type": "string",
-              "canBeUsedToMatch": true
-            },
-            {
-              "id": "organization",
-              "displayName": "organization",
-              "required": false,
-              "defaultMatch": false,
-              "display": true,
-              "type": "string",
-              "canBeUsedToMatch": true
-            },
-            {
-              "id": "license_type",
-              "displayName": "license_type",
-              "required": false,
-              "defaultMatch": false,
-              "display": true,
-              "type": "string",
-              "canBeUsedToMatch": true
-            },
-            {
-              "id": "license_limit",
-              "displayName": "license_limit",
-              "required": false,
-              "defaultMatch": false,
-              "display": true,
-              "type": "string",
-              "canBeUsedToMatch": true
-            },
-            {
-              "id": "created_at",
-              "displayName": "created_at",
-              "required": false,
-              "defaultMatch": false,
-              "display": true,
-              "type": "string",
-              "canBeUsedToMatch": true
-            },
-            {
-              "id": "telegram_id",
-              "displayName": "telegram_id",
-              "required": false,
-              "defaultMatch": false,
-              "display": true,
-              "type": "string",
-              "canBeUsedToMatch": true,
-              "removed": false
-            }
-          ],
-          "attemptToConvertTypes": false,
-          "convertFieldsToString": false
-        },
-        "options": {}
-      },
-      "type": "n8n-nodes-base.googleSheets",
-      "typeVersion": 4.7,
-      "position": [
-        464,
-        -2208
-      ],
-      "id": "a8f4d248-9810-4fdb-80f5-342fafeff602",
-      "name": "Update User with Org",
-      "credentials": {
-        "googleSheetsOAuth2Api": {
-          "id": "m2R34e9UAiHNipjw",
-          "name": "Google Sheets - POSASPR"
-        }
-      }
     },
     {
       "parameters": {
@@ -2876,10 +1910,10 @@
       "type": "n8n-nodes-base.if",
       "typeVersion": 2.2,
       "position": [
-        -3072,
-        -1616
+        -3040,
+        -1296
       ],
-      "id": "1ae58036-8cfc-4c69-8b39-f2c5acd9b7c1",
+      "id": "52d89942-1ae8-4fbd-b829-87e7e09795c5",
       "name": "Is Start Command?"
     },
     {
@@ -2893,12 +1927,12 @@
       "type": "n8n-nodes-base.telegram",
       "typeVersion": 1.2,
       "position": [
-        -2304,
-        -1920
+        -2064,
+        -1600
       ],
-      "id": "55185d74-da80-4a45-acad-1109ac945ada",
+      "id": "2f3315cb-4d5e-4d93-9306-e3568e9a3916",
       "name": "Send: Please Register",
-      "webhookId": "f1095d5c-9781-41fa-aaeb-09f47e9a0ac6",
+      "webhookId": "dc8c1c64-8868-4578-8ae8-625b911c50e5",
       "credentials": {
         "telegramApi": {
           "id": "DDex8oHA77ADeVpY",
@@ -2917,12 +1951,12 @@
       "type": "n8n-nodes-base.telegram",
       "typeVersion": 1.2,
       "position": [
-        3200,
-        -1520
+        4976,
+        -2336
       ],
-      "id": "991dd373-936a-4b14-bc4e-e0e1baf08539",
+      "id": "967cbaec-7583-4173-af3e-9e9c597275ef",
       "name": "Send Software Menu",
-      "webhookId": "20d39f99-9ba8-452c-b4e8-c0bb01b1df9b",
+      "webhookId": "732b2add-2846-47f1-bbd6-3212047174ee",
       "credentials": {
         "telegramApi": {
           "id": "DDex8oHA77ADeVpY",
@@ -2989,10 +2023,10 @@
       "type": "n8n-nodes-base.switch",
       "typeVersion": 3.3,
       "position": [
-        2048,
-        -320
+        4112,
+        -1136
       ],
-      "id": "d7f06350-cdad-47ea-b1f7-9c6d4d02a9a3",
+      "id": "bc790321-4683-49b7-b270-744418149a7b",
       "name": "Route Catalog Output"
     },
     {
@@ -3002,10 +2036,10 @@
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        1792,
-        -336
+        3808,
+        -1136
       ],
-      "id": "dd719326-537d-4078-9293-622f494cf72a",
+      "id": "12dfb281-5c26-40bd-97ae-cd0b206ffafc",
       "name": "Add Context Info"
     },
     {
@@ -3015,206 +2049,11 @@
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        3440,
-        -1520
+        5200,
+        -2336
       ],
-      "id": "22efdc28-5899-4d86-a512-f23bee15e92b",
+      "id": "01b3174f-7b0b-499d-9cc7-57053d3561e6",
       "name": "Prepare State Data"
-    },
-    {
-      "parameters": {
-        "rules": {
-          "values": [
-            {
-              "conditions": {
-                "options": {
-                  "caseSensitive": true,
-                  "leftValue": "",
-                  "typeValidation": "strict",
-                  "version": 2
-                },
-                "conditions": [
-                  {
-                    "leftValue": "={{ $json.vm_id }}",
-                    "rightValue": "",
-                    "operator": {
-                      "type": "number",
-                      "operation": "notEmpty",
-                      "singleValue": true
-                    },
-                    "id": "73ce44bc-ab87-4f3a-ad04-18bae417f8cb"
-                  }
-                ],
-                "combinator": "and"
-              },
-              "renameOutput": true,
-              "outputKey": "By ID"
-            },
-            {
-              "conditions": {
-                "options": {
-                  "caseSensitive": true,
-                  "leftValue": "",
-                  "typeValidation": "strict",
-                  "version": 2
-                },
-                "conditions": [
-                  {
-                    "id": "529bdd78-cd71-489d-8393-a0d0ab23fc05",
-                    "leftValue": "={{ $json.vm_name }}",
-                    "rightValue": "By Name",
-                    "operator": {
-                      "type": "string",
-                      "operation": "notEmpty",
-                      "singleValue": true
-                    }
-                  }
-                ],
-                "combinator": "and"
-              },
-              "renameOutput": true,
-              "outputKey": "By Name"
-            }
-          ]
-        },
-        "options": {}
-      },
-      "type": "n8n-nodes-base.switch",
-      "typeVersion": 3.3,
-      "position": [
-        1616,
-        1296
-      ],
-      "id": "cd77396c-0d03-4f23-be8f-51be0c1680e2",
-      "name": "Route VM Lookup"
-    },
-    {
-      "parameters": {},
-      "type": "n8n-nodes-base.merge",
-      "typeVersion": 3.2,
-      "position": [
-        2144,
-        1312
-      ],
-      "id": "adac37c6-4334-41fb-9849-1166118ac4f2",
-      "name": "Merge VM Lookup"
-    },
-    {
-      "parameters": {
-        "documentId": {
-          "__rl": true,
-          "value": "1xmPo_70mAeo9xHI7m_uCk9hjJaKGKWixYMDTSQ9h8kw",
-          "mode": "list",
-          "cachedResultName": "POSASPR_Prototype",
-          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1xmPo_70mAeo9xHI7m_uCk9hjJaKGKWixYMDTSQ9h8kw/edit?usp=drivesdk"
-        },
-        "sheetName": {
-          "__rl": true,
-          "value": 1215742180,
-          "mode": "list",
-          "cachedResultName": "Virtual_Machines",
-          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1xmPo_70mAeo9xHI7m_uCk9hjJaKGKWixYMDTSQ9h8kw/edit#gid=1215742180"
-        },
-        "filtersUI": {
-          "values": [
-            {
-              "lookupColumn": "vm_name",
-              "lookupValue": "={{ $json.vm_name }}"
-            }
-          ]
-        },
-        "options": {}
-      },
-      "type": "n8n-nodes-base.googleSheets",
-      "typeVersion": 4.7,
-      "position": [
-        1888,
-        1424
-      ],
-      "id": "21879aa6-02f0-4fa3-87fb-ae66f080c82f",
-      "name": "Get VM by Name",
-      "credentials": {
-        "googleSheetsOAuth2Api": {
-          "id": "m2R34e9UAiHNipjw",
-          "name": "Google Sheets - POSASPR"
-        }
-      }
-    },
-    {
-      "parameters": {
-        "documentId": {
-          "__rl": true,
-          "value": "1xmPo_70mAeo9xHI7m_uCk9hjJaKGKWixYMDTSQ9h8kw",
-          "mode": "list",
-          "cachedResultName": "POSASPR_Prototype",
-          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1xmPo_70mAeo9xHI7m_uCk9hjJaKGKWixYMDTSQ9h8kw/edit?usp=drivesdk"
-        },
-        "sheetName": {
-          "__rl": true,
-          "value": 1215742180,
-          "mode": "list",
-          "cachedResultName": "Virtual_Machines",
-          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1xmPo_70mAeo9xHI7m_uCk9hjJaKGKWixYMDTSQ9h8kw/edit#gid=1215742180"
-        },
-        "filtersUI": {
-          "values": [
-            {
-              "lookupColumn": "vm_id",
-              "lookupValue": "={{ $json.vm_id }}"
-            }
-          ]
-        },
-        "options": {}
-      },
-      "type": "n8n-nodes-base.googleSheets",
-      "typeVersion": 4.7,
-      "position": [
-        1888,
-        1232
-      ],
-      "id": "2e5fd2f5-e5bc-438a-afbe-fb3ad127d85c",
-      "name": "Get VM by ID",
-      "retryOnFail": false,
-      "alwaysOutputData": false,
-      "credentials": {
-        "googleSheetsOAuth2Api": {
-          "id": "m2R34e9UAiHNipjw",
-          "name": "Google Sheets - POSASPR"
-        }
-      }
-    },
-    {
-      "parameters": {
-        "documentId": {
-          "__rl": true,
-          "value": "1xmPo_70mAeo9xHI7m_uCk9hjJaKGKWixYMDTSQ9h8kw",
-          "mode": "list",
-          "cachedResultName": "POSASPR_Prototype",
-          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1xmPo_70mAeo9xHI7m_uCk9hjJaKGKWixYMDTSQ9h8kw/edit?usp=drivesdk"
-        },
-        "sheetName": {
-          "__rl": true,
-          "value": 1497436515,
-          "mode": "list",
-          "cachedResultName": "Software_Catalog",
-          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1xmPo_70mAeo9xHI7m_uCk9hjJaKGKWixYMDTSQ9h8kw/edit#gid=1497436515"
-        },
-        "options": {}
-      },
-      "type": "n8n-nodes-base.googleSheets",
-      "typeVersion": 4.7,
-      "position": [
-        2112,
-        1968
-      ],
-      "id": "df47bc59-2d1e-4f9d-91fa-49407c7f99df",
-      "name": "Get Software Catalog for Optimize",
-      "credentials": {
-        "googleSheetsOAuth2Api": {
-          "id": "m2R34e9UAiHNipjw",
-          "name": "Google Sheets - POSASPR"
-        }
-      }
     },
     {
       "parameters": {
@@ -3223,10 +2062,10 @@
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        2896,
-        1952
+        4784,
+        1040
       ],
-      "id": "b7c2fedc-20c4-4af8-9ee0-637ff1d0065d",
+      "id": "07ad8e24-1823-430a-8bdc-f9e2e9d03145",
       "name": "Add Footer to Message"
     },
     {
@@ -3240,12 +2079,12 @@
       "type": "n8n-nodes-base.telegram",
       "typeVersion": 1.2,
       "position": [
-        880,
-        -2208
+        1376,
+        -2608
       ],
-      "id": "a20770c5-2255-4346-a69d-1be8599c6c10",
+      "id": "4d761128-c825-456b-9ce2-8a5e1b061fe8",
       "name": "Send Request License Count",
-      "webhookId": "e10db502-b7d8-4dc6-a04a-42ea5ddcd49f",
+      "webhookId": "d9fe8dce-bd8e-4073-b0e4-5fb52d739d71",
       "credentials": {
         "telegramApi": {
           "id": "DDex8oHA77ADeVpY",
@@ -3260,16 +2099,16 @@
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        240,
-        -2000
+        752,
+        -2400
       ],
-      "id": "07ab76a4-e665-4b24-ba9b-f4159dbfdd7c",
+      "id": "5e67ed1f-2af8-4de0-9fc6-5f1b0e031338",
       "name": "Save License Count & Finish"
     },
     {
       "parameters": {
         "chatId": "={{ $json.telegram_id }}",
-        "text": "=🎉 Регистрация уже выполнена!\n\n👤 Пользователь: {{ $json.username }}\n💼 Лицензия: {{ $json.license_type }} \n\nДоступные команды:\n/myresources - Посмотреть свои ресурсы\n/createvm - Создать виртуальную машину\n/softwarecatalog - Каталог доступного ПО",
+        "text": "=🎉 Регистрация ранее выполнена!\n\n👤 Пользователь: {{ $json.username }}\n💼 Лицензия: {{ $json.license_type }} \n\nДоступные команды:\n/myresources - Посмотреть свои ресурсы\n/createvm - Создать виртуальную машину\n/softwarecatalog - Каталог доступного ПО",
         "additionalFields": {
           "appendAttribution": false
         }
@@ -3277,12 +2116,12 @@
       "type": "n8n-nodes-base.telegram",
       "typeVersion": 1.2,
       "position": [
-        -384,
-        -2880
+        -80,
+        -3280
       ],
-      "id": "15bb32a8-1110-4da6-8a24-757eb4852306",
+      "id": "ee1df14f-b92f-42f5-8f34-5c9f6b5a376d",
       "name": "Send: Already Registered",
-      "webhookId": "072f2c8b-2b5e-4039-960d-39c2eadeefce",
+      "webhookId": "71e0f814-f2f7-4dc2-a7b1-6cf4c971c294",
       "credentials": {
         "telegramApi": {
           "id": "DDex8oHA77ADeVpY",
@@ -3365,148 +2204,11 @@
       "type": "n8n-nodes-base.googleSheets",
       "typeVersion": 4.7,
       "position": [
-        48,
-        -2672
+        416,
+        -3072
       ],
-      "id": "e60d845c-0ec4-4015-8509-738306417a25",
+      "id": "12cd247b-838f-4c0b-9fbe-857760030431",
       "name": "Update User State in DB",
-      "credentials": {
-        "googleSheetsOAuth2Api": {
-          "id": "m2R34e9UAiHNipjw",
-          "name": "Google Sheets - POSASPR"
-        }
-      }
-    },
-    {
-      "parameters": {
-        "operation": "update",
-        "documentId": {
-          "__rl": true,
-          "value": "1xmPo_70mAeo9xHI7m_uCk9hjJaKGKWixYMDTSQ9h8kw",
-          "mode": "list",
-          "cachedResultName": "POSASPR_Prototype",
-          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1xmPo_70mAeo9xHI7m_uCk9hjJaKGKWixYMDTSQ9h8kw/edit?usp=drivesdk"
-        },
-        "sheetName": {
-          "__rl": true,
-          "value": "gid=0",
-          "mode": "list",
-          "cachedResultName": "Users",
-          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1xmPo_70mAeo9xHI7m_uCk9hjJaKGKWixYMDTSQ9h8kw/edit#gid=0"
-        },
-        "columns": {
-          "mappingMode": "defineBelow",
-          "value": {
-            "telegram_id": "={{ $('Check Registration for Commands').item.json.telegram_id }}",
-            "user_id": "={{ $('Check Registration for Commands').item.json.user_id }}",
-            "username": "={{ $('Check Registration for Commands').item.json.username }}",
-            "license_type": "=",
-            "license_limit": "=",
-            "created_at": "={{ $('Check Registration for Commands').item.json.created_at }}",
-            "email": "={{ $('Save Email & Request Org').item.json.email }}"
-          },
-          "matchingColumns": [
-            "telegram_id"
-          ],
-          "schema": [
-            {
-              "id": "user_id",
-              "displayName": "user_id",
-              "required": false,
-              "defaultMatch": false,
-              "display": true,
-              "type": "string",
-              "canBeUsedToMatch": true
-            },
-            {
-              "id": "username",
-              "displayName": "username",
-              "required": false,
-              "defaultMatch": false,
-              "display": true,
-              "type": "string",
-              "canBeUsedToMatch": true
-            },
-            {
-              "id": "email",
-              "displayName": "email",
-              "required": false,
-              "defaultMatch": false,
-              "display": true,
-              "type": "string",
-              "canBeUsedToMatch": true
-            },
-            {
-              "id": "organization",
-              "displayName": "organization",
-              "required": false,
-              "defaultMatch": false,
-              "display": true,
-              "type": "string",
-              "canBeUsedToMatch": true
-            },
-            {
-              "id": "license_type",
-              "displayName": "license_type",
-              "required": false,
-              "defaultMatch": false,
-              "display": true,
-              "type": "string",
-              "canBeUsedToMatch": true
-            },
-            {
-              "id": "license_limit",
-              "displayName": "license_limit",
-              "required": false,
-              "defaultMatch": false,
-              "display": true,
-              "type": "string",
-              "canBeUsedToMatch": true
-            },
-            {
-              "id": "created_at",
-              "displayName": "created_at",
-              "required": false,
-              "defaultMatch": false,
-              "display": true,
-              "type": "string",
-              "canBeUsedToMatch": true
-            },
-            {
-              "id": "telegram_id",
-              "displayName": "telegram_id",
-              "required": false,
-              "defaultMatch": false,
-              "display": true,
-              "type": "string",
-              "canBeUsedToMatch": true,
-              "removed": false
-            },
-            {
-              "id": "row_number",
-              "displayName": "row_number",
-              "required": false,
-              "defaultMatch": false,
-              "display": true,
-              "type": "number",
-              "canBeUsedToMatch": true,
-              "readOnly": true,
-              "removed": true
-            }
-          ],
-          "attemptToConvertTypes": false,
-          "convertFieldsToString": false
-        },
-        "options": {}
-      },
-      "type": "n8n-nodes-base.googleSheets",
-      "typeVersion": 4.7,
-      "position": [
-        464,
-        -2416
-      ],
-      "id": "5123e2a5-756e-424b-aabb-54fac5e12c21",
-      "name": "Update User with Email",
       "credentials": {
         "googleSheetsOAuth2Api": {
           "id": "m2R34e9UAiHNipjw",
@@ -3589,149 +2291,11 @@
       "type": "n8n-nodes-base.googleSheets",
       "typeVersion": 4.7,
       "position": [
-        656,
-        -2000
+        1152,
+        -2400
       ],
-      "id": "14a51237-2b8c-4386-89c3-5e1af30263af",
+      "id": "c7855a50-e53e-4069-a0e1-28a31acb1a86",
       "name": "Update State with Limit",
-      "credentials": {
-        "googleSheetsOAuth2Api": {
-          "id": "m2R34e9UAiHNipjw",
-          "name": "Google Sheets - POSASPR"
-        }
-      }
-    },
-    {
-      "parameters": {
-        "operation": "update",
-        "documentId": {
-          "__rl": true,
-          "value": "1xmPo_70mAeo9xHI7m_uCk9hjJaKGKWixYMDTSQ9h8kw",
-          "mode": "list",
-          "cachedResultName": "POSASPR_Prototype",
-          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1xmPo_70mAeo9xHI7m_uCk9hjJaKGKWixYMDTSQ9h8kw/edit?usp=drivesdk"
-        },
-        "sheetName": {
-          "__rl": true,
-          "value": "gid=0",
-          "mode": "list",
-          "cachedResultName": "Users",
-          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1xmPo_70mAeo9xHI7m_uCk9hjJaKGKWixYMDTSQ9h8kw/edit#gid=0"
-        },
-        "columns": {
-          "mappingMode": "defineBelow",
-          "value": {
-            "telegram_id": "={{ $('Check Registration for Commands').item.json.telegram_id }}",
-            "user_id": "={{ $('Check Registration for Commands').item.json.user_id }}",
-            "username": "={{ $('Check Registration for Commands').item.json.username }}",
-            "license_type": "={{ $json.license_type }}",
-            "license_limit": "={{ $json.license_limit }}",
-            "created_at": "={{ $('Check Registration for Commands').item.json.created_at }}",
-            "email": "={{ $('Check Registration for Commands').item.json.email }}",
-            "organization": "={{ $json.organization }}"
-          },
-          "matchingColumns": [
-            "telegram_id"
-          ],
-          "schema": [
-            {
-              "id": "user_id",
-              "displayName": "user_id",
-              "required": false,
-              "defaultMatch": false,
-              "display": true,
-              "type": "string",
-              "canBeUsedToMatch": true
-            },
-            {
-              "id": "username",
-              "displayName": "username",
-              "required": false,
-              "defaultMatch": false,
-              "display": true,
-              "type": "string",
-              "canBeUsedToMatch": true
-            },
-            {
-              "id": "email",
-              "displayName": "email",
-              "required": false,
-              "defaultMatch": false,
-              "display": true,
-              "type": "string",
-              "canBeUsedToMatch": true
-            },
-            {
-              "id": "organization",
-              "displayName": "organization",
-              "required": false,
-              "defaultMatch": false,
-              "display": true,
-              "type": "string",
-              "canBeUsedToMatch": true
-            },
-            {
-              "id": "license_type",
-              "displayName": "license_type",
-              "required": false,
-              "defaultMatch": false,
-              "display": true,
-              "type": "string",
-              "canBeUsedToMatch": true
-            },
-            {
-              "id": "license_limit",
-              "displayName": "license_limit",
-              "required": false,
-              "defaultMatch": false,
-              "display": true,
-              "type": "string",
-              "canBeUsedToMatch": true
-            },
-            {
-              "id": "created_at",
-              "displayName": "created_at",
-              "required": false,
-              "defaultMatch": false,
-              "display": true,
-              "type": "string",
-              "canBeUsedToMatch": true
-            },
-            {
-              "id": "telegram_id",
-              "displayName": "telegram_id",
-              "required": false,
-              "defaultMatch": false,
-              "display": true,
-              "type": "string",
-              "canBeUsedToMatch": true,
-              "removed": false
-            },
-            {
-              "id": "row_number",
-              "displayName": "row_number",
-              "required": false,
-              "defaultMatch": false,
-              "display": true,
-              "type": "number",
-              "canBeUsedToMatch": true,
-              "readOnly": true,
-              "removed": true
-            }
-          ],
-          "attemptToConvertTypes": false,
-          "convertFieldsToString": false
-        },
-        "options": {}
-      },
-      "type": "n8n-nodes-base.googleSheets",
-      "typeVersion": 4.7,
-      "position": [
-        464,
-        -2000
-      ],
-      "id": "9f097b90-258e-45ea-9286-6a5d660b980d",
-      "name": "Update User with Limit",
       "credentials": {
         "googleSheetsOAuth2Api": {
           "id": "m2R34e9UAiHNipjw",
@@ -3750,12 +2314,12 @@
       "type": "n8n-nodes-base.telegram",
       "typeVersion": 1.2,
       "position": [
-        880,
-        -2000
+        1376,
+        -2400
       ],
-      "id": "480430ff-cfa9-43d3-aeb0-50a05f963a7b",
+      "id": "26db6b7b-4791-4c79-9c25-f754c130b742",
       "name": "Send: Registration Finish",
-      "webhookId": "8e12afc6-5b7c-4bfd-8196-6a49eb0424ca",
+      "webhookId": "6a6cf2d9-65af-4d5a-bbb8-ed0a737a7ade",
       "credentials": {
         "telegramApi": {
           "id": "DDex8oHA77ADeVpY",
@@ -3850,15 +2414,1183 @@
       "type": "n8n-nodes-base.googleSheets",
       "typeVersion": 4.7,
       "position": [
-        656,
-        -2208
+        1152,
+        -2608
       ],
-      "id": "9a2a82ca-9fbd-4393-80f8-b5366ffe9371",
+      "id": "220749b5-2fab-48da-a74b-04dd52e1bb69",
       "name": "Update User State After Org",
       "credentials": {
         "googleSheetsOAuth2Api": {
           "id": "m2R34e9UAiHNipjw",
           "name": "Google Sheets - POSASPR"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "SELECT user_id, telegram_id, username, email, organization, \n       license_type, license_limit, registered_at\nFROM users \nWHERE user_id = {{ $json.user_id }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        3456,
+        -432
+      ],
+      "id": "59e949c7-6339-4a58-bb01-b0ec11ee752d",
+      "name": "Get User for VM Details",
+      "credentials": {
+        "postgres": {
+          "id": "uHdhvi0uS3Mpktwy",
+          "name": "Postgres beget 31"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "select",
+        "schema": {
+          "__rl": true,
+          "mode": "list",
+          "value": "public"
+        },
+        "table": {
+          "__rl": true,
+          "value": "users",
+          "mode": "list",
+          "cachedResultName": "users"
+        },
+        "where": {
+          "values": [
+            {
+              "column": "user_id",
+              "value": "={{ $json.user_id }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        2704,
+        -2288
+      ],
+      "id": "61b98a87-f107-4a35-9de3-682d8c131614",
+      "name": "Get User for VM Creation",
+      "credentials": {
+        "postgres": {
+          "id": "uHdhvi0uS3Mpktwy",
+          "name": "Postgres beget 31"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "select",
+        "schema": {
+          "__rl": true,
+          "mode": "list",
+          "value": "public"
+        },
+        "table": {
+          "__rl": true,
+          "value": "virtual_machines",
+          "mode": "list",
+          "cachedResultName": "virtual_machines"
+        },
+        "where": {
+          "values": [
+            {
+              "column": "vm_id",
+              "value": "={{ $json.vm_id }}"
+            },
+            {
+              "column": "vm_name",
+              "value": "={{ $json.vm_name }}"
+            }
+          ]
+        },
+        "combineConditions": "OR",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        4288,
+        -528
+      ],
+      "id": "688c9daa-e2f3-46a7-a392-f794d85ecfd7",
+      "name": "Get VM by NameID",
+      "credentials": {
+        "postgres": {
+          "id": "uHdhvi0uS3Mpktwy",
+          "name": "Postgres beget 31"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "select",
+        "schema": {
+          "__rl": true,
+          "mode": "list",
+          "value": "public"
+        },
+        "table": {
+          "__rl": true,
+          "value": "virtual_machines",
+          "mode": "list",
+          "cachedResultName": "virtual_machines"
+        },
+        "where": {
+          "values": [
+            {
+              "column": "user_id",
+              "value": "={{ $json.user_id }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        4048,
+        208
+      ],
+      "id": "fcd657f6-fdc4-4f2d-b608-b8f98ad6b2ae",
+      "name": "Get VMs for Resources",
+      "credentials": {
+        "postgres": {
+          "id": "uHdhvi0uS3Mpktwy",
+          "name": "Postgres beget 31"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "select",
+        "schema": {
+          "__rl": true,
+          "mode": "list",
+          "value": "public"
+        },
+        "table": {
+          "__rl": true,
+          "value": "users",
+          "mode": "list",
+          "cachedResultName": "users"
+        },
+        "where": {
+          "values": [
+            {
+              "column": "user_id",
+              "value": "={{ $json.user_id }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        3392,
+        1120
+      ],
+      "id": "ede47811-9012-48fa-8e1f-1c917f62d145",
+      "name": "Get User for Optimize",
+      "credentials": {
+        "postgres": {
+          "id": "uHdhvi0uS3Mpktwy",
+          "name": "Postgres beget 31"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "SELECT\n  vm.*,\n  COALESCE((\n    SELECT jsonb_agg(to_jsonb(sc) ORDER BY sc.software_id)\n    FROM unnest(vm.software_installed) AS sid(software_id)\n    JOIN software_catalog sc\n      ON sc.software_id = sid.software_id\n  ), '[]'::jsonb) AS software_installed_details,\n  COALESCE((\n    SELECT array_agg(sc.name ORDER BY sc.name)\n    FROM unnest(vm.software_installed) AS sid(software_id)\n    JOIN software_catalog sc\n      ON sc.software_id = sid.software_id\n  ), ARRAY[]::text[]) AS software_installed_names\nFROM virtual_machines vm\nWHERE vm.user_id = {{ $json.user_id }};\n",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        3904,
+        1040
+      ],
+      "id": "0e6aea3c-3f78-4c63-889b-7489122963f0",
+      "name": "Get VMs for Optimize",
+      "credentials": {
+        "postgres": {
+          "id": "uHdhvi0uS3Mpktwy",
+          "name": "Postgres beget 31"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "SELECT * FROM users WHERE user_id = {{ $('Switch Analyze').item.json.user_id }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        3712,
+        2032
+      ],
+      "id": "d23dcf84-5baa-45fb-9348-3178cd4ae382",
+      "name": "Get User for Idle Check",
+      "credentials": {
+        "postgres": {
+          "id": "uHdhvi0uS3Mpktwy",
+          "name": "Postgres beget 31"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "SELECT * FROM virtual_machines WHERE user_id = {{ $json.user_id }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        4496,
+        1936
+      ],
+      "id": "bcda25c0-10dd-48a9-b395-35375fe6cee6",
+      "name": "Get VMs for Idle Check",
+      "credentials": {
+        "postgres": {
+          "id": "uHdhvi0uS3Mpktwy",
+          "name": "Postgres beget 31"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "select",
+        "schema": {
+          "__rl": true,
+          "mode": "list",
+          "value": "public"
+        },
+        "table": {
+          "__rl": true,
+          "value": "software_catalog",
+          "mode": "list",
+          "cachedResultName": "software_catalog"
+        },
+        "sort": {
+          "values": [
+            {
+              "column": "software_id"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        3568,
+        -1136
+      ],
+      "id": "6e820cb0-27e9-41aa-ab1d-cce583663b18",
+      "name": "Load Software Catalog",
+      "credentials": {
+        "postgres": {
+          "id": "uHdhvi0uS3Mpktwy",
+          "name": "Postgres beget 31"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "select",
+        "schema": {
+          "__rl": true,
+          "mode": "list",
+          "value": "public"
+        },
+        "table": {
+          "__rl": true,
+          "value": "users",
+          "mode": "list",
+          "cachedResultName": "users"
+        },
+        "where": {
+          "values": [
+            {
+              "column": "telegram_id",
+              "value": "={{ $('Edit Fields').item.json.chat_id }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        -2704,
+        -1584
+      ],
+      "id": "015094ff-90c7-40c7-994e-14b94d21092d",
+      "name": "Check Registration for Start",
+      "credentials": {
+        "postgres": {
+          "id": "uHdhvi0uS3Mpktwy",
+          "name": "Postgres beget 31"
+        }
+      },
+      "disabled": true
+    },
+    {
+      "parameters": {
+        "operation": "select",
+        "schema": {
+          "__rl": true,
+          "mode": "list",
+          "value": "public"
+        },
+        "table": {
+          "__rl": true,
+          "value": "users",
+          "mode": "list",
+          "cachedResultName": "users"
+        },
+        "where": {
+          "values": [
+            {
+              "column": "telegram_id",
+              "value": "={{ $json.chat_id }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        -2064,
+        -1088
+      ],
+      "id": "289cecdf-13c1-4c91-9216-53bb4327c03d",
+      "name": "Check Registration for Commands",
+      "credentials": {
+        "postgres": {
+          "id": "uHdhvi0uS3Mpktwy",
+          "name": "Postgres beget 31"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "schema": {
+          "__rl": true,
+          "mode": "list",
+          "value": "public"
+        },
+        "table": {
+          "__rl": true,
+          "value": "users",
+          "mode": "list",
+          "cachedResultName": "users"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "user_id": "={{ $json.user_id }}",
+            "license_limit": "={{ $json.license_limit }}",
+            "telegram_id": "={{ $json.telegram_id }}",
+            "username": "={{ $('Edit Fields').item.json.username }}",
+            "license_type": "={{ $json.license_type }}",
+            "registered_at": "={{ $json.created_at }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "user_id",
+              "displayName": "user_id",
+              "required": true,
+              "defaultMatch": false,
+              "display": true,
+              "type": "number",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "username",
+              "displayName": "username",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "full_name",
+              "displayName": "full_name",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "email",
+              "displayName": "email",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "organization",
+              "displayName": "organization",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "license_type",
+              "displayName": "license_type",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "license_limit",
+              "displayName": "license_limit",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "number",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "registered_at",
+              "displayName": "registered_at",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "dateTime",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "telegram_id",
+              "displayName": "telegram_id",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "number",
+              "canBeUsedToMatch": true
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        160,
+        -3072
+      ],
+      "id": "96f03720-d6b1-4408-b746-ee79367e454a",
+      "name": "Add New User",
+      "credentials": {
+        "postgres": {
+          "id": "uHdhvi0uS3Mpktwy",
+          "name": "Postgres beget 31"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "update",
+        "schema": {
+          "__rl": true,
+          "mode": "list",
+          "value": "public"
+        },
+        "table": {
+          "__rl": true,
+          "value": "users",
+          "mode": "list",
+          "cachedResultName": "users"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "license_limit": 0,
+            "telegram_id": "={{ $json.telegram_id }}",
+            "username": "={{ $('Check Registration for Commands').item.json.username }}",
+            "email": "={{ $('Is Register Command?').item.json.text }}"
+          },
+          "matchingColumns": [
+            "telegram_id"
+          ],
+          "schema": [
+            {
+              "id": "user_id",
+              "displayName": "user_id",
+              "required": true,
+              "defaultMatch": false,
+              "display": true,
+              "type": "number",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "username",
+              "displayName": "username",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "full_name",
+              "displayName": "full_name",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "email",
+              "displayName": "email",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "organization",
+              "displayName": "organization",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "license_type",
+              "displayName": "license_type",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "license_limit",
+              "displayName": "license_limit",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "number",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "registered_at",
+              "displayName": "registered_at",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "dateTime",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "telegram_id",
+              "displayName": "telegram_id",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "number",
+              "canBeUsedToMatch": true,
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        960,
+        -2816
+      ],
+      "id": "b8a13d8b-70b1-4349-b60d-d2228a25f857",
+      "name": "Update User with Email",
+      "credentials": {
+        "postgres": {
+          "id": "uHdhvi0uS3Mpktwy",
+          "name": "Postgres beget 31"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "update",
+        "schema": {
+          "__rl": true,
+          "mode": "list",
+          "value": "public"
+        },
+        "table": {
+          "__rl": true,
+          "value": "users",
+          "mode": "list",
+          "cachedResultName": "users"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "user_id": "={{ $('User Registered for Commands?').item.json.user_id }}",
+            "license_limit": 0,
+            "telegram_id": "={{ $json.telegram_id }}",
+            "email": "={{ $json.email }}",
+            "organization": "={{ $json.organization }}",
+            "registered_at": "={{ $('Check Registration for Commands').item.json.created_at }}"
+          },
+          "matchingColumns": [
+            "telegram_id"
+          ],
+          "schema": [
+            {
+              "id": "user_id",
+              "displayName": "user_id",
+              "required": true,
+              "defaultMatch": false,
+              "display": true,
+              "type": "number",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "username",
+              "displayName": "username",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "full_name",
+              "displayName": "full_name",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "email",
+              "displayName": "email",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "organization",
+              "displayName": "organization",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "license_type",
+              "displayName": "license_type",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "license_limit",
+              "displayName": "license_limit",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "number",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "registered_at",
+              "displayName": "registered_at",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "dateTime",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "telegram_id",
+              "displayName": "telegram_id",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "number",
+              "canBeUsedToMatch": true,
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        960,
+        -2608
+      ],
+      "id": "1df04e0d-ecf1-4928-8110-2b29253514cb",
+      "name": "Update User with Org",
+      "credentials": {
+        "postgres": {
+          "id": "uHdhvi0uS3Mpktwy",
+          "name": "Postgres beget 31"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "update",
+        "schema": {
+          "__rl": true,
+          "mode": "list",
+          "value": "public"
+        },
+        "table": {
+          "__rl": true,
+          "value": "users",
+          "mode": "list",
+          "cachedResultName": "users"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "user_id": "={{ $('Check Registration for Commands').item.json.user_id }}",
+            "telegram_id": "={{ $('Check Registration for Commands').item.json.telegram_id }}",
+            "username": "={{ $('Check Registration for Commands').item.json.username }}",
+            "email": "={{ $('Check Registration for Commands').item.json.email }}",
+            "organization": "={{ $json.organization }}",
+            "license_type": "={{ $json.license_type }}",
+            "license_limit": "={{ $json.license_limit }}",
+            "registered_at": "={{ $('Check Registration for Commands').item.json.created_at }}"
+          },
+          "matchingColumns": [
+            "telegram_id"
+          ],
+          "schema": [
+            {
+              "id": "user_id",
+              "displayName": "user_id",
+              "required": true,
+              "defaultMatch": false,
+              "display": true,
+              "type": "number",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "username",
+              "displayName": "username",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "full_name",
+              "displayName": "full_name",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "email",
+              "displayName": "email",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "organization",
+              "displayName": "organization",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "license_type",
+              "displayName": "license_type",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "license_limit",
+              "displayName": "license_limit",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "number",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "registered_at",
+              "displayName": "registered_at",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "dateTime",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "telegram_id",
+              "displayName": "telegram_id",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "number",
+              "canBeUsedToMatch": true,
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        960,
+        -2400
+      ],
+      "id": "2eb1fbf7-1f70-4080-8fa6-7fc4c2e915fe",
+      "name": "Update User with Limit",
+      "credentials": {
+        "postgres": {
+          "id": "uHdhvi0uS3Mpktwy",
+          "name": "Postgres beget 31"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "select",
+        "schema": {
+          "__rl": true,
+          "mode": "list",
+          "value": "public"
+        },
+        "table": {
+          "__rl": true,
+          "value": "users",
+          "mode": "list",
+          "cachedResultName": "users"
+        },
+        "where": {
+          "values": [
+            {
+              "column": "telegram_id",
+              "value": "={{ $json.user_id }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        -864,
+        -3168
+      ],
+      "id": "cbef9cbf-d7d4-4e20-aa79-4179388d163a",
+      "name": "Check If User Exists",
+      "credentials": {
+        "postgres": {
+          "id": "uHdhvi0uS3Mpktwy",
+          "name": "Postgres beget 31"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "schema": {
+          "__rl": true,
+          "mode": "list",
+          "value": "public"
+        },
+        "table": {
+          "__rl": true,
+          "value": "virtual_machines",
+          "mode": "list",
+          "cachedResultName": "virtual_machines"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "alert_sent": true,
+            "vm_id": "={{ $json.vm_id }}",
+            "user_id": "={{ $json.user_id }}",
+            "cpu_usage_avg": "={{ $json.cpu_usage_avg }}",
+            "usage_hours_week": "={{ $json.usage_hours_week }}",
+            "inactivity_days": "={{ $json.inactivity_days }}",
+            "monthly_cost": "={{ $json.monthly_cost }}",
+            "vm_name": "={{ $json.vm_name }}",
+            "created_at": "={{ $json.created_at }}",
+            "status": "={{ $json.status }}",
+            "last_active": "={{ $json.last_active }}",
+            "ram_usage_avg": "={{ $json.ram_usage_avg }}",
+            "software_installed": "=[{{ $json.software_installed }}]"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "vm_id",
+              "displayName": "vm_id",
+              "required": true,
+              "defaultMatch": false,
+              "display": true,
+              "type": "number",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "user_id",
+              "displayName": "user_id",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "number",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "vm_name",
+              "displayName": "vm_name",
+              "required": true,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "software_installed",
+              "displayName": "software_installed",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "array",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "status",
+              "displayName": "status",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "created_at",
+              "displayName": "created_at",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "dateTime",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "last_active",
+              "displayName": "last_active",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "dateTime",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "cpu_usage_avg",
+              "displayName": "cpu_usage_avg",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "number",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "ram_usage_avg",
+              "displayName": "ram_usage_avg",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "number",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "usage_hours_week",
+              "displayName": "usage_hours_week",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "number",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "inactivity_days",
+              "displayName": "inactivity_days",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "number",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "monthly_cost",
+              "displayName": "monthly_cost",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "number",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "alert_sent",
+              "displayName": "alert_sent",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "boolean",
+              "canBeUsedToMatch": true
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        4976,
+        -1968
+      ],
+      "id": "b639fa0a-ddab-47fc-a557-557ff88ed76f",
+      "name": "Add VM to DB",
+      "credentials": {
+        "postgres": {
+          "id": "uHdhvi0uS3Mpktwy",
+          "name": "Postgres beget 31"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "select",
+        "schema": {
+          "__rl": true,
+          "mode": "list",
+          "value": "public"
+        },
+        "table": {
+          "__rl": true,
+          "value": "users",
+          "mode": "list",
+          "cachedResultName": "users"
+        },
+        "where": {
+          "values": [
+            {
+              "column": "user_id",
+              "value": "={{ $json.user_id }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        3360,
+        288
+      ],
+      "id": "863c103b-1f9e-42d8-9b92-b5b04803df07",
+      "name": "Get User",
+      "credentials": {
+        "postgres": {
+          "id": "uHdhvi0uS3Mpktwy",
+          "name": "Postgres beget 31"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "select",
+        "schema": {
+          "__rl": true,
+          "mode": "list",
+          "value": "public"
+        },
+        "table": {
+          "__rl": true,
+          "value": "software_catalog",
+          "mode": "list",
+          "cachedResultName": "software_catalog"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        3536,
+        -2416
+      ],
+      "id": "f22931fa-e8f6-47dd-a88d-71d815be4237",
+      "name": "Load Software Catalog2",
+      "credentials": {
+        "postgres": {
+          "id": "uHdhvi0uS3Mpktwy",
+          "name": "Postgres beget 31"
         }
       }
     }
@@ -3926,7 +3658,7 @@
       "main": [
         [
           {
-            "node": "Get Existing VMs for User",
+            "node": "Load Software Catalog2",
             "type": "main",
             "index": 0
           }
@@ -3973,18 +3705,7 @@
       "main": [
         [
           {
-            "node": "Save VM to Sheet",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Save VM to Sheet": {
-      "main": [
-        [
-          {
-            "node": "Send: VM Created",
+            "node": "Add VM to DB",
             "type": "main",
             "index": 0
           }
@@ -4035,17 +3756,6 @@
         ]
       ]
     },
-    "Load Software Catalog": {
-      "main": [
-        [
-          {
-            "node": "Add Context Info",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
     "Format Catalog Message": {
       "main": [
         [
@@ -4083,7 +3793,7 @@
       "main": [
         [
           {
-            "node": "Route VM Lookup",
+            "node": "Get VM by NameID",
             "type": "main",
             "index": 0
           }
@@ -4091,17 +3801,6 @@
         [
           {
             "node": "Send: VM Error",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Get Software Info for VM": {
-      "main": [
-        [
-          {
-            "node": "Format VM Details Message",
             "type": "main",
             "index": 0
           }
@@ -4129,17 +3828,6 @@
         [
           {
             "node": "Is Start Command?",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Get User for VM Details": {
-      "main": [
-        [
-          {
-            "node": "Parse VM ID",
             "type": "main",
             "index": 0
           }
@@ -4200,94 +3888,6 @@
         ]
       ]
     },
-    "Get User for Optimize": {
-      "main": [
-        [
-          {
-            "node": "User Found for Optimize?",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Get VMs for Optimize": {
-      "main": [
-        [
-          {
-            "node": "Get Software Catalog for Optimize",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Get User for Idle Check": {
-      "main": [
-        [
-          {
-            "node": "User Found for Idle Check?",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Get VMs for Idle Check": {
-      "main": [
-        [
-          {
-            "node": "Detect Idle VMs",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Get User for Resources": {
-      "main": [
-        [
-          {
-            "node": "User Found for Resources?",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Get VMs for Resources": {
-      "main": [
-        [
-          {
-            "node": "Calculate Summary",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Get User for VM Creation": {
-      "main": [
-        [
-          {
-            "node": "User Registered?",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Get Existing VMs for User": {
-      "main": [
-        [
-          {
-            "node": "Check License Limit",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
     "Set User State": {
       "main": [
         []
@@ -4342,17 +3942,6 @@
         []
       ]
     },
-    "Add New User": {
-      "main": [
-        [
-          {
-            "node": "Update User State in DB",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
     "Generate Registration Data": {
       "main": [
         [
@@ -4382,17 +3971,6 @@
         ]
       ]
     },
-    "Check If User Exists": {
-      "main": [
-        [
-          {
-            "node": "Already Registered?",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
     "Has Message": {
       "main": [
         [
@@ -4415,14 +3993,14 @@
         ],
         [
           {
-            "node": "Get User for Resources",
+            "node": "Get User for VM Details",
             "type": "main",
             "index": 0
           }
         ],
         [
           {
-            "node": "Get User for VM Details",
+            "node": "Get User",
             "type": "main",
             "index": 0
           }
@@ -4441,17 +4019,6 @@
         [
           {
             "node": "Get User for Idle Check",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Check Registration for Start": {
-      "main": [
-        [
-          {
-            "node": "User Registered for Start?",
             "type": "main",
             "index": 0
           }
@@ -4488,17 +4055,6 @@
         [
           {
             "node": "Check Registration for Commands",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Check Registration for Commands": {
-      "main": [
-        [
-          {
-            "node": "User Registered for Commands?",
             "type": "main",
             "index": 0
           }
@@ -4578,17 +4134,6 @@
         ]
       ]
     },
-    "Update User with Org": {
-      "main": [
-        [
-          {
-            "node": "Update User State After Org",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
     "Is Start Command?": {
       "main": [
         [
@@ -4658,68 +4203,6 @@
         ]
       ]
     },
-    "Route VM Lookup": {
-      "main": [
-        [
-          {
-            "node": "Get VM by ID",
-            "type": "main",
-            "index": 0
-          }
-        ],
-        [
-          {
-            "node": "Get VM by Name",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Merge VM Lookup": {
-      "main": [
-        [
-          {
-            "node": "Get Software Info for VM",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Get VM by Name": {
-      "main": [
-        [
-          {
-            "node": "Merge VM Lookup",
-            "type": "main",
-            "index": 1
-          }
-        ]
-      ]
-    },
-    "Get VM by ID": {
-      "main": [
-        [
-          {
-            "node": "Merge VM Lookup",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Get Software Catalog for Optimize": {
-      "main": [
-        [
-          {
-            "node": "Build Optimization Prompt",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
     "Add Footer to Message": {
       "main": [
         [
@@ -4752,17 +4235,6 @@
         ]
       ]
     },
-    "Update User with Email": {
-      "main": [
-        [
-          {
-            "node": "Update State with Email",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
     "Save License Count & Finish": {
       "main": [
         [
@@ -4785,6 +4257,171 @@
         ]
       ]
     },
+    "Update User State After Org": {
+      "main": [
+        [
+          {
+            "node": "Send Request License Count",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get User for VM Details": {
+      "main": [
+        [
+          {
+            "node": "Parse VM ID",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get User for VM Creation": {
+      "main": [
+        [
+          {
+            "node": "User Registered?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get VM by NameID": {
+      "main": [
+        [
+          {
+            "node": "Format VM Details Message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get VMs for Resources": {
+      "main": [
+        [
+          {
+            "node": "Calculate Summary",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get User for Optimize": {
+      "main": [
+        [
+          {
+            "node": "User Found for Optimize?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get VMs for Optimize": {
+      "main": [
+        [
+          {
+            "node": "Build Optimization Prompt",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get User for Idle Check": {
+      "main": [
+        [
+          {
+            "node": "User Found for Idle Check?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get VMs for Idle Check": {
+      "main": [
+        [
+          {
+            "node": "Detect Idle VMs",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Load Software Catalog": {
+      "main": [
+        [
+          {
+            "node": "Add Context Info",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Check Registration for Start": {
+      "main": [
+        [
+          {
+            "node": "User Registered for Start?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Check Registration for Commands": {
+      "main": [
+        [
+          {
+            "node": "User Registered for Commands?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Add New User": {
+      "main": [
+        [
+          {
+            "node": "Update User State in DB",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Update User with Email": {
+      "main": [
+        [
+          {
+            "node": "Update State with Email",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Update User with Org": {
+      "main": [
+        [
+          {
+            "node": "Update User State After Org",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
     "Update User with Limit": {
       "main": [
         [
@@ -4796,11 +4433,44 @@
         ]
       ]
     },
-    "Update User State After Org": {
+    "Check If User Exists": {
       "main": [
         [
           {
-            "node": "Send Request License Count",
+            "node": "Already Registered?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Add VM to DB": {
+      "main": [
+        [
+          {
+            "node": "Send: VM Created",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get User": {
+      "main": [
+        [
+          {
+            "node": "User Found for Resources?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Load Software Catalog2": {
+      "main": [
+        [
+          {
+            "node": "Check License Limit",
             "type": "main",
             "index": 0
           }
@@ -4812,11 +4482,30 @@
   "settings": {
     "executionOrder": "v1"
   },
-  "versionId": "8c72bc67-88c1-4186-824f-7a7fea64a948",
+  "versionId": "145c0635-f98b-423d-8a59-722785bb7ced",
   "meta": {
     "templateCredsSetupCompleted": true,
     "instanceId": "f4300700b5a89163b88ad6a908ff9e3076c705e8b03a3f40f03ff2f29f7e4289"
   },
-  "id": "GcC24h95FdT2qww1",
-  "tags": []
+  "id": "8fMPbkdJOZiJulZD",
+  "tags": [
+    {
+      "updatedAt": "2026-01-01T10:05:42.794Z",
+      "createdAt": "2026-01-01T10:05:42.794Z",
+      "id": "FnoHHZ9X50FaY3Y2",
+      "name": "redis"
+    },
+    {
+      "updatedAt": "2026-01-01T10:05:39.508Z",
+      "createdAt": "2026-01-01T10:05:39.508Z",
+      "id": "hLmpjl8xP4ZIbj8N",
+      "name": "postgres"
+    },
+    {
+      "updatedAt": "2025-12-12T17:26:52.994Z",
+      "createdAt": "2025-12-12T17:26:52.994Z",
+      "id": "J09NNQhWt9FvC7x9",
+      "name": "Telegram"
+    }
+  ]
 }
