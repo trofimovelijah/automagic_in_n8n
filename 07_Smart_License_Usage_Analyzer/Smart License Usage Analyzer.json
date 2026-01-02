@@ -202,7 +202,7 @@
     },
     {
       "parameters": {
-        "jsCode": "// Проверяем наличие данных пользователя\nconst userNode = $('Get User for VM Creation');\nif (!userNode || userNode.all().length === 0) {\n  return [{\n    json: {\n      canCreate: false,\n      currentCount: 0,\n      limit: 0,\n      error: 'User not found',\n      chat_id: $('Edit Fields').item.json.chat_id\n    },\n    pairedItem: 0\n  }];\n}\n\nconst userData = userNode.first().json;\nconst allVMs = $input.all();\n\n// Считаем ВМ текущего пользователя\nconst userVMs = allVMs.filter(vm => \n  parseInt(vm.json.user_id) === parseInt(userData.user_id)\n);\n\nconst currentCount = userVMs.length;\nconst limit = parseInt(userData.license_limit) || 0;\n\nreturn [{\n  json: {\n    canCreate: currentCount < limit,\n    currentCount,\n    limit,\n    user_id: userData.user_id,\n    telegram_id: userData.telegram_id,\n    username: userData.username,\n    chat_id: $('Edit Fields').item.json.chat_id\n  },\n  pairedItem: 0\n}];"
+        "jsCode": "// 1. Получаем данные пользователя (надежно)\nlet userData = null;\ntry {\n  // Пытаемся взять из узла, который проверял регистрацию\n  const userNode = $('User Registered?').first(); // Или 'Get User for VM Creation'\n  // Если узел User Registered - это IF, то данные могут быть во входном массиве\n  if (userNode) {\n     // Берем данные из контекста (входящие в IF)\n     const inputItem = $('Get User for VM Creation').first();\n     if (inputItem) userData = inputItem.json;\n  }\n} catch (e) {}\n\nif (!userData || !userData.user_id) {\n  // Фолбэк - ищем в любом месте\n  try {\n     userData = $('Get User for VM Creation').first().json;\n  } catch(e) {\n     throw new Error(\"Не удалось получить данные пользователя для проверки лимита\");\n  }\n}\n\n// 2. Получаем текущие ВМ пользователя\n// На вход этому узлу должны прийти ВМ (из Load Software Catalog2 / Get Existing VMs)\n// Если Load Software Catalog2 возвращает ВСЕ ВМ, фильтруем.\n// Если он возвращает только ВМ пользователя (через SQL WHERE), то просто берем длину.\n\nconst inputVMs = $input.all();\nlet currentCount = 0;\n\n// Проверяем, что нам пришло\nif (inputVMs.length > 0 && inputVMs[0].json.vm_id) {\n    // Это ВМ. Фильтруем по user_id на всякий случай\n    const userVMs = inputVMs.filter(item => \n        parseInt(item.json.user_id) === parseInt(userData.user_id)\n    );\n    currentCount = userVMs.length;\n} else {\n    // Если пришел пустой массив или не ВМ (например, каталог ПО), значит у юзера 0 ВМ\n    currentCount = 0;\n}\n\n// 3. Лимит\nconst limit = parseInt(userData.license_limit) || 3; // Дефолт 3, если не задано\n\nconsole.log(`User: ${userData.user_id}, VMs: ${currentCount}, Limit: ${limit}`);\n\n// 4. Результат\nconst canCreate = currentCount < limit;\n\nreturn {\n  json: {\n    canCreate: canCreate,\n    currentCount: currentCount,\n    limit: limit,\n    user_id: userData.user_id,\n    telegram_id: userData.telegram_id,\n    chat_id: $('Webhook - Telegram Bot').first().json.message.chat.id\n  }\n};"
       },
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
@@ -753,7 +753,7 @@
     },
     {
       "parameters": {
-        "chatId": "={{ $('Edit Fields').item.json.chat_id }}",
+        "chatId": "={{ $('Command Router').first().json.telegram_id }}",
         "text": "=❌ Превышен лимит лицензии\n\nТекущих ВМ: {{ $json.currentCount }}\nЛимит: {{ $json.limit }}\n\nИспользуйте /optimize для рекомендаций по освобождению ресурсов",
         "additionalFields": {
           "appendAttribution": false
@@ -1006,7 +1006,7 @@
             {
               "id": "dda7c66e-1239-4d73-b40a-a1c9a3a214b1",
               "name": "telegram_id",
-              "value": "={{ $json.telegram_id }}",
+              "value": "={{ $json.chat_id }}",
               "type": "string"
             },
             {
@@ -1870,9 +1870,9 @@
         },
         "table": {
           "__rl": true,
-          "value": "users",
+          "value": "virtual_machines",
           "mode": "list",
-          "cachedResultName": "users"
+          "cachedResultName": "virtual_machines"
         },
         "where": {
           "values": [
@@ -2549,7 +2549,8 @@
           "id": "uHdhvi0uS3Mpktwy",
           "name": "Postgres beget 31"
         }
-      }
+      },
+      "disabled": true
     },
     {
       "parameters": {
@@ -2746,7 +2747,7 @@
       "parameters": {
         "operation": "set",
         "key": "=redis-state:{{ $json.user_id }}",
-        "value": "={{ JSON.stringify({\n  state: \"awaiting_software_selection\",\n  user_id: $('Get User for VM Creation').item.json.user_id,\n  timestamp: new Date().toISOString()\n}) }}\n",
+        "value": "={{ JSON.stringify({\n  state: \"awaiting_software_selection\",\n  user_id: $('Get User for VM Creation').first().json.user_id,\n  timestamp: new Date().toISOString()\n}) }}\n",
         "expire": true,
         "ttl": 3600
       },
@@ -3639,7 +3640,7 @@
   "settings": {
     "executionOrder": "v1"
   },
-  "versionId": "a1e6c6f9-0c98-41bb-b93b-24d174b5fe9e",
+  "versionId": "2cec8f2d-56ba-4402-ac43-35457b786f57",
   "meta": {
     "templateCredsSetupCompleted": true,
     "instanceId": "f4300700b5a89163b88ad6a908ff9e3076c705e8b03a3f40f03ff2f29f7e4289"
