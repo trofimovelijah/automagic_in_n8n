@@ -207,8 +207,8 @@
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        2816,
-        -2880
+        2560,
+        -2896
       ],
       "id": "bc5dda3a-cf37-41f6-a1d1-d93088b27f42",
       "name": "Check License Limit",
@@ -242,15 +242,15 @@
       "type": "n8n-nodes-base.if",
       "typeVersion": 2.2,
       "position": [
-        3056,
-        -2880
+        2800,
+        -2896
       ],
       "id": "9a2d9155-9b3b-44da-a693-a51cb5f47bca",
       "name": "Can Create VM?"
     },
     {
       "parameters": {
-        "jsCode": "// --- 1. ПОЛУЧЕНИЕ ДАННЫХ ПОЛЬЗОВАТЕЛЯ ---\nlet userData = {\n  user_id: null,\n  telegram_id: $('Webhook - Telegram Bot').first().json.message.from.id,\n  username: $('Webhook - Telegram Bot').first().json.message.from.first_name\n};\n\n// Попытка 1: Данные пришли на вход (если проброшены через State Router)\n// State Router обычно передает item дальше. Проверим входные данные узла.\n// Но так как здесь на вход приходит Каталог ПО (массив из 8 элементов),\n// мы не можем искать user_id в $input.all().\n// НАМ НУЖНО НАЙТИ ДАННЫЕ В ПРЕДЫДУЩИХ УЗЛАХ.\n\ntry {\n  // Ищем в Parse State (самый надежный источник при работе через меню)\n  // Имя узла должно точно совпадать с вашим (проверьте в редакторе!)\n  const stateNode = $('Parse State').first(); \n  \n  if (stateNode && stateNode.json && stateNode.json.user_id) {\n     userData.user_id = stateNode.json.user_id;\n     console.log(\"User ID найден в Parse State: \" + userData.user_id);\n  } \n  \n  // Попытка 2: Если шли прямой дорогой (не через Router), а сразу после создания\n  if (!userData.user_id) {\n     const directUserNode = $('Get User for VM Creation').first();\n     if (directUserNode && directUserNode.json && directUserNode.json.user_id) {\n        userData.user_id = directUserNode.json.user_id;\n        console.log(\"User ID найден в Get User: \" + userData.user_id);\n     }\n  }\n\n} catch (e) {\n  console.log(\"Ошибка поиска ID: \" + e.message);\n}\n\n// КРИТИЧЕСКАЯ ПРОВЕРКА\n// Если user_id всё еще нет или он равен telegram_id (что подозрительно, но возможно)\n// Но для вашей системы user_id (serial) и telegram_id (bigint) обычно разные.\nif (!userData.user_id) {\n   throw new Error(\"CRITICAL: Не найден User ID из базы данных! Проверьте, что пользователь зарегистрирован и состояние Redis содержит user_id.\");\n}\n\n// ... далее остальной код (обработка ввода, каталог и т.д.)\n\n\n// --- 2. ОБРАБОТКА ВВОДА (ВЫБОР ПО) ---\nlet userInput = \"\";\ntry {\n  // Берем текст прямо из вебхука, чтобы не зависеть от Edit Fields\n  userInput = $('Webhook - Telegram Bot').first().json.message.text;\n} catch (e) {\n  userInput = \"\";\n}\n\n// Убираем команду, если есть\nconst cleanInput = userInput.replace(/^\\/createvm\\s*/i, '').trim();\nlet selectedSoftwareIds = [];\n\nif (cleanInput) {\n  selectedSoftwareIds = cleanInput.split(',')\n    .map(id => parseInt(id.trim()))\n    .filter(id => !isNaN(id));\n}\n\nif (selectedSoftwareIds.length === 0) {\n  throw new Error('Не указано ПО! Введите номера (например: 1, 2)');\n}\n\n// --- 3. РАБОТА С КАТАЛОГОМ ПО ---\n// Каталог пришел НА ВХОД этому узлу (см. ваш Input data)\n// Мы можем просто использовать $input.all()\nconst softwareCatalog = $input.all().map(item => item.json);\n\nlet monthlyCost = 0;\nconst installedSoftwareNames = [];\n\nselectedSoftwareIds.forEach(id => {\n  const sw = softwareCatalog.find(s => parseInt(s.software_id) === id);\n  if (sw) {\n    // Парсим цену, если она строка \"3000.00\"\n    const price = parseFloat(sw.cost_per_month) || 0;\n    monthlyCost += price;\n    installedSoftwareNames.push(sw.name);\n  }\n});\n\n// --- 4. ГЕНЕРАЦИЯ ДАННЫХ ВМ ---\nconst timestamp = Date.now();\nconst random = Math.floor(Math.random() * 1000);\n// Генерируем ID, который влезет в integer (если в базе int4)\nconst newVmId = Math.floor(timestamp / 1000) + random; \n\nconst shortTimestamp = timestamp.toString().slice(-6);\nconst softwareAbbr = installedSoftwareNames.length > 0 \n  ? installedSoftwareNames[0].substring(0, 3).toUpperCase() \n  : 'SYS';\n\nconst vmName = `VM-${userData.user_id}-${shortTimestamp}-${softwareAbbr}`;\n\n// Симуляция метрик\nconst usageHours = Math.floor(Math.random() * 36) + 5;\nconst cpuUsage = Math.floor(Math.random() * 70) + 15;\nconst ramUsage = Math.floor(Math.random() * 60) + 30;\n\nlet status = 'active';\nif (usageHours < 5) status = 'stopped';\nelse if (usageHours < 20) status = 'idle';\n\nconst now = new Date();\nconst createdAt = now.toISOString().split('T')[0];\n\n// Возвращаем результат\nreturn {\n  json: {\n    vm_id: newVmId,\n    user_id: userData.user_id,\n    vm_name: vmName,\n    software_installed: selectedSoftwareIds.join(','),\n    created_at: createdAt,\n    last_active: createdAt,\n    cpu_usage_avg: cpuUsage,\n    ram_usage_avg: ramUsage,\n    status: status,\n    monthly_cost: monthlyCost,\n    usage_hours_week: usageHours,\n    inactivity_days: 0,\n    alert_sent: false,\n    installed_software_names: installedSoftwareNames.join(', '),\n    chat_id: $('Webhook - Telegram Bot').first().json.message.chat.id\n  }\n};\n"
+        "jsCode": "// --- 1. ПОЛУЧЕНИЕ ДАННЫХ ПОЛЬЗОВАТЕЛЯ ---\nlet userData = {\n  user_id: null,\n  telegram_id: $('Webhook - Telegram Bot').first().json.message.from.id,\n  username: $('Webhook - Telegram Bot').first().json.message.from.first_name\n};\n\ntry {\n  // Попытка 1: Ищем в Parse State (самый надежный источник при работе через меню состояний)\n  const stateNode = $('Parse State').first(); \n  \n  if (stateNode && stateNode.json && stateNode.json.user_id) {\n     userData.user_id = stateNode.json.user_id;\n  } \n  \n  // Попытка 2: Ищем в Get User for VM Creation (если шли прямой дорогой)\n  if (!userData.user_id) {\n     const directUserNode = $('Get User for VM Creation').first();\n     if (directUserNode && directUserNode.json && directUserNode.json.user_id) {\n        userData.user_id = directUserNode.json.user_id;\n     }\n  }\n\n} catch (e) {\n  console.log(\"Ошибка поиска ID: \" + e.message);\n}\n\n// КРИТИЧЕСКАЯ ПРОВЕРКА\nif (!userData.user_id) {\n   throw new Error(\"CRITICAL: Не найден User ID из базы данных! Проверьте, что пользователь зарегистрирован.\");\n}\n\n\n// --- 2. ПОЛУЧЕНИЕ И ОБРАБОТКА ВВОДА ---\nlet userInput = \"\";\ntry {\n  // Берем текст прямо из вебхука\n  userInput = $('Webhook - Telegram Bot').first().json.message.text;\n} catch (e) {\n  userInput = \"\";\n}\n\n// Чистим ввод\nconst cleanInput = userInput.replace(/^\\/createvm\\s*/i, '').trim();\nlet selectedSoftwareIds = [];\n\nif (cleanInput) {\n  selectedSoftwareIds = cleanInput.split(',')\n    .map(id => parseInt(id.trim()))\n    .filter(id => !isNaN(id));\n}\n\nif (selectedSoftwareIds.length === 0) {\n  throw new Error('Не указано ПО! Введите номера из каталога (например: 1, 2)');\n}\n\n\n// --- 3. ВАЛИДАЦИЯ ПО КАТАЛОГУ ---\n// Каталог пришел НА ВХОД этому узлу ($input.all())\nconst softwareCatalog = $input.all().map(item => item.json);\n\n// Собираем список всех существующих ID (гарантируем числа)\n// Если каталог пуст, это критично - но throw покажет это\nconst validIds = softwareCatalog\n  .map(s => parseInt(s.software_id))\n  .filter(n => !isNaN(n));\n\n// Сортируем численно для красоты\nvalidIds.sort((a, b) => a - b);\n\n// Ищем недопустимые ID\nconst invalidIds = selectedSoftwareIds.filter(id => !validIds.includes(id));\n\nif (invalidIds.length > 0) {\n  // Формируем сообщение заранее, чтобы убедиться в строковом формате\n  const badIdsStr = invalidIds.join(', ');\n  const goodIdsStr = validIds.length > 0 ? validIds.join(', ') : \"Нет доступного ПО\";\n  \n  throw new Error(`Ошибка: ПО с номерами ${badIdsStr} не существует - для сбора доступного ПО выполните команду /softwarecatalog`);\n}\n\n// --- 4. РАСЧЕТ ПАРАМЕТРОВ ВМ ---\nlet monthlyCost = 0;\nconst installedSoftwareNames = [];\n\nselectedSoftwareIds.forEach(id => {\n  const sw = softwareCatalog.find(s => parseInt(s.software_id) === id);\n  if (sw) {\n    const price = parseFloat(sw.cost_per_month) || 0;\n    monthlyCost += price;\n    installedSoftwareNames.push(sw.name);\n  }\n});\n\n// Генерация уникальных данных\nconst timestamp = Date.now();\nconst random = Math.floor(Math.random() * 1000);\n// ID для Postgres (int4 совместимый)\nconst newVmId = Math.floor(timestamp / 1000) + random; \n\nconst shortTimestamp = timestamp.toString().slice(-6);\nconst softwareAbbr = installedSoftwareNames.length > 0 \n  ? installedSoftwareNames[0].substring(0, 3).toUpperCase() \n  : 'SYS';\n\nconst vmName = `VM-${userData.user_id}-${shortTimestamp}-${softwareAbbr}`;\n\n// Симуляция метрик\nconst usageHours = Math.floor(Math.random() * 36) + 5;\nconst cpuUsage = Math.floor(Math.random() * 70) + 15;\nconst ramUsage = Math.floor(Math.random() * 60) + 30;\n\nlet status = 'active';\nif (usageHours < 5) status = 'stopped';\nelse if (usageHours < 20) status = 'idle';\n\nconst now = new Date();\nconst createdAt = now.toISOString().split('T')[0];\n\n// --- 5. ВОЗВРАТ РЕЗУЛЬТАТА ---\nreturn {\n  json: {\n    vm_id: newVmId,\n    user_id: userData.user_id,\n    vm_name: vmName,\n    software_installed: selectedSoftwareIds.join(','),\n    created_at: createdAt,\n    last_active: createdAt,\n    cpu_usage_avg: cpuUsage,\n    ram_usage_avg: ramUsage,\n    status: status,\n    monthly_cost: monthlyCost,\n    usage_hours_week: usageHours,\n    inactivity_days: 0,\n    alert_sent: false,\n    installed_software_names: installedSoftwareNames.join(', '),\n    chat_id: $('Webhook - Telegram Bot').first().json.message.chat.id\n  }\n};"
       },
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
@@ -259,7 +259,8 @@
         -2560
       ],
       "id": "d824493a-e444-4b75-98e6-df0a0cae263b",
-      "name": "Create VM with Software"
+      "name": "Create VM with Software",
+      "onError": "continueErrorOutput"
     },
     {
       "parameters": {
@@ -273,7 +274,7 @@
       "typeVersion": 1.2,
       "position": [
         3568,
-        -2560
+        -2576
       ],
       "id": "71f24402-c0be-4470-b215-d70cafd1ef1a",
       "name": "Send: VM Created",
@@ -762,8 +763,8 @@
       "type": "n8n-nodes-base.telegram",
       "typeVersion": 1.2,
       "position": [
-        3328,
-        -2736
+        3056,
+        -2752
       ],
       "id": "37684bcc-ef48-4976-8ef2-6653208409e4",
       "name": "Send: Limit Exceeded",
@@ -1028,8 +1029,8 @@
       "type": "n8n-nodes-base.set",
       "typeVersion": 3.4,
       "position": [
-        3328,
-        -3040
+        3056,
+        -3056
       ],
       "id": "979d66ef-d4d4-4a17-8504-77a21ad463b6",
       "name": "Prepare Software Menu",
@@ -1663,8 +1664,8 @@
       "type": "n8n-nodes-base.telegram",
       "typeVersion": 1.2,
       "position": [
-        3824,
-        -2896
+        3568,
+        -2912
       ],
       "id": "967cbaec-7583-4173-af3e-9e9c597275ef",
       "name": "Send Software Menu",
@@ -2470,7 +2471,7 @@
       "typeVersion": 2.6,
       "position": [
         3328,
-        -2560
+        -2576
       ],
       "id": "b639fa0a-ddab-47fc-a557-557ff88ed76f",
       "name": "Add VM to DB",
@@ -2519,38 +2520,6 @@
           "name": "Postgres beget 31"
         }
       }
-    },
-    {
-      "parameters": {
-        "operation": "select",
-        "schema": {
-          "__rl": true,
-          "mode": "list",
-          "value": "public"
-        },
-        "table": {
-          "__rl": true,
-          "value": "software_catalog",
-          "mode": "list",
-          "cachedResultName": "software_catalog"
-        },
-        "options": {}
-      },
-      "type": "n8n-nodes-base.postgres",
-      "typeVersion": 2.6,
-      "position": [
-        2560,
-        -3008
-      ],
-      "id": "f22931fa-e8f6-47dd-a88d-71d815be4237",
-      "name": "Load Software Catalog2",
-      "credentials": {
-        "postgres": {
-          "id": "uHdhvi0uS3Mpktwy",
-          "name": "Postgres beget 31"
-        }
-      },
-      "disabled": true
     },
     {
       "parameters": {
@@ -2754,8 +2723,8 @@
       "type": "n8n-nodes-base.redis",
       "typeVersion": 1,
       "position": [
-        3568,
-        -3040
+        3344,
+        -3056
       ],
       "id": "ef81ee38-8ad0-4f79-a89d-0c8c1fa2a08a",
       "name": "Set State: Awaiting Software",
@@ -2794,6 +2763,30 @@
         "postgres": {
           "id": "uHdhvi0uS3Mpktwy",
           "name": "Postgres beget 31"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "chatId": "={{ $('Edit Fields').first().json.telegram_id }}",
+        "text": "={{ $json.error }}",
+        "additionalFields": {
+          "appendAttribution": false
+        }
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        3328,
+        -2400
+      ],
+      "id": "92d67b7f-c760-4a09-81a0-8a9f3c488bf6",
+      "name": "Error ID Software",
+      "webhookId": "2b96b496-4395-4118-b607-10c91554eca3",
+      "credentials": {
+        "telegramApi": {
+          "id": "DDex8oHA77ADeVpY",
+          "name": "SmartLicenseUsageAnalyzer_bot"
         }
       }
     }
@@ -2861,7 +2854,7 @@
       "main": [
         [
           {
-            "node": "Load Software Catalog2",
+            "node": "Check License Limit",
             "type": "main",
             "index": 0
           }
@@ -2909,6 +2902,13 @@
         [
           {
             "node": "Add VM to DB",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Error ID Software",
             "type": "main",
             "index": 0
           }
@@ -3503,17 +3503,6 @@
         ]
       ]
     },
-    "Load Software Catalog2": {
-      "main": [
-        [
-          {
-            "node": "Check License Limit",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
     "Set User State register": {
       "main": [
         [
@@ -3640,7 +3629,7 @@
   "settings": {
     "executionOrder": "v1"
   },
-  "versionId": "2cec8f2d-56ba-4402-ac43-35457b786f57",
+  "versionId": "4fc5a3df-f9f8-4d5a-9a5f-4d5b84ae3536",
   "meta": {
     "templateCredsSetupCompleted": true,
     "instanceId": "f4300700b5a89163b88ad6a908ff9e3076c705e8b03a3f40f03ff2f29f7e4289"
