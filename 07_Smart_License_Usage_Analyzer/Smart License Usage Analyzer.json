@@ -134,6 +134,30 @@
                 },
                 "conditions": [
                   {
+                    "id": "36de61c5-af29-4813-8e9c-9096f8397a89",
+                    "leftValue": "={{ $('Edit Fields').item.json.text }}",
+                    "rightValue": "/delete",
+                    "operator": {
+                      "type": "string",
+                      "operation": "startsWith"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "5 - Удаление ВМ"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
                     "id": "9c276292-995f-4620-8090-129e10a08a83",
                     "leftValue": "={{ $('Edit Fields').item.json.text }}",
                     "rightValue": "=/help",
@@ -146,7 +170,7 @@
                 "combinator": "and"
               },
               "renameOutput": true,
-              "outputKey": "5 - Помощь"
+              "outputKey": "6 - Помощь"
             }
           ]
         },
@@ -309,8 +333,8 @@
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        2048,
-        -1104
+        2064,
+        -112
       ],
       "id": "d6ec69c9-bbad-437d-8169-4ac1407613bd",
       "name": "Calculate Summary"
@@ -326,8 +350,8 @@
       "type": "n8n-nodes-base.telegram",
       "typeVersion": 1.2,
       "position": [
-        2256,
-        -1104
+        2272,
+        -112
       ],
       "id": "0870e412-ba63-4e79-9a91-f1b8c43c5b29",
       "name": "Send: Resources Summary",
@@ -348,8 +372,8 @@
       },
       "type": "n8n-nodes-base.stickyNote",
       "position": [
-        1008,
-        -1344
+        1024,
+        -352
       ],
       "typeVersion": 1,
       "id": "1f4afba8-fffe-4981-9857-5b999b0776a1",
@@ -364,8 +388,8 @@
       },
       "type": "n8n-nodes-base.stickyNote",
       "position": [
-        2656,
-        -656
+        3808,
+        -704
       ],
       "typeVersion": 1,
       "id": "436b1b9d-e5eb-48e5-9bcd-04ed2f9a9dd5",
@@ -378,8 +402,8 @@
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        3536,
-        -480
+        4688,
+        -528
       ],
       "id": "b41246c9-33ee-4b8c-9c84-2827f1214e79",
       "name": "Build Optimization Prompt"
@@ -394,8 +418,8 @@
       "type": "@n8n/n8n-nodes-langchain.lmChatOpenRouter",
       "typeVersion": 1,
       "position": [
-        3744,
-        -272
+        4896,
+        -320
       ],
       "id": "75e3c87b-96dc-4a06-91a5-7fdea3b8b61d",
       "name": "OpenRouter Chat Model",
@@ -418,8 +442,8 @@
       "type": "n8n-nodes-base.telegram",
       "typeVersion": 1.2,
       "position": [
-        4384,
-        -480
+        5536,
+        -528
       ],
       "id": "7f8836ea-6f2f-4d62-8968-50408ad96f1a",
       "name": "Send: AI Recommendations",
@@ -439,8 +463,8 @@
       },
       "type": "n8n-nodes-base.stickyNote",
       "position": [
-        992,
-        -272
+        1008,
+        720
       ],
       "typeVersion": 1,
       "id": "67d68421-fc1b-4073-b529-410564f2dd59",
@@ -453,8 +477,8 @@
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        2032,
-        0
+        2048,
+        992
       ],
       "id": "bed67e04-c167-4823-b4ce-c9e4cd3c5479",
       "name": "Detect Idle VMs"
@@ -470,8 +494,8 @@
       "type": "n8n-nodes-base.telegram",
       "typeVersion": 1.2,
       "position": [
-        2240,
-        0
+        2256,
+        992
       ],
       "id": "45f1b667-8fea-46e1-be0a-ccbc97b381b2",
       "name": "Send: Idle Report",
@@ -539,7 +563,7 @@
     {
       "parameters": {
         "chatId": "={{ $json.telegram_id }}",
-        "text": "=👋 Добро пожаловать в POSASPR Helper!\n\nЭто прототип системы управления виртуальными машинами с инженерным ПО.\n\n📋 Доступные команды:\n\n➕ /createvm [ID_ПО]\n   Создать виртуальную машину\n   Пример: /createvm 1,3,5\n   Без параметров - случайный выбор ПО\n\n📊 /myresources\n   Посмотреть свои ресурсы и статистику\n\n🤖 /optimize\n   AI-анализ и рекомендации по оптимизации\n\n🔍 /checkidle\n   Проверить простаивающие ВМ\n\n💿 /softwarecatalog\n   Каталог доступного ПО\n\n👤 /register\n   Регистрация в системе (на всякий пожарный)\n\n❓ /help\n   Эта справка\n\n━━━━━━━━━━━━━━━\n💡 Начните с /softwarecatalog",
+        "text": "=👋 Добро пожаловать в POSASPR Helper!\n\nЭто прототип системы управления виртуальными машинами с инженерным ПО.\n\n📋 Доступные команды:\n\n➕ /createvm [ID_ПО]\n   Создать виртуальную машину\n   Пример: /createvm 1,3,5\n   Без параметров - случайный выбор ПО\n\n📊 /myresources\n   Посмотреть свои ресурсы и статистику\n\n🤖 /optimize\n   AI-анализ и рекомендации по оптимизации\n\n🔍 /checkidle\n   Проверить простаивающие ВМ\n\n💿 /softwarecatalog\n   Каталог доступного ПО\n\n👤 /register\n   Регистрация в системе (на всякий пожарный)\n\n  /delete\n  Удаление своей ВМ\n\n❓ /help\n   Эта справка\n\n━━━━━━━━━━━━━━━\n💡 Начните с /softwarecatalog",
         "additionalFields": {
           "appendAttribution": false
         }
@@ -598,8 +622,8 @@
       "type": "@n8n/n8n-nodes-langchain.chainLlm",
       "typeVersion": 1.7,
       "position": [
-        3808,
-        -480
+        4960,
+        -528
       ],
       "id": "722c261a-da63-4a6d-8b49-7fdf2016b60d",
       "name": "AI Optimization Analysis"
@@ -613,8 +637,8 @@
       },
       "type": "n8n-nodes-base.stickyNote",
       "position": [
-        2624,
-        -1744
+        3776,
+        -1792
       ],
       "typeVersion": 1,
       "id": "bf972a42-3c75-4fed-8aab-1a1d71f7be67",
@@ -627,8 +651,8 @@
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        3248,
-        -1328
+        4400,
+        -1376
       ],
       "id": "63979e02-ffed-41ff-8456-b5271ed0e00e",
       "name": "Parse VM ID"
@@ -661,8 +685,8 @@
       "type": "n8n-nodes-base.if",
       "typeVersion": 2.2,
       "position": [
-        3456,
-        -1328
+        4608,
+        -1376
       ],
       "id": "b782ebaa-b0ad-477a-a7b3-717bbf4e2d46",
       "name": "Valid VM ID?"
@@ -674,8 +698,8 @@
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        4224,
-        -1424
+        5376,
+        -1472
       ],
       "id": "d9894173-1507-4f9d-bc70-f69a4f777799",
       "name": "Format VM Details Message"
@@ -691,8 +715,8 @@
       "type": "n8n-nodes-base.telegram",
       "typeVersion": 1.2,
       "position": [
-        4448,
-        -1424
+        5600,
+        -1472
       ],
       "id": "069aafbb-5bed-49a9-90c6-2e6a12d0347c",
       "name": "Send: VM Details",
@@ -715,8 +739,8 @@
       "type": "n8n-nodes-base.telegram",
       "typeVersion": 1.2,
       "position": [
-        3792,
-        -1200
+        4944,
+        -1248
       ],
       "id": "8418d063-4247-4841-a9ac-d6c35452cf37",
       "name": "Send: VM Error",
@@ -838,8 +862,8 @@
       "type": "n8n-nodes-base.if",
       "typeVersion": 2.2,
       "position": [
-        1600,
-        -1008
+        1616,
+        -16
       ],
       "id": "044e43af-0259-41eb-9894-0a35bdc751ee",
       "name": "User Found for Resources?"
@@ -853,8 +877,8 @@
       "type": "n8n-nodes-base.telegram",
       "typeVersion": 1.2,
       "position": [
-        1856,
-        -880
+        1872,
+        112
       ],
       "id": "f0a69a15-53bf-4a0f-bb51-df3bfe33c294",
       "name": "Send: Not Registered for Resources",
@@ -893,8 +917,8 @@
       "type": "n8n-nodes-base.if",
       "typeVersion": 2.2,
       "position": [
-        3040,
-        -464
+        4192,
+        -512
       ],
       "id": "e03afe6d-5c8a-4fb5-88d4-fcccde57439e",
       "name": "User Found for Optimize?"
@@ -908,8 +932,8 @@
       "type": "n8n-nodes-base.telegram",
       "typeVersion": 1.2,
       "position": [
-        3280,
-        -288
+        4432,
+        -336
       ],
       "id": "eb22042c-661e-4e48-b8bc-c2d0c635d445",
       "name": "Send: Not Registered for Optimize",
@@ -948,8 +972,8 @@
       "type": "n8n-nodes-base.if",
       "typeVersion": 2.2,
       "position": [
-        1504,
-        0
+        1520,
+        992
       ],
       "id": "fb9c8dfe-d815-43a4-ae28-97caefc2baf6",
       "name": "User Found for Idle Check?"
@@ -963,8 +987,8 @@
       "type": "n8n-nodes-base.telegram",
       "typeVersion": 1.2,
       "position": [
-        1776,
-        128
+        1792,
+        1120
       ],
       "id": "da1c44c8-5088-4cb6-83a9-8968dd28746a",
       "name": "Send: Not Registered for Idle Check",
@@ -1353,7 +1377,7 @@
     {
       "parameters": {
         "chatId": "={{ $('Edit Fields').item.json.chat_id }}",
-        "text": "=👋 Добро пожаловать, {{ $('Edit Fields').item.json.username }}!\n\n📊 Ваша лицензия: {{ $('Check Registration for Start').first().json.license_type }}\n💼 Использовано: ВМ будет подсчитано/{{ $('Check Registration for Start').first().json.license_limit }}\n\n📋 Доступные команды:\n\n➕ /createvm [ID_ПО]\n   Создать виртуальную машину\n   Пример: /createvm 1,3,5\n\n📊 /myresources\n   Посмотреть свои ресурсы и статистику\n\n🤖 /optimize\n   AI-анализ и рекомендации по оптимизации\n\n🔍 /checkidle\n   Проверить простаивающие ВМ\n\n💿 /softwarecatalog\n   Каталог доступного ПО\n\n❓ /help\n   Эта справка\n\n━━━━━━━━━━━━━━━\nИспользуйте команды для управления вашими ресурсами!",
+        "text": "=👋 Добро пожаловать, {{ $('Edit Fields').item.json.username }}!\n\n📊 Ваша лицензия: {{ $('Check Registration for Start').first().json.license_type }}\n💼 Использовано: ВМ будет подсчитано/{{ $('Check Registration for Start').first().json.license_limit }}\n\n📋 Доступные команды:\n\n➕ /createvm [ID_ПО]\n   Создать виртуальную машину\n   Пример: /createvm 1,3,5\n\n📊 /myresources\n   Посмотреть свои ресурсы и статистику\n\n🤖 /optimize\n   AI-анализ и рекомендации по оптимизации\n\n🔍 /checkidle\n   Проверить простаивающие ВМ\n\n💿 /softwarecatalog\n   Каталог доступного ПО\n\n  /delete\n  Удаление своей ВМ\n❓ /help\n   Эта справка\n\n━━━━━━━━━━━━━━━\nИспользуйте команды для управления вашими ресурсами!",
         "additionalFields": {
           "appendAttribution": false
         }
@@ -1762,8 +1786,8 @@
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        4160,
-        -480
+        5312,
+        -528
       ],
       "id": "07ad8e24-1823-430a-8bdc-f9e2e9d03145",
       "name": "Add Footer to Message"
@@ -1849,8 +1873,8 @@
       "type": "n8n-nodes-base.postgres",
       "typeVersion": 2.6,
       "position": [
-        2976,
-        -1328
+        4128,
+        -1376
       ],
       "id": "59e949c7-6339-4a58-bb01-b0ec11ee752d",
       "name": "Get User for VM Details",
@@ -1932,8 +1956,8 @@
       "type": "n8n-nodes-base.postgres",
       "typeVersion": 2.6,
       "position": [
-        3808,
-        -1424
+        4960,
+        -1472
       ],
       "id": "688c9daa-e2f3-46a7-a392-f794d85ecfd7",
       "name": "Get VM by NameID",
@@ -1971,8 +1995,8 @@
       "type": "n8n-nodes-base.postgres",
       "typeVersion": 2.6,
       "position": [
-        1856,
-        -1104
+        1872,
+        -112
       ],
       "id": "fcd657f6-fdc4-4f2d-b608-b8f98ad6b2ae",
       "name": "Get VMs for Resources",
@@ -2010,8 +2034,8 @@
       "type": "n8n-nodes-base.postgres",
       "typeVersion": 2.6,
       "position": [
-        2768,
-        -400
+        3920,
+        -448
       ],
       "id": "ede47811-9012-48fa-8e1f-1c917f62d145",
       "name": "Get User for Optimize",
@@ -2031,8 +2055,8 @@
       "type": "n8n-nodes-base.postgres",
       "typeVersion": 2.6,
       "position": [
-        3280,
-        -480
+        4432,
+        -528
       ],
       "id": "0e6aea3c-3f78-4c63-889b-7489122963f0",
       "name": "Get VMs for Optimize",
@@ -2052,8 +2076,8 @@
       "type": "n8n-nodes-base.postgres",
       "typeVersion": 2.6,
       "position": [
-        1248,
-        0
+        1264,
+        992
       ],
       "id": "d23dcf84-5baa-45fb-9348-3178cd4ae382",
       "name": "Get User for Idle Check",
@@ -2073,8 +2097,8 @@
       "type": "n8n-nodes-base.postgres",
       "typeVersion": 2.6,
       "position": [
-        1776,
-        -96
+        1792,
+        896
       ],
       "id": "bcda25c0-10dd-48a9-b395-35375fe6cee6",
       "name": "Get VMs for Idle Check",
@@ -2509,8 +2533,8 @@
       "type": "n8n-nodes-base.postgres",
       "typeVersion": 2.6,
       "position": [
-        1168,
-        -1024
+        1184,
+        -32
       ],
       "id": "863c103b-1f9e-42d8-9b92-b5b04803df07",
       "name": "Get User",
@@ -2754,8 +2778,8 @@
       "type": "n8n-nodes-base.postgres",
       "typeVersion": 2.6,
       "position": [
-        4016,
-        -1424
+        5168,
+        -1472
       ],
       "id": "49ec2bcd-1198-468f-9f96-702f3c899822",
       "name": "Load Software Catalog3",
@@ -2783,6 +2807,218 @@
       "id": "92d67b7f-c760-4a09-81a0-8a9f3c488bf6",
       "name": "Error ID Software",
       "webhookId": "2b96b496-4395-4118-b607-10c91554eca3",
+      "credentials": {
+        "telegramApi": {
+          "id": "DDex8oHA77ADeVpY",
+          "name": "SmartLicenseUsageAnalyzer_bot"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "// Получаем команду из вебхука\nconst text = $('Webhook - Telegram Bot').first().json.message.text;\n\n// Парсим параметр после /delete\n// Регулярка ищет пробелы и захватывает всё остальное в группу 1\nconst match = text.match(/^\\/delete\\s+(.+)$/i);\n\n// Проверяем, есть ли совпадение И есть ли захваченная группа\nif (!match || !match[1]) {\n  return {\n    json: {\n      error: true,\n      message: \"❌ Ошибка синтаксиса.\\n\\nИспользуйте:\\n/delete <id_или_имя>\\n\\nПримеры:\\n/delete 1767378761\\n/delete Analysis-Server\",\n      chat_id: $('Webhook - Telegram Bot').first().json.message.chat.id\n    }\n  };\n}\n\n// БЕРЕМ ПЕРВУЮ ГРУППУ (match[1]), а не весь массив\nconst searchParam = match[1].trim();\n\n// Проверяем, это число или строка\nconst vmId = parseInt(searchParam);\n// Проверка: это число И это не NaN\nconst isNumericId = !isNaN(vmId) && String(vmId) === searchParam;\n\nreturn {\n  json: {\n    search_param: searchParam,\n    is_numeric: isNumericId,\n    // Если число — отдаем как ID, иначе как имя\n    vm_id: isNumericId ? vmId : null,\n    vm_name: !isNumericId ? searchParam : null,\n    chat_id: $('Webhook - Telegram Bot').first().json.message.chat.id,\n    telegram_id: $('Webhook - Telegram Bot').first().json.message.from.id\n  }\n};"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        960,
+        -1264
+      ],
+      "id": "d15c6c3f-de8c-45ea-a95d-a1a783ad2500",
+      "name": "Parse Delete Command"
+    },
+    {
+      "parameters": {
+        "operation": "select",
+        "schema": {
+          "__rl": true,
+          "mode": "list",
+          "value": "public"
+        },
+        "table": {
+          "__rl": true,
+          "value": "users",
+          "mode": "list",
+          "cachedResultName": "users"
+        },
+        "where": {
+          "values": [
+            {
+              "column": "telegram_id",
+              "value": "={{ $('Command Router').item.json.telegram_id }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        1264,
+        -1264
+      ],
+      "id": "1b9f38f0-2985-410c-b031-9e8d739559fb",
+      "name": "Get User for VM Deletion",
+      "credentials": {
+        "postgres": {
+          "id": "uHdhvi0uS3Mpktwy",
+          "name": "Postgres beget 31"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "select",
+        "schema": {
+          "__rl": true,
+          "mode": "list",
+          "value": "public"
+        },
+        "table": {
+          "__rl": true,
+          "value": "virtual_machines",
+          "mode": "list",
+          "cachedResultName": "virtual_machines"
+        },
+        "where": {
+          "values": [
+            {
+              "column": "vm_name",
+              "value": "={{ $('Parse Delete Command').item.json.vm_name }}"
+            },
+            {
+              "column": "vm_id",
+              "value": "={{ $('Parse Delete Command').item.json.vm_id }}"
+            }
+          ]
+        },
+        "combineConditions": "OR",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        1520,
+        -1264
+      ],
+      "id": "dd262eff-a698-476f-9c04-3b6afbfa2723",
+      "name": "Get VM by NameID_",
+      "alwaysOutputData": true,
+      "credentials": {
+        "postgres": {
+          "id": "uHdhvi0uS3Mpktwy",
+          "name": "Postgres beget 31"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "8795146c-9d1b-4e84-acc9-030538d55e54",
+              "leftValue": "={{ $input.all().length }}",
+              "rightValue": 0,
+              "operator": {
+                "type": "number",
+                "operation": "gt"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        1728,
+        -1264
+      ],
+      "id": "08612b22-b5dc-4b58-a946-317f2bdbec60",
+      "name": "VM Found?"
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "DELETE FROM virtual_machines \nWHERE vm_id = {{ $input.first().json.vm_id }} AND user_id = {{ $input.first().json.user_id }}\nRETURNING vm_id, vm_name, monthly_cost",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        2096,
+        -1376
+      ],
+      "id": "f9e7ce62-02c3-4dfa-9772-cd220f46a8eb",
+      "name": "Delete VM from DB",
+      "credentials": {
+        "postgres": {
+          "id": "uHdhvi0uS3Mpktwy",
+          "name": "Postgres beget 31"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "// Получаем результат удаления\nconst deleteResult = $input.first().json;\n\n// Если удаление не прошло (success = false)\nif (deleteResult.success === false) {\n  return {\n    json: {\n      error: true,\n      message: `❌ ${deleteResult.message}`,\n      chat_id: $('Parse Delete Command').item.json.chat_id\n    }\n  };\n}\n\n// Успешное удаление\nconst vmName = deleteResult.vm_name;\nconst monthlyCost = parseFloat(deleteResult.monthly_cost) || 0;\n\n// Получаем обновленную статистику пользователя\nconst userId = $input.first().json.user_id;\n\nconst message = `✅ ВМ удалена успешно!\n\n🖥️ **Название:** ${vmName}\n💰 **Экономия:** ${monthlyCost.toLocaleString()}₽/мес\n\n📊 **Следующие шаги:**\n• Используйте /myresources чтобы увидеть оставшиеся ВМ\n• Создайте новую ВМ: /createvm [id_по]\n• Получите помощь: /help`;\n\nreturn {\n  json: {\n    success: true,\n    message: message,\n    chat_id: $('Parse Delete Command').item.json.chat_id,\n    vm_name: vmName,\n    saved_cost: monthlyCost\n  }\n};"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        2304,
+        -1376
+      ],
+      "id": "5bbcb99d-87d6-4fdf-b5e8-0e09c337eee9",
+      "name": "Format Delete Response"
+    },
+    {
+      "parameters": {
+        "chatId": "={{ $json.chat_id }}",
+        "text": "={{ $json.message }}",
+        "additionalFields": {
+          "appendAttribution": false
+        }
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        2512,
+        -1376
+      ],
+      "id": "6e51a11a-6c65-4ebb-a3f9-0265129c8b72",
+      "name": "Send Delete Confirmation",
+      "webhookId": "bd795967-e9f5-43b8-8fc4-c4447c9d8c29",
+      "credentials": {
+        "telegramApi": {
+          "id": "DDex8oHA77ADeVpY",
+          "name": "SmartLicenseUsageAnalyzer_bot"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "chatId": "={{ $('Parse Delete Command').item.json.telegram_id }}",
+        "text": "=❌ ВМ не найдена\n\nПроверьте ID или имя ВМ и попробуйте снова:\n/delete <vm_id_или_имя>\n\nВаши ВМ: /myresources",
+        "additionalFields": {
+          "appendAttribution": false
+        }
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        2096,
+        -1120
+      ],
+      "id": "2200936f-4d6d-41a9-8878-7ef22f96eda0",
+      "name": "Send VM Not Found",
+      "webhookId": "8eee79df-63c9-4821-b741-ac1101f76c79",
       "credentials": {
         "telegramApi": {
           "id": "DDex8oHA77ADeVpY",
@@ -2830,6 +3066,13 @@
         [
           {
             "node": "Switch Analyze",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Parse Delete Command",
             "type": "main",
             "index": 0
           }
@@ -3623,13 +3866,86 @@
           }
         ]
       ]
+    },
+    "Parse Delete Command": {
+      "main": [
+        [
+          {
+            "node": "Get User for VM Deletion",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get User for VM Deletion": {
+      "main": [
+        [
+          {
+            "node": "Get VM by NameID_",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get VM by NameID_": {
+      "main": [
+        [
+          {
+            "node": "VM Found?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "VM Found?": {
+      "main": [
+        [
+          {
+            "node": "Delete VM from DB",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Send VM Not Found",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Delete VM from DB": {
+      "main": [
+        [
+          {
+            "node": "Format Delete Response",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Format Delete Response": {
+      "main": [
+        [
+          {
+            "node": "Send Delete Confirmation",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
     }
   },
   "active": false,
   "settings": {
     "executionOrder": "v1"
   },
-  "versionId": "4fc5a3df-f9f8-4d5a-9a5f-4d5b84ae3536",
+  "versionId": "16084f6c-8a19-452a-b99c-c70ef3e353fb",
   "meta": {
     "templateCredsSetupCompleted": true,
     "instanceId": "f4300700b5a89163b88ad6a908ff9e3076c705e8b03a3f40f03ff2f29f7e4289"
