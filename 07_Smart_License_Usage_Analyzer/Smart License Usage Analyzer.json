@@ -11,8 +11,8 @@
       "type": "n8n-nodes-base.telegramTrigger",
       "typeVersion": 1.2,
       "position": [
-        -3376,
-        -1920
+        -3168,
+        -2032
       ],
       "id": "c6251667-4918-4c51-b593-8256200970eb",
       "name": "Webhook - Telegram Bot",
@@ -182,8 +182,8 @@
       "type": "n8n-nodes-base.switch",
       "typeVersion": 3.3,
       "position": [
-        -896,
-        -1792
+        -832,
+        -1568
       ],
       "id": "762e56ef-bccf-4d38-aaae-c636aa41e21c",
       "name": "Command Router",
@@ -315,7 +315,7 @@
         "content": "## Обработчик: Создание ВМ (/create_vm)\n\n1. Пользователь отправляет команду `/createvm`, сообщение попадает из `Webhook - Telegram Bot` в `Edit Fields`\n1. Затем через `Command Router` в ветку «**1 - Создание ВМ**».\n1. Узел `Get User for VM Creation` загружает данные пользователя из таблицы, а `User Registered?` проверяет, зарегистрирован ли он\n1. При отрицательном результате выполняется `Send: Not Registered`.\n1. Если пользователь зарегистрирован, `Get Existing VMs for User` подтягивает список его ВМ, затем `Check License Limit` считает количество ВМ и сравнивает с лимитом лицензии, результат уходит в `Can Create VM?`.\n1. В `Can Create VM?` при наличии свободного лимита формируется меню ПО через `Prepare Software Menu` (далее — узел отправки этого меню в Telegram), а при превышении лимита срабатывает `Send: Limit Exceeded`.\n1. После того как пользователь выбрал ПО, кодовый узел `Create VM with Software` рассчитывает параметры новой ВМ и формирует запись, `Save VM to Sheet` добавляет строку в таблицу **Virtual_Machines**\n1. `Send: VM Created` отправляет в Telegram итоговое сообщение о созданной ВМ и подсказки по дальнейшим командам.\n",
         "height": 1152,
         "width": 2288,
-        "color": 2
+        "color": 7
       },
       "type": "n8n-nodes-base.stickyNote",
       "position": [
@@ -333,8 +333,8 @@
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        2064,
-        -112
+        2048,
+        -1104
       ],
       "id": "d6ec69c9-bbad-437d-8169-4ac1407613bd",
       "name": "Calculate Summary"
@@ -350,8 +350,8 @@
       "type": "n8n-nodes-base.telegram",
       "typeVersion": 1.2,
       "position": [
-        2272,
-        -112
+        2256,
+        -1104
       ],
       "id": "0870e412-ba63-4e79-9a91-f1b8c43c5b29",
       "name": "Send: Resources Summary",
@@ -368,12 +368,12 @@
         "content": "## Обработчик: Мои ресурсы (/my_resources)\n\n1. Команда `/myresources` маршрутизируется через `Command Router` в ветку просмотра ресурсов, где узел `Get User for Resources` получает профиль пользователя, а `Get VMs for Resources` — все его виртуальные машины из таблицы.\n1. Кодовый узел `Calculate Summary` агрегирует статистику по ВМ: считает общее количество, распределение по статусам (**active**/**idle**/**stopped**), общую стоимость и формирует текстовый отчёт с кратким списком ВМ и командами для детального анализа.\n1. Узел `Send: Resources Summary` отправляет пользователю этот отчёт в Telegram, чтобы он видел картину по своим ресурсам и мог перейти к `/vmdetails`, `/optimize` или `/checkidle`.",
         "height": 688,
         "width": 1568,
-        "color": 3
+        "color": 6
       },
       "type": "n8n-nodes-base.stickyNote",
       "position": [
         1024,
-        -352
+        -1328
       ],
       "typeVersion": 1,
       "id": "1f4afba8-fffe-4981-9857-5b999b0776a1",
@@ -463,8 +463,8 @@
       },
       "type": "n8n-nodes-base.stickyNote",
       "position": [
-        1008,
-        720
+        1600,
+        -288
       ],
       "typeVersion": 1,
       "id": "67d68421-fc1b-4073-b529-410564f2dd59",
@@ -477,8 +477,8 @@
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        2048,
-        992
+        2640,
+        -16
       ],
       "id": "bed67e04-c167-4823-b4ce-c9e4cd3c5479",
       "name": "Detect Idle VMs"
@@ -494,8 +494,8 @@
       "type": "n8n-nodes-base.telegram",
       "typeVersion": 1.2,
       "position": [
-        2256,
-        992
+        2848,
+        -16
       ],
       "id": "45f1b667-8fea-46e1-be0a-ccbc97b381b2",
       "name": "Send: Idle Report",
@@ -829,8 +829,8 @@
       "type": "n8n-nodes-base.set",
       "typeVersion": 3.4,
       "position": [
-        -2848,
-        -1936
+        -2640,
+        -2032
       ],
       "id": "52091f17-1fc7-4067-8e7c-7ee923b05102",
       "name": "Edit Fields"
@@ -862,8 +862,8 @@
       "type": "n8n-nodes-base.if",
       "typeVersion": 2.2,
       "position": [
-        1616,
-        -16
+        1600,
+        -1008
       ],
       "id": "044e43af-0259-41eb-9894-0a35bdc751ee",
       "name": "User Found for Resources?"
@@ -877,8 +877,8 @@
       "type": "n8n-nodes-base.telegram",
       "typeVersion": 1.2,
       "position": [
-        1872,
-        112
+        1856,
+        -880
       ],
       "id": "f0a69a15-53bf-4a0f-bb51-df3bfe33c294",
       "name": "Send: Not Registered for Resources",
@@ -972,8 +972,8 @@
       "type": "n8n-nodes-base.if",
       "typeVersion": 2.2,
       "position": [
-        1520,
-        992
+        2112,
+        -16
       ],
       "id": "fb9c8dfe-d815-43a4-ae28-97caefc2baf6",
       "name": "User Found for Idle Check?"
@@ -987,8 +987,8 @@
       "type": "n8n-nodes-base.telegram",
       "typeVersion": 1.2,
       "position": [
-        1792,
-        1120
+        2384,
+        112
       ],
       "id": "da1c44c8-5088-4cb6-83a9-8968dd28746a",
       "name": "Send: Not Registered for Idle Check",
@@ -1011,8 +1011,8 @@
       "type": "n8n-nodes-base.telegram",
       "typeVersion": 1.2,
       "position": [
-        1088,
-        -3312
+        1104,
+        -2976
       ],
       "id": "33e2a4bc-ec4c-4de2-aa24-3d16653f32a5",
       "name": "Send Request Organization",
@@ -1074,8 +1074,8 @@
       "type": "n8n-nodes-base.telegram",
       "typeVersion": 1.2,
       "position": [
-        1088,
-        -3616
+        1104,
+        -3280
       ],
       "id": "f6c215de-f75b-4526-8fcd-12a23bff3065",
       "name": "Send Request Email",
@@ -1095,8 +1095,8 @@
       },
       "type": "n8n-nodes-base.stickyNote",
       "position": [
-        -576,
-        -4064
+        -560,
+        -3728
       ],
       "typeVersion": 1,
       "id": "26a95861-777c-4451-a1a3-7d00fc1d570a",
@@ -1109,8 +1109,8 @@
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        96,
-        -3616
+        112,
+        -3280
       ],
       "id": "bbdeea5b-27fb-46f9-bcfb-84118dcc15d7",
       "name": "Generate Registration Data"
@@ -1145,8 +1145,8 @@
       "type": "n8n-nodes-base.if",
       "typeVersion": 2.2,
       "position": [
-        -224,
-        -3712
+        -208,
+        -3376
       ],
       "id": "d90202c0-a2d3-49a9-b2d9-380c16f6fc5e",
       "name": "Already Registered?"
@@ -1179,8 +1179,8 @@
       "type": "n8n-nodes-base.if",
       "typeVersion": 2.2,
       "position": [
-        -3120,
-        -1920
+        -2912,
+        -2032
       ],
       "id": "26d593c5-c4ac-406d-b6c5-de6e0c455f29",
       "name": "Has Message"
@@ -1269,8 +1269,8 @@
       "type": "n8n-nodes-base.switch",
       "typeVersion": 3.3,
       "position": [
-        112,
-        -1760
+        336,
+        -1520
       ],
       "id": "8945baf7-d9c1-4a6a-8028-e2d1eada9390",
       "name": "Switch View"
@@ -1335,174 +1335,27 @@
       "type": "n8n-nodes-base.switch",
       "typeVersion": 3.3,
       "position": [
-        144,
-        -912
+        432,
+        -640
       ],
       "id": "73dd1f05-9f1e-4072-a765-148eb033db47",
       "name": "Switch Analyze"
     },
     {
       "parameters": {
-        "conditions": {
-          "options": {
-            "caseSensitive": true,
-            "leftValue": "",
-            "typeValidation": "strict",
-            "version": 2
-          },
-          "conditions": [
-            {
-              "id": "178a088d-9ae4-4527-8dc6-3eadce72c82f",
-              "leftValue": "={{ $json.telegram_id }}",
-              "rightValue": "={{ $('Is Start Command?').item.json.chat_id }}",
-              "operator": {
-                "type": "number",
-                "operation": "equals"
-              }
-            }
-          ],
-          "combinator": "and"
-        },
-        "options": {}
-      },
-      "type": "n8n-nodes-base.if",
-      "typeVersion": 2.2,
-      "position": [
-        -2272,
-        -2176
-      ],
-      "id": "c932d57f-d3cf-408e-8509-d6633be7f365",
-      "name": "User Registered for Start?"
-    },
-    {
-      "parameters": {
-        "chatId": "={{ $('Edit Fields').item.json.chat_id }}",
-        "text": "=👋 Добро пожаловать, {{ $('Edit Fields').item.json.username }}!\n\n📊 Ваша лицензия: {{ $('Check Registration for Start').first().json.license_type }}\n💼 Использовано: ВМ будет подсчитано/{{ $('Check Registration for Start').first().json.license_limit }}\n\n📋 Доступные команды:\n\n➕ /createvm [ID_ПО]\n   Создать виртуальную машину\n   Пример: /createvm 1,3,5\n\n📊 /myresources\n   Посмотреть свои ресурсы и статистику\n\n🤖 /optimize\n   AI-анализ и рекомендации по оптимизации\n\n🔍 /checkidle\n   Проверить простаивающие ВМ\n\n💿 /softwarecatalog\n   Каталог доступного ПО\n\n  /delete\n  Удаление своей ВМ\n❓ /help\n   Эта справка\n\n━━━━━━━━━━━━━━━\nИспользуйте команды для управления вашими ресурсами!",
-        "additionalFields": {
-          "appendAttribution": false
-        }
-      },
-      "type": "n8n-nodes-base.telegram",
-      "typeVersion": 1.2,
-      "position": [
-        -1968,
-        -2288
-      ],
-      "id": "4f7fd8f5-6585-4bab-9bb0-288cc7e38b87",
-      "name": "Send: Welcome (Registered)",
-      "webhookId": "2df9641d-6340-4689-b5ea-cd0bcaf4bcfb",
-      "credentials": {
-        "telegramApi": {
-          "id": "DDex8oHA77ADeVpY",
-          "name": "SmartLicenseUsageAnalyzer_bot"
-        }
-      }
-    },
-    {
-      "parameters": {
-        "conditions": {
-          "options": {
-            "caseSensitive": true,
-            "leftValue": "",
-            "typeValidation": "strict",
-            "version": 2
-          },
-          "conditions": [
-            {
-              "id": "c8fbe15d-2261-4264-95e3-c9f9c32cc06d",
-              "leftValue": "={{ $json.text }}",
-              "rightValue": "=/register",
-              "operator": {
-                "type": "string",
-                "operation": "startsWith"
-              }
-            }
-          ],
-          "combinator": "and"
-        },
-        "options": {}
-      },
-      "type": "n8n-nodes-base.if",
-      "typeVersion": 2.2,
-      "position": [
-        -2272,
-        -1728
-      ],
-      "id": "a8642bbe-2594-4d89-bd1b-b479ee608f1f",
-      "name": "Is Register Command?"
-    },
-    {
-      "parameters": {
-        "conditions": {
-          "options": {
-            "caseSensitive": true,
-            "leftValue": "",
-            "typeValidation": "strict",
-            "version": 2
-          },
-          "conditions": [
-            {
-              "id": "c91ce669-bc82-458b-ac28-c5591e9bf257",
-              "leftValue": "={{ $('Edit Fields').item.json.chat_id }}",
-              "rightValue": "={{ $('Is Register Command?').item.json.chat_id }}",
-              "operator": {
-                "type": "number",
-                "operation": "equals"
-              }
-            }
-          ],
-          "combinator": "and"
-        },
-        "options": {}
-      },
-      "type": "n8n-nodes-base.if",
-      "typeVersion": 2.2,
-      "position": [
-        -1744,
-        -1712
-      ],
-      "id": "99119dc7-6bde-4e19-9a02-65b80d9bf6ca",
-      "name": "User Registered for Commands?",
-      "alwaysOutputData": true
-    },
-    {
-      "parameters": {
         "content": "## Проверка регистрации\n\n1. Любое входящее сообщение пользователя после нормализации текстом в `Edit Fields` проходит через Command Router, где команда маршрутизируется по типам (создание ВМ, просмотр, анализ, помощь и т.п.).\n1. Для ветки создания ВМ команда направляется в узел `Get User for VM Creation`, который ищет пользователя в таблице **Users** по Telegram ID и поднимает его профиль (тип лицензии, лимит ВМ и т.д.).\n1. Узел `User Registered?` проверяет, найден ли пользователь; если пользователь не зарегистрирован, поток уходит в `Send: Not Registered`, который отправляет сообщение с инструкциями по регистрации.\n1. Если пользователь найден, его данные (user_id, license_type, license_limit и т.п.) используются далее в `Get Existing VMs for User` и `Check License Limit` для проверки доступности операций (создание ВМ, анализ, просмотр ресурсов).\n1. Аналогичная проверка регистрации используется в других ветках (ресурсы, оптимизация, простой), где узлы `Get User for Resources`, `Get User for Optimize`, `Get User for Idle Check` выполняют роль проверки существования пользователя и загрузки его профиля перед бизнес-логикой.",
         "height": 1408,
-        "width": 1936
+        "width": 1312
       },
       "type": "n8n-nodes-base.stickyNote",
       "position": [
-        -2976,
-        -2512
+        -2288,
+        -2752
       ],
       "typeVersion": 1,
       "id": "7ca0318b-e3e6-42f1-a2d4-956b49b6496f",
-      "name": "Sticky Note6"
-    },
-    {
-      "parameters": {
-        "chatId": "={{ $('Edit Fields').item.json.chat_id }}",
-        "text": "=❌ Доступ запрещён\n\nВы не зарегистрированы в системе.\n\nДля начала работы используйте /register\n",
-        "additionalFields": {
-          "appendAttribution": false
-        }
-      },
-      "type": "n8n-nodes-base.telegram",
-      "typeVersion": 1.2,
-      "position": [
-        -1472,
-        -1440
-      ],
-      "id": "fa682c2d-68b9-4e94-a690-ac4ba2d6057f",
-      "name": "Send: Please Register First",
-      "webhookId": "37486563-5a97-4c19-a951-b8f4dca9c0b5",
-      "credentials": {
-        "telegramApi": {
-          "id": "DDex8oHA77ADeVpY",
-          "name": "SmartLicenseUsageAnalyzer_bot"
-        }
-      }
+      "name": "Sticky Note6",
+      "disabled": true
     },
     {
       "parameters": {
@@ -1614,68 +1467,11 @@
       "type": "n8n-nodes-base.switch",
       "typeVersion": 3.3,
       "position": [
-        320,
-        -2944
+        336,
+        -2608
       ],
       "id": "db7d9fb6-4307-44fe-be6f-dcf590fb3b0d",
       "name": "State Router"
-    },
-    {
-      "parameters": {
-        "conditions": {
-          "options": {
-            "caseSensitive": true,
-            "leftValue": "",
-            "typeValidation": "strict",
-            "version": 2
-          },
-          "conditions": [
-            {
-              "id": "ac38a90c-1028-4783-a794-a592e0eaefb4",
-              "leftValue": "={{ $json.text }}",
-              "rightValue": "/start",
-              "operator": {
-                "type": "string",
-                "operation": "startsWith"
-              }
-            }
-          ],
-          "combinator": "and"
-        },
-        "options": {}
-      },
-      "type": "n8n-nodes-base.if",
-      "typeVersion": 2.2,
-      "position": [
-        -2656,
-        -1936
-      ],
-      "id": "52d89942-1ae8-4fbd-b829-87e7e09795c5",
-      "name": "Is Start Command?"
-    },
-    {
-      "parameters": {
-        "chatId": "={{ $('Edit Fields').item.json.chat_id }}",
-        "text": "=Здравствуйте!\n\nЭто бот для работы с инженерным ПО.\n\nВы не зарегистрированы в системе.\n\nДля начала работы используйте /register\n",
-        "additionalFields": {
-          "appendAttribution": false
-        }
-      },
-      "type": "n8n-nodes-base.telegram",
-      "typeVersion": 1.2,
-      "position": [
-        -1968,
-        -2080
-      ],
-      "id": "2f3315cb-4d5e-4d93-9306-e3568e9a3916",
-      "name": "Send: Please Register",
-      "webhookId": "dc8c1c64-8868-4578-8ae8-625b911c50e5",
-      "credentials": {
-        "telegramApi": {
-          "id": "DDex8oHA77ADeVpY",
-          "name": "SmartLicenseUsageAnalyzer_bot"
-        }
-      }
     },
     {
       "parameters": {
@@ -1803,8 +1599,8 @@
       "type": "n8n-nodes-base.telegram",
       "typeVersion": 1.2,
       "position": [
-        1088,
-        -3104
+        1104,
+        -2768
       ],
       "id": "4d761128-c825-456b-9ce2-8a5e1b061fe8",
       "name": "Send Request License Count",
@@ -1827,8 +1623,8 @@
       "type": "n8n-nodes-base.telegram",
       "typeVersion": 1.2,
       "position": [
-        96,
-        -3824
+        112,
+        -3488
       ],
       "id": "ee1df14f-b92f-42f5-8f34-5c9f6b5a376d",
       "name": "Send: Already Registered",
@@ -1843,7 +1639,7 @@
     {
       "parameters": {
         "chatId": "={{ $('Command Router').first().json.telegram_id }}",
-        "text": "=✅ Регистрация организации завершена!\n\n👤 Email: {{ $('Check Registration for Commands').first().json.email }}\n🏢 Организация: {{ $('Check Registration for Commands').first().json.organization }}\n💼 Лицензия: {{ $('Check Registration for Commands').first().json.license_type }} на {{ $('Update User with Limit').item.json.license_limit }} ВМ\n\n📋 Доступные команды:\n/createvm - Создать виртуальную машину\n/myresources - Мои ресурсы\n/help - Справка\n\nИспользуйте /createvm для создания вашей первой ВМ!\n",
+        "text": "=✅ Регистрация организации завершена!\n\n👤 Email: {{ $('Check UserId').item.json.email }}\n🏢 Организация: {{ $('Check UserId').item.json.organization }}\n💼 Лицензия: {{ $('Check UserId').item.json.license_type }} на {{ $('Check UserId').item.json.license_limit }} ВМ\n\n📋 Доступные команды:\n/createvm - Создать виртуальную машину\n/myresources - Мои ресурсы\n/help - Справка\n\nИспользуйте /createvm для создания вашей первой ВМ!\n",
         "additionalFields": {
           "appendAttribution": false
         }
@@ -1851,8 +1647,8 @@
       "type": "n8n-nodes-base.telegram",
       "typeVersion": 1.2,
       "position": [
-        1088,
-        -2896
+        1104,
+        -2560
       ],
       "id": "26db6b7b-4791-4c79-9c25-f754c130b742",
       "name": "Send: Registration Finish",
@@ -1995,8 +1791,8 @@
       "type": "n8n-nodes-base.postgres",
       "typeVersion": 2.6,
       "position": [
-        1872,
-        -112
+        1856,
+        -1104
       ],
       "id": "fcd657f6-fdc4-4f2d-b608-b8f98ad6b2ae",
       "name": "Get VMs for Resources",
@@ -2076,8 +1872,8 @@
       "type": "n8n-nodes-base.postgres",
       "typeVersion": 2.6,
       "position": [
-        1264,
-        992
+        1856,
+        -16
       ],
       "id": "d23dcf84-5baa-45fb-9348-3178cd4ae382",
       "name": "Get User for Idle Check",
@@ -2097,8 +1893,8 @@
       "type": "n8n-nodes-base.postgres",
       "typeVersion": 2.6,
       "position": [
-        1792,
-        896
+        2384,
+        -112
       ],
       "id": "bcda25c0-10dd-48a9-b395-35375fe6cee6",
       "name": "Get VMs for Idle Check",
@@ -2140,45 +1936,6 @@
       ],
       "id": "6e820cb0-27e9-41aa-ab1d-cce583663b18",
       "name": "Load Software Catalog",
-      "credentials": {
-        "postgres": {
-          "id": "uHdhvi0uS3Mpktwy",
-          "name": "Postgres beget 31"
-        }
-      }
-    },
-    {
-      "parameters": {
-        "operation": "select",
-        "schema": {
-          "__rl": true,
-          "mode": "list",
-          "value": "public"
-        },
-        "table": {
-          "__rl": true,
-          "value": "users",
-          "mode": "list",
-          "cachedResultName": "users"
-        },
-        "where": {
-          "values": [
-            {
-              "column": "telegram_id",
-              "value": "={{ $json.telegram_id }}"
-            }
-          ]
-        },
-        "options": {}
-      },
-      "type": "n8n-nodes-base.postgres",
-      "typeVersion": 2.6,
-      "position": [
-        -1984,
-        -1712
-      ],
-      "id": "289cecdf-13c1-4c91-9216-53bb4327c03d",
-      "name": "Check Registration for Commands",
       "credentials": {
         "postgres": {
           "id": "uHdhvi0uS3Mpktwy",
@@ -2302,8 +2059,8 @@
       "type": "n8n-nodes-base.postgres",
       "typeVersion": 2.6,
       "position": [
-        336,
-        -3616
+        352,
+        -3280
       ],
       "id": "96f03720-d6b1-4408-b746-ee79367e454a",
       "name": "Add New User",
@@ -2323,8 +2080,8 @@
       "type": "n8n-nodes-base.postgres",
       "typeVersion": 2.6,
       "position": [
-        640,
-        -2896
+        656,
+        -2560
       ],
       "id": "2eb1fbf7-1f70-4080-8fa6-7fc4c2e915fe",
       "name": "Update User with Limit",
@@ -2533,8 +2290,8 @@
       "type": "n8n-nodes-base.postgres",
       "typeVersion": 2.6,
       "position": [
-        1184,
-        -32
+        1168,
+        -1024
       ],
       "id": "863c103b-1f9e-42d8-9b92-b5b04803df07",
       "name": "Get User",
@@ -2557,8 +2314,8 @@
       "type": "n8n-nodes-base.redis",
       "typeVersion": 1,
       "position": [
-        848,
-        -3616
+        864,
+        -3280
       ],
       "id": "b9c7a2b3-3c2a-412d-a102-98e0ded5158b",
       "name": "Set User State register",
@@ -2578,8 +2335,8 @@
       "type": "n8n-nodes-base.postgres",
       "typeVersion": 2.6,
       "position": [
-        640,
-        -3312
+        656,
+        -2976
       ],
       "id": "b8a13d8b-70b1-4349-b60d-d2228a25f857",
       "name": "Update User with Email",
@@ -2601,8 +2358,8 @@
       "type": "n8n-nodes-base.redis",
       "typeVersion": 1,
       "position": [
-        -128,
-        -2912
+        -112,
+        -2576
       ],
       "id": "9a082a1c-45e8-4e1c-a431-ef00f36e438a",
       "name": "Get Current State",
@@ -2622,8 +2379,8 @@
       "type": "n8n-nodes-base.postgres",
       "typeVersion": 2.6,
       "position": [
-        640,
-        -3104
+        656,
+        -2768
       ],
       "id": "1df04e0d-ecf1-4928-8110-2b29253514cb",
       "name": "Update Users with Org",
@@ -2645,8 +2402,8 @@
       "type": "n8n-nodes-base.redis",
       "typeVersion": 1,
       "position": [
-        848,
-        -3312
+        864,
+        -2976
       ],
       "id": "0e7e6b93-08fd-4f9a-b4a2-7239f5121733",
       "name": "Update State Email",
@@ -2668,8 +2425,8 @@
       "type": "n8n-nodes-base.redis",
       "typeVersion": 1,
       "position": [
-        848,
-        -3104
+        864,
+        -2768
       ],
       "id": "0fce0751-2372-4f40-b2ef-f28da8d39c69",
       "name": "Update State Organization",
@@ -2691,8 +2448,8 @@
       "type": "n8n-nodes-base.redis",
       "typeVersion": 1,
       "position": [
-        848,
-        -2896
+        864,
+        -2560
       ],
       "id": "a42d579f-78c3-47fc-826e-5bc198f962ff",
       "name": "Update State License",
@@ -2711,8 +2468,8 @@
       "type": "n8n-nodes-base.redis",
       "typeVersion": 1,
       "position": [
-        1296,
-        -2896
+        1312,
+        -2560
       ],
       "id": "fe2ddb12-0669-40da-9c48-c83a74f6a57c",
       "name": "Clear User State",
@@ -2730,8 +2487,8 @@
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        112,
-        -2912
+        128,
+        -2576
       ],
       "id": "a443c44d-04b3-4b1d-806b-51fb29d378b5",
       "name": "Parse State"
@@ -2822,7 +2579,7 @@
       "typeVersion": 2,
       "position": [
         960,
-        -1264
+        880
       ],
       "id": "d15c6c3f-de8c-45ea-a95d-a1a783ad2500",
       "name": "Parse Delete Command"
@@ -2855,7 +2612,7 @@
       "typeVersion": 2.6,
       "position": [
         1264,
-        -1264
+        880
       ],
       "id": "1b9f38f0-2985-410c-b031-9e8d739559fb",
       "name": "Get User for VM Deletion",
@@ -2899,7 +2656,7 @@
       "typeVersion": 2.6,
       "position": [
         1520,
-        -1264
+        880
       ],
       "id": "dd262eff-a698-476f-9c04-3b6afbfa2723",
       "name": "Get VM by NameID_",
@@ -2923,7 +2680,7 @@
           "conditions": [
             {
               "id": "8795146c-9d1b-4e84-acc9-030538d55e54",
-              "leftValue": "={{ $input.all().length }}",
+              "leftValue": "={{ Object.keys($json).length }}",
               "rightValue": 0,
               "operator": {
                 "type": "number",
@@ -2939,7 +2696,7 @@
       "typeVersion": 2.3,
       "position": [
         1728,
-        -1264
+        880
       ],
       "id": "08612b22-b5dc-4b58-a946-317f2bdbec60",
       "name": "VM Found?"
@@ -2954,7 +2711,7 @@
       "typeVersion": 2.6,
       "position": [
         2096,
-        -1376
+        768
       ],
       "id": "f9e7ce62-02c3-4dfa-9772-cd220f46a8eb",
       "name": "Delete VM from DB",
@@ -2973,7 +2730,7 @@
       "typeVersion": 2,
       "position": [
         2304,
-        -1376
+        768
       ],
       "id": "5bbcb99d-87d6-4fdf-b5e8-0e09c337eee9",
       "name": "Format Delete Response"
@@ -2990,7 +2747,7 @@
       "typeVersion": 1.2,
       "position": [
         2512,
-        -1376
+        768
       ],
       "id": "6e51a11a-6c65-4ebb-a3f9-0265129c8b72",
       "name": "Send Delete Confirmation",
@@ -3005,7 +2762,7 @@
     {
       "parameters": {
         "chatId": "={{ $('Parse Delete Command').item.json.telegram_id }}",
-        "text": "=❌ ВМ не найдена\n\nПроверьте ID или имя ВМ и попробуйте снова:\n/delete <vm_id_или_имя>\n\nВаши ВМ: /myresources",
+        "text": "=❌ ВМ не найдена\n\nПроверьте ID или имя ВМ и попробуйте снова:\n/delete [vm_id_или_имя]\n\nВаши ВМ: /myresources",
         "additionalFields": {
           "appendAttribution": false
         }
@@ -3014,7 +2771,7 @@
       "typeVersion": 1.2,
       "position": [
         2096,
-        -1120
+        1024
       ],
       "id": "2200936f-4d6d-41a9-8878-7ef22f96eda0",
       "name": "Send VM Not Found",
@@ -3025,6 +2782,312 @@
           "name": "SmartLicenseUsageAnalyzer_bot"
         }
       }
+    },
+    {
+      "parameters": {
+        "rules": {
+          "values": [
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.text }}",
+                    "rightValue": "/start",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    },
+                    "id": "86407230-ea07-4bcb-a19e-39d005070be6"
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "Start"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "id": "b4f1c635-9767-4285-a2da-da2754394997",
+                    "leftValue": "={{ $json.text }}",
+                    "rightValue": "/register",
+                    "operator": {
+                      "type": "string",
+                      "operation": "startsWith"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "Register"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "id": "cdb93996-3b1c-42ac-98ea-cff1d2dd7163",
+                    "leftValue": "",
+                    "rightValue": "",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals",
+                      "name": "filter.operator.equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "Другие команды"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3.4,
+      "position": [
+        -2080,
+        -2048
+      ],
+      "id": "78fdb8a1-1906-4712-ba25-4b4efac5dc18",
+      "name": "System Commands Router"
+    },
+    {
+      "parameters": {
+        "operation": "select",
+        "schema": {
+          "__rl": true,
+          "mode": "list",
+          "value": "public"
+        },
+        "table": {
+          "__rl": true,
+          "value": "users",
+          "mode": "list",
+          "cachedResultName": "users"
+        },
+        "where": {
+          "values": [
+            {
+              "column": "telegram_id",
+              "value": "={{ $('Edit Fields').item.json.telegram_id }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        -1376,
+        -2016
+      ],
+      "id": "31633bdd-28aa-4663-a0ee-78dd68abd413",
+      "name": "Check User Exists (Register)",
+      "alwaysOutputData": true,
+      "credentials": {
+        "postgres": {
+          "id": "uHdhvi0uS3Mpktwy",
+          "name": "Postgres beget 31"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "select",
+        "schema": {
+          "__rl": true,
+          "mode": "list",
+          "value": "public"
+        },
+        "table": {
+          "__rl": true,
+          "value": "users",
+          "mode": "list",
+          "cachedResultName": "users"
+        },
+        "where": {
+          "values": [
+            {
+              "column": "telegram_id",
+              "value": "={{ $json.telegram_id }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        -1792,
+        -2336
+      ],
+      "id": "7c771db3-dfd7-4f8a-9130-9de70b78dcd7",
+      "name": "Get User for Start",
+      "alwaysOutputData": true,
+      "credentials": {
+        "postgres": {
+          "id": "uHdhvi0uS3Mpktwy",
+          "name": "Postgres beget 31"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "cfe30c26-de7a-4eff-becd-ebba5508a32f",
+              "leftValue": "={{ $input.all().length }}",
+              "rightValue": 0,
+              "operator": {
+                "type": "number",
+                "operation": "equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        -1584,
+        -2336
+      ],
+      "id": "2ffc2ed0-e19f-4f13-b91c-c14945a796e9",
+      "name": "If User Exists?"
+    },
+    {
+      "parameters": {
+        "chatId": "={{ $('System Commands Router').item.json.telegram_id }}",
+        "text": "=👋 Привет, {{ $('System Commands Router').item.json.username }}, и добро пожаловать в License Manager!\n\nЯ помогу вам управлять виртуальными машинами и лицензиями.\n\n🚀 **Возможности:**\n• Создание и удаление ВМ\n• Контроль расходов\n• Мониторинг ресурсов\n\nДля начала работы необходимо зарегистрироваться:\n👉 Нажмите /register\n",
+        "additionalFields": {
+          "appendAttribution": false
+        }
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        -1376,
+        -2256
+      ],
+      "id": "115a6a5e-e0e1-4536-98c4-9bddc44c481c",
+      "name": "Send Welcome (New User)",
+      "webhookId": "a604fe08-e22e-43d4-bafa-9533058eeb00",
+      "credentials": {
+        "telegramApi": {
+          "id": "DDex8oHA77ADeVpY",
+          "name": "SmartLicenseUsageAnalyzer_bot"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "chatId": "={{ $('System Commands Router').item.json.telegram_id }}",
+        "text": "=С возвращением, {{ $('System Commands Router').item.json.username }}! \nВы уже зарегистрированы. \n\nВаши ресурсы: /myresources",
+        "additionalFields": {
+          "appendAttribution": false
+        }
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        -1376,
+        -2432
+      ],
+      "id": "72a0a0ec-656e-4722-8f4d-a05b6e058e80",
+      "name": "Send noRetry Reg",
+      "webhookId": "a604fe08-e22e-43d4-bafa-9533058eeb00",
+      "credentials": {
+        "telegramApi": {
+          "id": "DDex8oHA77ADeVpY",
+          "name": "SmartLicenseUsageAnalyzer_bot"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "select",
+        "schema": {
+          "__rl": true,
+          "mode": "list",
+          "value": "public"
+        },
+        "table": {
+          "__rl": true,
+          "value": "users",
+          "mode": "list",
+          "cachedResultName": "users"
+        },
+        "where": {
+          "values": [
+            {
+              "column": "telegram_id",
+              "value": "={{ $json.telegram_id }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        -1376,
+        -1712
+      ],
+      "id": "8274653e-e69b-404a-8cc8-b4bda7f1692a",
+      "name": "Check UserId",
+      "credentials": {
+        "postgres": {
+          "id": "uHdhvi0uS3Mpktwy",
+          "name": "Postgres beget 31"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "content": "## Удаление ВМ\n",
+        "height": 544,
+        "width": 1968,
+        "color": 3
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        832,
+        672
+      ],
+      "typeVersion": 1,
+      "id": "79ed248e-0add-48cc-9aa4-6685427c5996",
+      "name": "Sticky Note8"
     }
   ],
   "pinData": {},
@@ -3273,7 +3336,7 @@
       "main": [
         [
           {
-            "node": "Is Start Command?",
+            "node": "System Commands Router",
             "type": "main",
             "index": 0
           }
@@ -3433,60 +3496,6 @@
         ]
       ]
     },
-    "User Registered for Start?": {
-      "main": [
-        [
-          {
-            "node": "Send: Welcome (Registered)",
-            "type": "main",
-            "index": 0
-          }
-        ],
-        [
-          {
-            "node": "Send: Please Register",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Is Register Command?": {
-      "main": [
-        [
-          {
-            "node": "Already Registered?",
-            "type": "main",
-            "index": 0
-          }
-        ],
-        [
-          {
-            "node": "Check Registration for Commands",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "User Registered for Commands?": {
-      "main": [
-        [
-          {
-            "node": "Command Router",
-            "type": "main",
-            "index": 0
-          }
-        ],
-        [
-          {
-            "node": "Send: Please Register First",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
     "State Router": {
       "main": [
         [
@@ -3513,24 +3522,6 @@
         [
           {
             "node": "Load Software Catalog",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Is Start Command?": {
-      "main": [
-        [
-          {
-            "node": "User Registered for Start?",
-            "type": "main",
-            "index": 0
-          }
-        ],
-        [
-          {
-            "node": "Is Register Command?",
             "type": "main",
             "index": 0
           }
@@ -3685,17 +3676,6 @@
         [
           {
             "node": "Add Context Info",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Check Registration for Commands": {
-      "main": [
-        [
-          {
-            "node": "User Registered for Commands?",
             "type": "main",
             "index": 0
           }
@@ -3939,13 +3919,89 @@
           }
         ]
       ]
+    },
+    "System Commands Router": {
+      "main": [
+        [
+          {
+            "node": "Get User for Start",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Check User Exists (Register)",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Check UserId",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Check User Exists (Register)": {
+      "main": [
+        [
+          {
+            "node": "Already Registered?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get User for Start": {
+      "main": [
+        [
+          {
+            "node": "If User Exists?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If User Exists?": {
+      "main": [
+        [
+          {
+            "node": "Send noRetry Reg",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Send Welcome (New User)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Check UserId": {
+      "main": [
+        [
+          {
+            "node": "Command Router",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
     }
   },
   "active": false,
   "settings": {
     "executionOrder": "v1"
   },
-  "versionId": "16084f6c-8a19-452a-b99c-c70ef3e353fb",
+  "versionId": "56132545-b5bc-456c-9324-71ab82b620bb",
   "meta": {
     "templateCredsSetupCompleted": true,
     "instanceId": "f4300700b5a89163b88ad6a908ff9e3076c705e8b03a3f40f03ff2f29f7e4289"
