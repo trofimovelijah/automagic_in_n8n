@@ -219,7 +219,7 @@
       "typeVersion": 2.2,
       "position": [
         2256,
-        -2880
+        -2560
       ],
       "id": "194596e1-c58d-4983-a075-33e815f34c67",
       "name": "User Registered?"
@@ -274,7 +274,7 @@
     },
     {
       "parameters": {
-        "jsCode": "// --- 1. ПОЛУЧЕНИЕ ДАННЫХ ПОЛЬЗОВАТЕЛЯ ---\nlet userData = {\n  user_id: null,\n  telegram_id: $('Webhook - Telegram Bot').first().json.message.from.id,\n  username: $('Webhook - Telegram Bot').first().json.message.from.first_name\n};\n\ntry {\n  // Попытка 1: Ищем в Parse State (самый надежный источник при работе через меню состояний)\n  const stateNode = $('Parse State').first(); \n  \n  if (stateNode && stateNode.json && stateNode.json.user_id) {\n     userData.user_id = stateNode.json.user_id;\n  } \n  \n  // Попытка 2: Ищем в Get User for VM Creation (если шли прямой дорогой)\n  if (!userData.user_id) {\n     const directUserNode = $('Get User for VM Creation').first();\n     if (directUserNode && directUserNode.json && directUserNode.json.user_id) {\n        userData.user_id = directUserNode.json.user_id;\n     }\n  }\n\n} catch (e) {\n  console.log(\"Ошибка поиска ID: \" + e.message);\n}\n\n// КРИТИЧЕСКАЯ ПРОВЕРКА\nif (!userData.user_id) {\n   throw new Error(\"CRITICAL: Не найден User ID из базы данных! Проверьте, что пользователь зарегистрирован.\");\n}\n\n\n// --- 2. ПОЛУЧЕНИЕ И ОБРАБОТКА ВВОДА ---\nlet userInput = \"\";\ntry {\n  // Берем текст прямо из вебхука\n  userInput = $('Webhook - Telegram Bot').first().json.message.text;\n} catch (e) {\n  userInput = \"\";\n}\n\n// Чистим ввод\nconst cleanInput = userInput.replace(/^\\/createvm\\s*/i, '').trim();\nlet selectedSoftwareIds = [];\n\nif (cleanInput) {\n  selectedSoftwareIds = cleanInput.split(',')\n    .map(id => parseInt(id.trim()))\n    .filter(id => !isNaN(id));\n}\n\nif (selectedSoftwareIds.length === 0) {\n  throw new Error('Не указано ПО! Введите номера из каталога (например: 1, 2)');\n}\n\n\n// --- 3. ВАЛИДАЦИЯ ПО КАТАЛОГУ ---\n// Каталог пришел НА ВХОД этому узлу ($input.all())\nconst softwareCatalog = $input.all().map(item => item.json);\n\n// Собираем список всех существующих ID (гарантируем числа)\n// Если каталог пуст, это критично - но throw покажет это\nconst validIds = softwareCatalog\n  .map(s => parseInt(s.software_id))\n  .filter(n => !isNaN(n));\n\n// Сортируем численно для красоты\nvalidIds.sort((a, b) => a - b);\n\n// Ищем недопустимые ID\nconst invalidIds = selectedSoftwareIds.filter(id => !validIds.includes(id));\n\nif (invalidIds.length > 0) {\n  // Формируем сообщение заранее, чтобы убедиться в строковом формате\n  const badIdsStr = invalidIds.join(', ');\n  const goodIdsStr = validIds.length > 0 ? validIds.join(', ') : \"Нет доступного ПО\";\n  \n  throw new Error(`Ошибка: ПО с номерами ${badIdsStr} не существует - для сбора доступного ПО выполните команду /softwarecatalog`);\n}\n\n// --- 4. РАСЧЕТ ПАРАМЕТРОВ ВМ ---\nlet monthlyCost = 0;\nconst installedSoftwareNames = [];\n\nselectedSoftwareIds.forEach(id => {\n  const sw = softwareCatalog.find(s => parseInt(s.software_id) === id);\n  if (sw) {\n    const price = parseFloat(sw.cost_per_month) || 0;\n    monthlyCost += price;\n    installedSoftwareNames.push(sw.name);\n  }\n});\n\n// Генерация уникальных данных\nconst timestamp = Date.now();\nconst random = Math.floor(Math.random() * 1000);\n// ID для Postgres (int4 совместимый)\nconst newVmId = Math.floor(timestamp / 1000) + random; \n\nconst shortTimestamp = timestamp.toString().slice(-6);\nconst softwareAbbr = installedSoftwareNames.length > 0 \n  ? installedSoftwareNames[0].substring(0, 3).toUpperCase() \n  : 'SYS';\n\nconst vmName = `VM-${userData.user_id}-${shortTimestamp}-${softwareAbbr}`;\n\n// Симуляция метрик\nconst usageHours = Math.floor(Math.random() * 36) + 5;\nconst cpuUsage = Math.floor(Math.random() * 70) + 15;\nconst ramUsage = Math.floor(Math.random() * 60) + 30;\n\nlet status = 'active';\nif (usageHours < 5) status = 'stopped';\nelse if (usageHours < 20) status = 'idle';\n\nconst now = new Date();\nconst createdAt = now.toISOString().split('T')[0];\n\n// --- 5. ВОЗВРАТ РЕЗУЛЬТАТА ---\nreturn {\n  json: {\n    vm_id: newVmId,\n    user_id: userData.user_id,\n    vm_name: vmName,\n    software_installed: selectedSoftwareIds.join(','),\n    created_at: createdAt,\n    last_active: createdAt,\n    cpu_usage_avg: cpuUsage,\n    ram_usage_avg: ramUsage,\n    status: status,\n    monthly_cost: monthlyCost,\n    usage_hours_week: usageHours,\n    inactivity_days: 0,\n    alert_sent: false,\n    installed_software_names: installedSoftwareNames.join(', '),\n    chat_id: $('Webhook - Telegram Bot').first().json.message.chat.id\n  }\n};"
+        "jsCode": "// --- 1. ПОЛУЧЕНИЕ ДАННЫХ ПОЛЬЗОВАТЕЛЯ ---\nlet userData = {\n  user_id: null,\n  telegram_id: $('Webhook - Telegram Bot').first().json.message.from.id,\n  username: $('Webhook - Telegram Bot').first().json.message.from.first_name\n};\n\ntry {\n  // 🔥 ПРИОРИТЕТ 1: Берем из Check UserId (гарантированный источник в начале)\n  const checkUserNode = $('Check UserId').first();\n  if (checkUserNode && checkUserNode.json && checkUserNode.json.user_id) {\n     userData.user_id = checkUserNode.json.user_id;\n  }\n  \n  // Попытка 2: Parse State (резерв)\n  if (!userData.user_id) {\n    const stateNode = $('Parse State').first(); \n    if (stateNode && stateNode.json && stateNode.json.user_id) {\n       userData.user_id = stateNode.json.user_id;\n    } \n  }\n  \n  // Попытка 3: Get User for VM Creation (резерв для прямой команды)\n  if (!userData.user_id) {\n     const directUserNode = $('Get User for VM Creation').first();\n     if (directUserNode && directUserNode.json && directUserNode.json.user_id) {\n        userData.user_id = directUserNode.json.user_id;\n     }\n  }\n\n} catch (e) {\n  console.log(\"Ошибка поиска ID: \" + e.message);\n}\n\n// КРИТИЧЕСКАЯ ПРОВЕРКА\nif (!userData.user_id) {\n   throw new Error(\"CRITICAL: Не найден User ID из базы данных! Проверьте, что пользователь зарегистрирован. (Node: Check UserId)\");\n}\n\n\n// --- 2. ПОЛУЧЕНИЕ И ОБРАБОТКА ВВОДА ---\nlet userInput = \"\";\ntry {\n  userInput = $('Webhook - Telegram Bot').first().json.message.text;\n} catch (e) {\n  userInput = \"\";\n}\n\n// Чистим ввод\nconst cleanInput = userInput.replace(/^\\/createvm\\s*/i, '').trim();\nlet selectedSoftwareIds = [];\n\nif (cleanInput) {\n  selectedSoftwareIds = cleanInput.split(',')\n    .map(id => parseInt(id.trim()))\n    .filter(id => !isNaN(id));\n}\n\nif (selectedSoftwareIds.length === 0) {\n  throw new Error('Не указано ПО! Введите номера из каталога (например: 1, 2)');\n}\n\n\n// --- 3. ВАЛИДАЦИЯ ПО КАТАЛОГУ ---\n// Каталог пришел НА ВХОД этому узлу ($input.all())\nconst softwareCatalog = $input.all().map(item => item.json);\n\nconst validIds = softwareCatalog\n  .map(s => parseInt(s.software_id))\n  .filter(n => !isNaN(n));\n\nvalidIds.sort((a, b) => a - b);\n\nconst invalidIds = selectedSoftwareIds.filter(id => !validIds.includes(id));\n\nif (invalidIds.length > 0) {\n  const badIdsStr = invalidIds.join(', ');\n  throw new Error(`Ошибка: ПО с номерами ${badIdsStr} не существует - для сбора доступного ПО выполните команду /softwarecatalog`);\n}\n\n// --- 4. РАСЧЕТ ПАРАМЕТРОВ ВМ ---\nlet monthlyCost = 0;\nconst installedSoftwareNames = [];\n\nselectedSoftwareIds.forEach(id => {\n  const sw = softwareCatalog.find(s => parseInt(s.software_id) === id);\n  if (sw) {\n    const price = parseFloat(sw.cost_per_month) || 0;\n    monthlyCost += price;\n    installedSoftwareNames.push(sw.name);\n  }\n});\n\nconst timestamp = Date.now();\nconst random = Math.floor(Math.random() * 1000);\nconst newVmId = Math.floor(timestamp / 1000) + random; \n\nconst shortTimestamp = timestamp.toString().slice(-6);\nconst softwareAbbr = installedSoftwareNames.length > 0 \n  ? installedSoftwareNames[0].substring(0, 3).toUpperCase() \n  : 'SYS';\n\nconst vmName = `VM-${userData.user_id}-${shortTimestamp}-${softwareAbbr}`;\n\nconst usageHours = Math.floor(Math.random() * 36) + 5;\nconst cpuUsage = Math.floor(Math.random() * 70) + 15;\nconst ramUsage = Math.floor(Math.random() * 60) + 30;\n\nlet status = 'active';\nif (usageHours < 5) status = 'stopped';\nelse if (usageHours < 20) status = 'idle';\n\nconst now = new Date();\nconst createdAt = now.toISOString().split('T')[0];\n\n// --- 5. ВОЗВРАТ РЕЗУЛЬТАТА ---\nreturn {\n  json: {\n    vm_id: newVmId,\n    user_id: userData.user_id,\n    vm_name: vmName,\n    software_installed: selectedSoftwareIds.join(','),\n    created_at: createdAt,\n    last_active: createdAt,\n    cpu_usage_avg: cpuUsage,\n    ram_usage_avg: ramUsage,\n    status: status,\n    monthly_cost: monthlyCost,\n    usage_hours_week: usageHours,\n    inactivity_days: 0,\n    alert_sent: false,\n    installed_software_names: installedSoftwareNames.join(', '),\n    chat_id: $('Webhook - Telegram Bot').first().json.message.chat.id\n  }\n};"
       },
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
@@ -312,15 +312,15 @@
     },
     {
       "parameters": {
-        "content": "## Обработчик: Создание ВМ (/create_vm)\n\n1. Пользователь отправляет команду `/createvm`, сообщение попадает из `Webhook - Telegram Bot` в `Edit Fields`\n1. Затем через `Command Router` в ветку «**1 - Создание ВМ**».\n1. Узел `Get User for VM Creation` загружает данные пользователя из таблицы, а `User Registered?` проверяет, зарегистрирован ли он\n1. При отрицательном результате выполняется `Send: Not Registered`.\n1. Если пользователь зарегистрирован, `Get Existing VMs for User` подтягивает список его ВМ, затем `Check License Limit` считает количество ВМ и сравнивает с лимитом лицензии, результат уходит в `Can Create VM?`.\n1. В `Can Create VM?` при наличии свободного лимита формируется меню ПО через `Prepare Software Menu` (далее — узел отправки этого меню в Telegram), а при превышении лимита срабатывает `Send: Limit Exceeded`.\n1. После того как пользователь выбрал ПО, кодовый узел `Create VM with Software` рассчитывает параметры новой ВМ и формирует запись, `Save VM to Sheet` добавляет строку в таблицу **Virtual_Machines**\n1. `Send: VM Created` отправляет в Telegram итоговое сообщение о созданной ВМ и подсказки по дальнейшим командам.\n",
+        "content": "# Создание ВМ (/create_vm)\n\n\n",
         "height": 1152,
-        "width": 2288,
-        "color": 7
+        "width": 2064,
+        "color": 6
       },
       "type": "n8n-nodes-base.stickyNote",
       "position": [
-        1840,
-        -3360
+        1952,
+        -3328
       ],
       "typeVersion": 1,
       "id": "ee6b75ec-84c2-423c-b32b-44f68811793a",
@@ -365,15 +365,15 @@
     },
     {
       "parameters": {
-        "content": "## Обработчик: Мои ресурсы (/my_resources)\n\n1. Команда `/myresources` маршрутизируется через `Command Router` в ветку просмотра ресурсов, где узел `Get User for Resources` получает профиль пользователя, а `Get VMs for Resources` — все его виртуальные машины из таблицы.\n1. Кодовый узел `Calculate Summary` агрегирует статистику по ВМ: считает общее количество, распределение по статусам (**active**/**idle**/**stopped**), общую стоимость и формирует текстовый отчёт с кратким списком ВМ и командами для детального анализа.\n1. Узел `Send: Resources Summary` отправляет пользователю этот отчёт в Telegram, чтобы он видел картину по своим ресурсам и мог перейти к `/vmdetails`, `/optimize` или `/checkidle`.",
-        "height": 688,
+        "content": "# Мои ресурсы (/my_resources)\n",
+        "height": 608,
         "width": 1568,
         "color": 6
       },
       "type": "n8n-nodes-base.stickyNote",
       "position": [
         1024,
-        -1328
+        -1248
       ],
       "typeVersion": 1,
       "id": "1f4afba8-fffe-4981-9857-5b999b0776a1",
@@ -381,7 +381,7 @@
     },
     {
       "parameters": {
-        "content": "## Обработчик: AI-Оптимизация (/optimize)\n\n1. При команде` /optimize` Command Router направляет сообщение в ветку анализа, где `Get User for Optimize` загружает данные пользователя и его лицензии, а `Get VMs for Optimize` — список всех его ВМ.\n1. Параллельно в workflow уже загружен каталог ПО (через Load Software Catalog), и узел `Build Optimization Prompt` на основе данных по ВМ, лицензии и ПО собирает подробный текстовый промпт для LLM.\n1. Узел OpenRouter Chat Model (через внутренний узел `AI Optimization Analysis`) обрабатывает этот промпт, `Add Footer to Message` добавляет стандартные пояснения и подсказки\n1.  `Send: AI Recommendations` возвращает пользователю готовый текст с рекомендациями по удалению, объединению ВМ и оптимизации лицензии.",
+        "content": "# AI-Оптимизация (/optimize)\n",
         "height": 592,
         "width": 2000,
         "color": 4
@@ -457,14 +457,14 @@
     },
     {
       "parameters": {
-        "content": "## Обработчик: Проверка простоя (/check_idle)\n\n1. Команда `/checkidle` также попадает через Command Router в ветку анализа, где `Get User for Idle Check` получает данные пользователя\n1. Узел `Get VMs for Idle Check` подтягивает все его ВМ с метриками использования и простоя.\n1. Кодовый узел `Detect Idle VMs` классифицирует машины по уровням критичности (катастрофический, критический, высокий, средний, нормальный и т.д.), рассчитывает потенциальную экономию и формирует детализированный отчёт по каждой группе.\n1. Узел `Send: Idle Report` отправляет этот отчёт в Telegram, включая статистику по количеству ВМ, простоям и рекомендации по дальнейшим действиям (в том числе ссылку на `/optimize`).\n",
-        "height": 624,
+        "content": "# Проверка простоя (/check_idle)\n",
+        "height": 592,
         "width": 1568
       },
       "type": "n8n-nodes-base.stickyNote",
       "position": [
         1600,
-        -288
+        -256
       ],
       "typeVersion": 1,
       "id": "67d68421-fc1b-4073-b529-410564f2dd59",
@@ -509,15 +509,15 @@
     },
     {
       "parameters": {
-        "content": "## Обработчик: Каталог ПО (/software_catalog)\n\n1. При вводе команды `/softwarecatalog` (или эквивалентной формы в regex) Command Router направляет поток в ветку каталога ПО.\n1. Узел `Load Software Catalog` загружает таблицу **Software_Catalog** из Google Sheets\n1. После чего `Add Context Info` обогащает сырые записи дополнительными полями (например, визуальной оценкой ресурсоёмкости).\n1. Кодовый узел `Format Catalog Message` превращает список ПО в структурированное текстовое сообщение с ID, названием, категорией, ценой и кратким описанием\n1. Узел `Send: Software Catalog` отправляет его пользователю вместе с инструкцией, как использовать номера ПО в команде `/createvm`.",
-        "height": 512,
+        "content": "# Каталог ПО (/software_catalog)\n",
+        "height": 448,
         "width": 1600,
         "color": 2
       },
       "type": "n8n-nodes-base.stickyNote",
       "position": [
-        992,
-        -2032
+        928,
+        -1968
       ],
       "typeVersion": 1,
       "id": "f2634ec0-07b5-4f14-a45b-b1a3fed607fc",
@@ -630,15 +630,15 @@
     },
     {
       "parameters": {
-        "content": "## Обработчик 7: Детали ВМ (/vm_details)\n\n1. Команда `/vmdetails` попадает из Webhook - Telegram Bot через Edit Fields и Command Router в ветку просмотра **2 - Просмотр (объединённое)**, где далее обрабатывается узлом Switch View`. \n1. Узел `Get User for VM Details` загружает информацию о пользователе и его правах доступа к ВМ.\n1. Узел `Parse VM ID` разбирает введённый пользователем идентификатор или имя ВМ (из текста сообщения).\n1. Узел `Valid VM ID?` проверяет, что идентификатор корректен; при ошибке сразу вызывается `Send: VM Error` с подсказкой пользователю.\n1. Узел `Route VM Lookup` направляет поток либо в `Get VM by ID`, либо в `Get VM by Name` (таблица **Virtual_Machines**), в зависимости от того, что именно ввёл пользователь.\n1. Узел `Merge VM Lookup` объединяет результаты поиска по ID/имени в единый объект ВМ, а затем Get Software Info for VM подгружает описание установленного ПО из каталога **Software_Catalog**.\n1. Узел `Format VM Details Message` формирует человекочитаемое описание ВМ (ресурсы, статус, простой, установленное ПО, стоимость) и передаёт его в `Send: VM Details` для отправки пользователю в Telegram.",
-        "height": 752,
+        "content": "# Детали ВМ (/vm_details)\n",
+        "height": 672,
         "width": 2176,
         "color": 4
       },
       "type": "n8n-nodes-base.stickyNote",
       "position": [
         3776,
-        -1792
+        -1712
       ],
       "typeVersion": 1,
       "id": "bf972a42-3c75-4fed-8aab-1a1d71f7be67",
@@ -764,7 +764,7 @@
       "typeVersion": 1.2,
       "position": [
         2560,
-        -2720
+        -2544
       ],
       "id": "5acfb95b-455d-43ec-ba07-1e1a3d11973d",
       "name": "Send: Not Registered",
@@ -1089,14 +1089,14 @@
     },
     {
       "parameters": {
-        "content": "## Регистрация пользователя\n\n1. Узел `Check User State` на основе последнего сообщения и хранилища состояний пользователя (таблица **User_States**) определяет, есть ли у пользователя активный «шаг» диалога (например, регистрация, ввод данных и т.п.).\n1. Узел `Route by State` направляет свободный пользовательский ввод (**4 - User Input** из Command Router) в нужную ветку: обычная работа, регистрация, ввод дополнительных атрибутов, шаги мастера и т.д.\n1. Для новых или незарегистрированных пользователей после `Send: Not Registered` отдельная ветка в Route by State устанавливает нужное состояние (например, «ожидание названия компании/почты/лицензии») и запускает последовательность узлов отправки сообщений (Send: ...) и кодовых узлов для записи введённых данных в таблицы.\n1. На каждом шаге регистрации кодовые узлы обновляют состояние пользователя (через обновление записи в таблице состояний **User_States**), а Route by State по этому состоянию решает, какой вопрос задать следующим и когда считать регистрацию завершённой.\n1. После успешного завершения регистрации состояние пользователя сбрасывается в «обычное» (без активного мастера), и дальше все основные команды (`/createvm`, `/myresources`, `/optimize`, `/checkidle`, `/softwarecatalog`) работают уже в режиме зарегистрированного пользователя.",
-        "height": 1568,
-        "width": 2288
+        "content": "# Регистрация пользователя",
+        "height": 1440,
+        "width": 2272
       },
       "type": "n8n-nodes-base.stickyNote",
       "position": [
-        -560,
-        -3728
+        -464,
+        -3664
       ],
       "typeVersion": 1,
       "id": "26a95861-777c-4451-a1a3-7d00fc1d570a",
@@ -1183,7 +1183,8 @@
         -2032
       ],
       "id": "26d593c5-c4ac-406d-b6c5-de6e0c455f29",
-      "name": "Has Message"
+      "name": "Has Message",
+      "onError": "continueErrorOutput"
     },
     {
       "parameters": {
@@ -1343,14 +1344,14 @@
     },
     {
       "parameters": {
-        "content": "## Проверка регистрации\n\n1. Любое входящее сообщение пользователя после нормализации текстом в `Edit Fields` проходит через Command Router, где команда маршрутизируется по типам (создание ВМ, просмотр, анализ, помощь и т.п.).\n1. Для ветки создания ВМ команда направляется в узел `Get User for VM Creation`, который ищет пользователя в таблице **Users** по Telegram ID и поднимает его профиль (тип лицензии, лимит ВМ и т.д.).\n1. Узел `User Registered?` проверяет, найден ли пользователь; если пользователь не зарегистрирован, поток уходит в `Send: Not Registered`, который отправляет сообщение с инструкциями по регистрации.\n1. Если пользователь найден, его данные (user_id, license_type, license_limit и т.п.) используются далее в `Get Existing VMs for User` и `Check License Limit` для проверки доступности операций (создание ВМ, анализ, просмотр ресурсов).\n1. Аналогичная проверка регистрации используется в других ветках (ресурсы, оптимизация, простой), где узлы `Get User for Resources`, `Get User for Optimize`, `Get User for Idle Check` выполняют роль проверки существования пользователя и загрузки его профиля перед бизнес-логикой.",
-        "height": 1408,
+        "content": "# Проверка регистрации\n\n",
+        "height": 1200,
         "width": 1312
       },
       "type": "n8n-nodes-base.stickyNote",
       "position": [
         -2288,
-        -2752
+        -2544
       ],
       "typeVersion": 1,
       "id": "7ca0318b-e3e6-42f1-a2d4-956b49b6496f",
@@ -1615,7 +1616,7 @@
     {
       "parameters": {
         "chatId": "={{ $json.telegram_id }}",
-        "text": "=🎉 Регистрация ранее выполнена!\n\n👤 Пользователь: {{ $json.username }}\n💼 Лицензия: {{ $json.license_type }} \n\nДоступные команды:\n/myresources - Посмотреть свои ресурсы\n/createvm - Создать виртуальную машину\n/softwarecatalog - Каталог доступного ПО",
+        "text": "=🎉 Регистрация ранее выполнена!\n\n👤 Пользователь: {{ $json.username }}\n💼 Лицензия: {{ $json.license_type }} на {{ $json.license_limit }} ВМ\n\nДоступные команды:\n/myresources - Посмотреть свои ресурсы\n/createvm - Создать виртуальную машину\n/softwarecatalog - Каталог доступного ПО",
         "additionalFields": {
           "appendAttribution": false
         }
@@ -1639,7 +1640,7 @@
     {
       "parameters": {
         "chatId": "={{ $('Command Router').first().json.telegram_id }}",
-        "text": "=✅ Регистрация организации завершена!\n\n👤 Email: {{ $('Check UserId').item.json.email }}\n🏢 Организация: {{ $('Check UserId').item.json.organization }}\n💼 Лицензия: {{ $('Check UserId').item.json.license_type }} на {{ $('Check UserId').item.json.license_limit }} ВМ\n\n📋 Доступные команды:\n/createvm - Создать виртуальную машину\n/myresources - Мои ресурсы\n/help - Справка\n\nИспользуйте /createvm для создания вашей первой ВМ!\n",
+        "text": "=✅ Регистрация организации завершена!\n\n👤 Email: {{ $('Check UserId').item.json.email }}\n🏢 Организация: {{ $('Check UserId').item.json.organization }}\n💼 Лицензия: {{ $json.license_type }} на {{ $json.license_limit }} ВМ\n\n📋 Доступные команды:\n/createvm - Создать виртуальную машину\n/myresources - Мои ресурсы\n/help - Справка\n\nИспользуйте /createvm для создания вашей первой ВМ!\n",
         "additionalFields": {
           "appendAttribution": false
         }
@@ -1647,7 +1648,7 @@
       "type": "n8n-nodes-base.telegram",
       "typeVersion": 1.2,
       "position": [
-        1104,
+        1312,
         -2560
       ],
       "id": "26db6b7b-4791-4c79-9c25-f754c130b742",
@@ -1674,6 +1675,7 @@
       ],
       "id": "59e949c7-6339-4a58-bb01-b0ec11ee752d",
       "name": "Get User for VM Details",
+      "retryOnFail": true,
       "credentials": {
         "postgres": {
           "id": "uHdhvi0uS3Mpktwy",
@@ -1709,10 +1711,12 @@
       "typeVersion": 2.6,
       "position": [
         2064,
-        -2880
+        -2560
       ],
       "id": "61b98a87-f107-4a35-9de3-682d8c131614",
       "name": "Get User for VM Creation",
+      "alwaysOutputData": true,
+      "retryOnFail": true,
       "credentials": {
         "postgres": {
           "id": "uHdhvi0uS3Mpktwy",
@@ -1757,6 +1761,7 @@
       ],
       "id": "688c9daa-e2f3-46a7-a392-f794d85ecfd7",
       "name": "Get VM by NameID",
+      "retryOnFail": true,
       "credentials": {
         "postgres": {
           "id": "uHdhvi0uS3Mpktwy",
@@ -1835,6 +1840,7 @@
       ],
       "id": "ede47811-9012-48fa-8e1f-1c917f62d145",
       "name": "Get User for Optimize",
+      "retryOnFail": true,
       "credentials": {
         "postgres": {
           "id": "uHdhvi0uS3Mpktwy",
@@ -1856,6 +1862,7 @@
       ],
       "id": "0e6aea3c-3f78-4c63-889b-7489122963f0",
       "name": "Get VMs for Optimize",
+      "retryOnFail": true,
       "credentials": {
         "postgres": {
           "id": "uHdhvi0uS3Mpktwy",
@@ -1877,6 +1884,7 @@
       ],
       "id": "d23dcf84-5baa-45fb-9348-3178cd4ae382",
       "name": "Get User for Idle Check",
+      "retryOnFail": true,
       "credentials": {
         "postgres": {
           "id": "uHdhvi0uS3Mpktwy",
@@ -1898,6 +1906,7 @@
       ],
       "id": "bcda25c0-10dd-48a9-b395-35375fe6cee6",
       "name": "Get VMs for Idle Check",
+      "retryOnFail": true,
       "credentials": {
         "postgres": {
           "id": "uHdhvi0uS3Mpktwy",
@@ -2064,6 +2073,7 @@
       ],
       "id": "96f03720-d6b1-4408-b746-ee79367e454a",
       "name": "Add New User",
+      "retryOnFail": true,
       "credentials": {
         "postgres": {
           "id": "uHdhvi0uS3Mpktwy",
@@ -2074,7 +2084,7 @@
     {
       "parameters": {
         "operation": "executeQuery",
-        "query": "UPDATE users \nSET license_limit = {{ $('Edit Fields').item.json.text }}\nWHERE user_id = {{ $json.user_id }}\nRETURNING user_id, license_limit;",
+        "query": "UPDATE users\nSET\n  license_limit = {{ parseInt($('Edit Fields').item.json.text, 10) }},\n  license_type = CASE\n    WHEN {{ parseInt($('Edit Fields').item.json.text, 10) }} >= 50 THEN 'premium'\n    WHEN {{ parseInt($('Edit Fields').item.json.text, 10) }} >= 10 THEN 'standard'\n    WHEN {{ parseInt($('Edit Fields').item.json.text, 10) }} >= 3  THEN 'basic'\n    ELSE 'basic'\n  END\nWHERE user_id = {{ $json.user_id }}\nRETURNING user_id, license_limit, license_type;",
         "options": {}
       },
       "type": "n8n-nodes-base.postgres",
@@ -2085,6 +2095,7 @@
       ],
       "id": "2eb1fbf7-1f70-4080-8fa6-7fc4c2e915fe",
       "name": "Update User with Limit",
+      "retryOnFail": true,
       "credentials": {
         "postgres": {
           "id": "uHdhvi0uS3Mpktwy",
@@ -2256,6 +2267,7 @@
       ],
       "id": "b639fa0a-ddab-47fc-a557-557ff88ed76f",
       "name": "Add VM to DB",
+      "retryOnFail": true,
       "credentials": {
         "postgres": {
           "id": "uHdhvi0uS3Mpktwy",
@@ -2305,7 +2317,7 @@
     {
       "parameters": {
         "operation": "set",
-        "key": "=redis-state:{{ $json.user_id }}",
+        "key": "=redis-state:{{ $json.telegram_id }}",
         "value": "={{\n  JSON.stringify({ \n    state: \"awaiting_email\", \n    user_id: null, \n    username: null, \n    timestamp: new Date().toISOString() \n    }) \n}}",
         "keyType": "string",
         "expire": true,
@@ -2340,6 +2352,8 @@
       ],
       "id": "b8a13d8b-70b1-4349-b60d-d2228a25f857",
       "name": "Update User with Email",
+      "retryOnFail": true,
+      "executeOnce": false,
       "credentials": {
         "postgres": {
           "id": "uHdhvi0uS3Mpktwy",
@@ -2351,8 +2365,7 @@
       "parameters": {
         "operation": "get",
         "propertyName": "state",
-        "key": "=redis-state:{{ $json.user_id }}",
-        "keyType": "string",
+        "key": "=redis-state:{{ $json.telegram_id }}",
         "options": {}
       },
       "type": "n8n-nodes-base.redis",
@@ -2384,6 +2397,7 @@
       ],
       "id": "1df04e0d-ecf1-4928-8110-2b29253514cb",
       "name": "Update Users with Org",
+      "retryOnFail": true,
       "credentials": {
         "postgres": {
           "id": "uHdhvi0uS3Mpktwy",
@@ -2394,7 +2408,7 @@
     {
       "parameters": {
         "operation": "set",
-        "key": "=redis-state:{{ $json.user_id }}",
+        "key": "=redis-state:{{ $('Command Router').item.json.telegram_id }}",
         "value": "={{ \n  JSON.stringify({ \n  state: \"awaiting_organization\", \n  user_id: $('Update User with Email').first().json.user_id, \n  username: $('Update User with Email').first().json.username, \n  email: $json.text, \n  timestamp: new Date().toISOString() \n  }) \n}}",
         "expire": true,
         "ttl": 3600
@@ -2417,7 +2431,7 @@
     {
       "parameters": {
         "operation": "set",
-        "key": "=redis-state:{{ $json.user_id }}",
+        "key": "=redis-state:{{ $('Command Router').item.json.telegram_id }}",
         "value": "={{\n  JSON.stringify({\n    state: \"awaiting_license_count\",\n    user_id: $('Update Users with Org').first().json.user_id,\n    organization: $('Update Users with Org').first().json.organization,\n    timestamp: new Date().toISOString()\n  })\n}}",
         "expire": true,
         "ttl": 3600
@@ -2440,7 +2454,7 @@
     {
       "parameters": {
         "operation": "set",
-        "key": "=redis-state:{{ $json.user_id }}",
+        "key": "=redis-state:{{ $('Command Router').item.json.telegram_id }}",
         "value": "={{\n  JSON.stringify({\n    state: \"awaiting_software\",\n    user_id: $json.user_id,\n    timestamp: new Date().toISOString()\n  })\n}}",
         "expire": true,
         "ttl": 3600
@@ -2463,16 +2477,17 @@
     {
       "parameters": {
         "operation": "delete",
-        "key": "==redis-state:{{ $json.user_id }}"
+        "key": "=redis-state:{{ $('Command Router').item.json.telegram_id }}"
       },
       "type": "n8n-nodes-base.redis",
       "typeVersion": 1,
       "position": [
-        1312,
+        1520,
         -2560
       ],
       "id": "fe2ddb12-0669-40da-9c48-c83a74f6a57c",
       "name": "Clear User State",
+      "retryOnFail": false,
       "credentials": {
         "redis": {
           "id": "k3rZiJXMKohxs4tn",
@@ -2496,7 +2511,7 @@
     {
       "parameters": {
         "operation": "set",
-        "key": "=redis-state:{{ $json.user_id }}",
+        "key": "=redis-state:{{ $json.telegram_id }}",
         "value": "={{ JSON.stringify({\n  state: \"awaiting_software_selection\",\n  user_id: $('Get User for VM Creation').first().json.user_id,\n  timestamp: new Date().toISOString()\n}) }}\n",
         "expire": true,
         "ttl": 3600
@@ -2540,6 +2555,7 @@
       ],
       "id": "49ec2bcd-1198-468f-9f96-702f3c899822",
       "name": "Load Software Catalog3",
+      "retryOnFail": true,
       "credentials": {
         "postgres": {
           "id": "uHdhvi0uS3Mpktwy",
@@ -2550,7 +2566,7 @@
     {
       "parameters": {
         "chatId": "={{ $('Edit Fields').first().json.telegram_id }}",
-        "text": "={{ $json.error }}",
+        "text": "=Введённые значения не относятся к какой-либо команде и не могут быть адекватно распознаны. Для уточнения имеющихся команд используйте /help",
         "additionalFields": {
           "appendAttribution": false
         }
@@ -2616,6 +2632,7 @@
       ],
       "id": "1b9f38f0-2985-410c-b031-9e8d739559fb",
       "name": "Get User for VM Deletion",
+      "retryOnFail": true,
       "credentials": {
         "postgres": {
           "id": "uHdhvi0uS3Mpktwy",
@@ -2715,6 +2732,7 @@
       ],
       "id": "f9e7ce62-02c3-4dfa-9772-cd220f46a8eb",
       "name": "Delete VM from DB",
+      "retryOnFail": true,
       "credentials": {
         "postgres": {
           "id": "uHdhvi0uS3Mpktwy",
@@ -2906,6 +2924,7 @@
       "id": "31633bdd-28aa-4663-a0ee-78dd68abd413",
       "name": "Check User Exists (Register)",
       "alwaysOutputData": true,
+      "retryOnFail": true,
       "credentials": {
         "postgres": {
           "id": "uHdhvi0uS3Mpktwy",
@@ -2946,6 +2965,7 @@
       "id": "7c771db3-dfd7-4f8a-9130-9de70b78dcd7",
       "name": "Get User for Start",
       "alwaysOutputData": true,
+      "retryOnFail": true,
       "credentials": {
         "postgres": {
           "id": "uHdhvi0uS3Mpktwy",
@@ -2989,7 +3009,7 @@
     {
       "parameters": {
         "chatId": "={{ $('System Commands Router').item.json.telegram_id }}",
-        "text": "=👋 Привет, {{ $('System Commands Router').item.json.username }}, и добро пожаловать в License Manager!\n\nЯ помогу вам управлять виртуальными машинами и лицензиями.\n\n🚀 **Возможности:**\n• Создание и удаление ВМ\n• Контроль расходов\n• Мониторинг ресурсов\n\nДля начала работы необходимо зарегистрироваться:\n👉 Нажмите /register\n",
+        "text": "=👋 Привет, {{ $('System Commands Router').item.json.username }}, и добро пожаловать в License Manager!\n\nЯ помогу вам управлять виртуальными машинами и лицензиями.\n\n🚀 **Возможности:**\n• Создание и удаление ВМ\n• Контроль расходов\n• Мониторинг ресурсов\n\nДля начала работы необходимо зарегистрироваться:\n👉 Нажмите /register",
         "additionalFields": {
           "appendAttribution": false
         }
@@ -3066,6 +3086,7 @@
       ],
       "id": "8274653e-e69b-404a-8cc8-b4bda7f1692a",
       "name": "Check UserId",
+      "retryOnFail": true,
       "credentials": {
         "postgres": {
           "id": "uHdhvi0uS3Mpktwy",
@@ -3075,7 +3096,7 @@
     },
     {
       "parameters": {
-        "content": "## Удаление ВМ\n",
+        "content": "# Удаление ВМ\n",
         "height": 544,
         "width": 1968,
         "color": 3
@@ -3088,6 +3109,80 @@
       "typeVersion": 1,
       "id": "79ed248e-0add-48cc-9aa4-6685427c5996",
       "name": "Sticky Note8"
+    },
+    {
+      "parameters": {
+        "operation": "select",
+        "schema": {
+          "__rl": true,
+          "mode": "list",
+          "value": "public"
+        },
+        "table": {
+          "__rl": true,
+          "value": "users",
+          "mode": "list",
+          "cachedResultName": "users"
+        },
+        "where": {
+          "values": [
+            {
+              "column": "user_id",
+              "value": "={{ $json.user_id }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        1072,
+        -2560
+      ],
+      "id": "7b7c8c4b-2979-4f87-b5f0-441c3bdc39b2",
+      "name": "Select rows from a table",
+      "retryOnFail": true,
+      "credentials": {
+        "postgres": {
+          "id": "uHdhvi0uS3Mpktwy",
+          "name": "Postgres beget 31"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "errorMessage": "Это не сообщение!"
+      },
+      "type": "n8n-nodes-base.stopAndError",
+      "typeVersion": 1,
+      "position": [
+        -2640,
+        -1856
+      ],
+      "id": "2767c42e-0a4a-414f-88f3-14f1edfcceeb",
+      "name": "Stop and Error"
+    },
+    {
+      "parameters": {
+        "operation": "delete",
+        "key": "=redis-state:{{ $('Command Router').first().json.telegram_id }}"
+      },
+      "type": "n8n-nodes-base.redis",
+      "typeVersion": 1,
+      "position": [
+        3792,
+        -2576
+      ],
+      "id": "5ad979fd-b5e5-4e18-a204-60da9822cc8f",
+      "name": "Clear User State2",
+      "retryOnFail": false,
+      "credentials": {
+        "redis": {
+          "id": "k3rZiJXMKohxs4tn",
+          "name": "Redis beget 47"
+        }
+      }
     }
   ],
   "pinData": {},
@@ -3450,6 +3545,14 @@
             "type": "main",
             "index": 0
           }
+        ],
+        [],
+        [
+          {
+            "node": "Stop and Error",
+            "type": "main",
+            "index": 0
+          }
         ]
       ]
     },
@@ -3796,7 +3899,7 @@
       "main": [
         [
           {
-            "node": "Send: Registration Finish",
+            "node": "Select rows from a table",
             "type": "main",
             "index": 0
           }
@@ -3995,13 +4098,39 @@
           }
         ]
       ]
+    },
+    "Select rows from a table": {
+      "main": [
+        [
+          {
+            "node": "Send: Registration Finish",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Send: VM Created": {
+      "main": [
+        [
+          {
+            "node": "Clear User State2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
     }
   },
   "active": false,
   "settings": {
-    "executionOrder": "v1"
+    "executionOrder": "v1",
+    "timeSavedMode": "fixed",
+    "callerPolicy": "workflowsFromSameOwner",
+    "executionTimeout": 120,
+    "availableInMCP": false
   },
-  "versionId": "56132545-b5bc-456c-9324-71ab82b620bb",
+  "versionId": "f5dd1851-213d-46f6-a941-99f3f6ca7649",
   "meta": {
     "templateCredsSetupCompleted": true,
     "instanceId": "f4300700b5a89163b88ad6a908ff9e3076c705e8b03a3f40f03ff2f29f7e4289"
