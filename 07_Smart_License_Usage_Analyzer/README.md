@@ -298,22 +298,9 @@ alert_sent       BOOLEAN
 - [PostgreSQL Documentation](https://www.postgresql.org/docs/)
 - [Telegram Bot API](https://core.telegram.org/bots/api)
 
-## 🤝 Контибьютинг
-
-Если вы нашли баг или хотите добавить функцию:
-1. Fork проекта
-2. Создайте branch `feature/your-feature`
-3. Commit ваши изменения
-4. Push в branch
-5. Откройте Pull Request
-
 ## 📝 Лицензия
 
-MIT License - смотрите файл LICENSE
-
-## 👨‍💻 Автор
-
-Создано как часть проекта Smart License Usage Analyzer
+MIT License - смотрите файл [LICENSE](../LICENSE)
 
 ---
 
