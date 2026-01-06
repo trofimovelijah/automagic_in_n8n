@@ -1,0 +1,285 @@
+{
+  "name": "Global Error Handler SLUA",
+  "nodes": [
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.errorTrigger",
+      "typeVersion": 1,
+      "position": [
+        208,
+        144
+      ],
+      "id": "1e8335cc-84dd-4e55-abf0-3bfbe00ce274",
+      "name": "Error Trigger"
+    },
+    {
+      "parameters": {
+        "jsCode": "// ========================================\n// PARSE ERROR DATA\n// ========================================\n\n// Получаем входные данные от Error Trigger\nconst inputData = $input.first();\nconst json = inputData ? inputData.json : {};\n\n// 1. Ищем сообщение об ошибке везде, где оно может быть\nlet errorMessage = \"Unknown error\";\nlet errorStack = \"\";\nlet errorDetails = {};\n\nif (json.message) {\n    errorMessage = json.message; // Простой формат\n} else if (json.error && json.error.message) {\n    errorMessage = json.error.message; // Стандартный формат\n    errorStack = json.error.stack;\n} else if (json.execution && json.execution.error && json.execution.error.message) {\n    errorMessage = json.execution.error.message; // Формат Execution\n} else if (typeof json === 'string') {\n    errorMessage = json; // Если пришла строка\n} else {\n    errorMessage = JSON.stringify(json); // Если пришел объект без message\n}\n\n// 2. Определяем упавший узел (Расширенный поиск)\nlet failedNode = \"Unknown Node\";\n\n// Вариант 1: Прямое указание (часто бывает в execution.lastNodeExecuted)\nif (json.execution && json.execution.lastNodeExecuted) {\n    failedNode = json.execution.lastNodeExecuted;\n} \n// Вариант 2: Внутри объекта workflow\nelse if (json.workflow && json.workflow.lastNodeExecuted) {\n    failedNode = json.workflow.lastNodeExecuted;\n} \n// Вариант 3: Классический failingNode (для локального триггера)\nelse if (json.failingNode) {\n    failedNode = json.failingNode;\n} \n// Вариант 4: Внутри executionData (старые версии n8n)\nelse if (json.executionData && json.executionData.lastNodeExecuted) {\n    failedNode = json.executionData.lastNodeExecuted;\n}\n\n// Если все еще Unknown, попробуем вытащить из Stack Trace (грязный хак, но работает)\nif (failedNode === \"Unknown Node\" && errorStack) {\n    const match = errorStack.match(/Node: \"([^\"]+)\"/);\n    if (match && match[1]) {\n        failedNode = match[1];\n    }\n}\n\n// 3. Формируем тело письма и данные для БД\nconst errorTimestamp = new Date().toISOString();\nconst errorTimeLocal = new Date().toLocaleString('ru-RU', { timeZone: 'Europe/Moscow' });\n\n// Красивое HTML письмо\nconst emailHtml = `\n<h2>⚠️ Обнаружена ошибка в n8n</h2>\n<p><strong>Воркфлоу:</strong> Smart License Usage Analyzer</p>\n<hr>\n<h3>🔴 Детали ошибки:</h3>\n<ul>\n    <li><strong>Узел:</strong> ${failedNode}</li>\n    <li><strong>Сообщение:</strong> ${errorMessage}</li>\n    <li><strong>Время:</strong> ${errorTimeLocal}</li>\n</ul>\n<hr>\n<h3>🛠 Техническая информация:</h3>\n<pre style=\"background-color: #f4f4f4; padding: 10px; border-radius: 5px;\">\n${errorStack || 'No stack trace available'}\n</pre>\n`;\n\n// Текстовая версия для Telegram или логов\nconst textMessage = `⚠️ ОШИБКА в воркфлоу!\\n\\n📍 Узел: ${failedNode}\\n🔴 Текст: ${errorMessage}\\n⏰ Время: ${errorTimeLocal}`;\n\nreturn {\n    json: {\n        error_message: errorMessage,\n        node_name: failedNode,\n        error_timestamp: errorTimestamp,\n        error_stack: errorStack,\n        email_subject: `🔥 Ошибка n8n: ${failedNode} - ${errorMessage.substring(0, 30)}...`,\n        email_body: emailHtml,\n        text_message: textMessage,\n        \n        // Поля для БД (чтобы Save to DB не ломался)\n        user_id: null, // Error Trigger часто теряет контекст user_id\n        error_type: \"runtime_error\",\n        execution_mode: \"error_trigger\",\n        workflow_name: \"Smart License Usage Analyzer\",\n        context_data: {}\n    }\n};"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        416,
+        144
+      ],
+      "id": "08ea5944-58f4-43c6-8ac8-f91afc18a29d",
+      "name": "Prepare Error Log"
+    },
+    {
+      "parameters": {
+        "schema": {
+          "__rl": true,
+          "mode": "list",
+          "value": "public"
+        },
+        "table": {
+          "__rl": true,
+          "value": "workflow_errors",
+          "mode": "list",
+          "cachedResultName": "workflow_errors"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "user_id": "={{ $json.user_id }}",
+            "error_message": "={{ $json.error_message }}",
+            "error_timestamp": "={{ $json.error_timestamp }}",
+            "node_name": "={{ $json.node_name }}",
+            "error_type": "={{ $json.error_type }}",
+            "execution_mode": "={{ $json.execution_mode }}",
+            "workflow_name": "={{ $json.workflow_name }}",
+            "context_data": "={{ $json.context_data }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "error_id",
+              "displayName": "error_id",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "number",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "user_id",
+              "displayName": "user_id",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "number",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "error_message",
+              "displayName": "error_message",
+              "required": true,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "error_timestamp",
+              "displayName": "error_timestamp",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "dateTime",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "node_name",
+              "displayName": "node_name",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "error_type",
+              "displayName": "error_type",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "execution_mode",
+              "displayName": "execution_mode",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "workflow_name",
+              "displayName": "workflow_name",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "error_stack",
+              "displayName": "error_stack",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "context_data",
+              "displayName": "context_data",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "object",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "resolved",
+              "displayName": "resolved",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "boolean",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "resolved_at",
+              "displayName": "resolved_at",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "dateTime",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "notes",
+              "displayName": "notes",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        640,
+        144
+      ],
+      "id": "2fb4bc5d-89b7-495b-a640-4680b09899e1",
+      "name": "Save Error to DB",
+      "credentials": {
+        "postgres": {
+          "id": "uHdhvi0uS3Mpktwy",
+          "name": "Postgres beget 31"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "sendTo": "=trofimov.elijah@gmail.com",
+        "subject": "={{ $('Prepare Error Log').item.json.email_subject }}",
+        "message": "={{ $('Prepare Error Log').item.json.email_body }}",
+        "options": {
+          "appendAttribution": false,
+          "senderName": "Shitpost"
+        }
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.2,
+      "position": [
+        848,
+        144
+      ],
+      "id": "42231f1c-39d9-4554-bb4d-aea4f85ab1f0",
+      "name": "Send a message",
+      "webhookId": "1939a6aa-7f78-41f4-a149-2373c61898df",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "DNbUeLSwgA2kiUFN",
+          "name": "Gmail account 14"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Prepare Error Log": {
+      "main": [
+        [
+          {
+            "node": "Save Error to DB",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Save Error to DB": {
+      "main": [
+        [
+          {
+            "node": "Send a message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Error Trigger": {
+      "main": [
+        [
+          {
+            "node": "Prepare Error Log",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1",
+    "availableInMCP": false
+  },
+  "versionId": "7662df66-9364-4c24-a1e1-3bb009002f9c",
+  "meta": {
+    "instanceId": "f4300700b5a89163b88ad6a908ff9e3076c705e8b03a3f40f03ff2f29f7e4289"
+  },
+  "id": "0cyaeiAogQ373wZ5",
+  "tags": [
+    {
+      "updatedAt": "2025-11-08T19:43:00.150Z",
+      "createdAt": "2025-11-08T19:43:00.150Z",
+      "id": "Njsl4hZJ3E75k2I3",
+      "name": "prod"
+    },
+    {
+      "updatedAt": "2025-12-11T09:55:19.664Z",
+      "createdAt": "2025-12-11T09:55:19.664Z",
+      "id": "T7VQILXdotJoNHRy",
+      "name": "error"
+    }
+  ]
+}

@@ -231,7 +231,7 @@
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        2560,
+        2640,
         -2896
       ],
       "id": "bc5dda3a-cf37-41f6-a1d1-d93088b27f42",
@@ -266,7 +266,7 @@
       "type": "n8n-nodes-base.if",
       "typeVersion": 2.2,
       "position": [
-        2800,
+        2944,
         -2896
       ],
       "id": "9a2d9155-9b3b-44da-a693-a51cb5f47bca",
@@ -279,7 +279,7 @@
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        3056,
+        2928,
         -2560
       ],
       "id": "d824493a-e444-4b75-98e6-df0a0cae263b",
@@ -297,7 +297,7 @@
       "type": "n8n-nodes-base.telegram",
       "typeVersion": 1.2,
       "position": [
-        3568,
+        3440,
         -2576
       ],
       "id": "71f24402-c0be-4470-b215-d70cafd1ef1a",
@@ -313,14 +313,14 @@
     {
       "parameters": {
         "content": "# Создание ВМ (/create_vm)\n\n\n",
-        "height": 1152,
-        "width": 2064,
+        "height": 1040,
+        "width": 2128,
         "color": 6
       },
       "type": "n8n-nodes-base.stickyNote",
       "position": [
-        1952,
-        -3328
+        1904,
+        -3264
       ],
       "typeVersion": 1,
       "id": "ee6b75ec-84c2-423c-b32b-44f68811793a",
@@ -763,7 +763,7 @@
       "type": "n8n-nodes-base.telegram",
       "typeVersion": 1.2,
       "position": [
-        2560,
+        2640,
         -2544
       ],
       "id": "5acfb95b-455d-43ec-ba07-1e1a3d11973d",
@@ -787,7 +787,7 @@
       "type": "n8n-nodes-base.telegram",
       "typeVersion": 1.2,
       "position": [
-        3056,
+        3200,
         -2752
       ],
       "id": "37684bcc-ef48-4976-8ef2-6653208409e4",
@@ -1053,7 +1053,7 @@
       "type": "n8n-nodes-base.set",
       "typeVersion": 3.4,
       "position": [
-        3056,
+        3200,
         -3056
       ],
       "id": "979d66ef-d4d4-4a17-8504-77a21ad463b6",
@@ -1485,7 +1485,7 @@
       "type": "n8n-nodes-base.telegram",
       "typeVersion": 1.2,
       "position": [
-        3568,
+        3648,
         -2912
       ],
       "id": "967cbaec-7583-4173-af3e-9e9c597275ef",
@@ -2262,7 +2262,7 @@
       "type": "n8n-nodes-base.postgres",
       "typeVersion": 2.6,
       "position": [
-        3328,
+        3200,
         -2576
       ],
       "id": "b639fa0a-ddab-47fc-a557-557ff88ed76f",
@@ -2519,7 +2519,7 @@
       "type": "n8n-nodes-base.redis",
       "typeVersion": 1,
       "position": [
-        3344,
+        3440,
         -3056
       ],
       "id": "ef81ee38-8ad0-4f79-a89d-0c8c1fa2a08a",
@@ -2574,7 +2574,7 @@
       "type": "n8n-nodes-base.telegram",
       "typeVersion": 1.2,
       "position": [
-        3328,
+        3200,
         -2400
       ],
       "id": "92d67b7f-c760-4a09-81a0-8a9f3c488bf6",
@@ -2727,7 +2727,7 @@
       "type": "n8n-nodes-base.postgres",
       "typeVersion": 2.6,
       "position": [
-        2096,
+        2032,
         768
       ],
       "id": "f9e7ce62-02c3-4dfa-9772-cd220f46a8eb",
@@ -2747,7 +2747,7 @@
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        2304,
+        2240,
         768
       ],
       "id": "5bbcb99d-87d6-4fdf-b5e8-0e09c337eee9",
@@ -2764,7 +2764,7 @@
       "type": "n8n-nodes-base.telegram",
       "typeVersion": 1.2,
       "position": [
-        2512,
+        2448,
         768
       ],
       "id": "6e51a11a-6c65-4ebb-a3f9-0265129c8b72",
@@ -2788,7 +2788,7 @@
       "type": "n8n-nodes-base.telegram",
       "typeVersion": 1.2,
       "position": [
-        2096,
+        2032,
         1024
       ],
       "id": "2200936f-4d6d-41a9-8878-7ef22f96eda0",
@@ -3152,7 +3152,7 @@
     },
     {
       "parameters": {
-        "errorMessage": "Это не сообщение!"
+        "errorMessage": "Это вам не это!"
       },
       "type": "n8n-nodes-base.stopAndError",
       "typeVersion": 1,
@@ -3161,7 +3161,8 @@
         -1856
       ],
       "id": "2767c42e-0a4a-414f-88f3-14f1edfcceeb",
-      "name": "Stop and Error"
+      "name": "Stop and Error",
+      "disabled": true
     },
     {
       "parameters": {
@@ -3171,7 +3172,7 @@
       "type": "n8n-nodes-base.redis",
       "typeVersion": 1,
       "position": [
-        3792,
+        3664,
         -2576
       ],
       "id": "5ad979fd-b5e5-4e18-a204-60da9822cc8f",
@@ -4120,17 +4121,22 @@
           }
         ]
       ]
+    },
+    "Send VM Not Found": {
+      "main": [
+        []
+      ]
     }
   },
-  "active": false,
+  "active": true,
   "settings": {
     "executionOrder": "v1",
     "timeSavedMode": "fixed",
     "callerPolicy": "workflowsFromSameOwner",
-    "executionTimeout": 120,
-    "availableInMCP": false
+    "availableInMCP": false,
+    "errorWorkflow": "0cyaeiAogQ373wZ5"
   },
-  "versionId": "f5dd1851-213d-46f6-a941-99f3f6ca7649",
+  "versionId": "7aee4f5e-c0e1-4dd3-b9c4-6c5340968e98",
   "meta": {
     "templateCredsSetupCompleted": true,
     "instanceId": "f4300700b5a89163b88ad6a908ff9e3076c705e8b03a3f40f03ff2f29f7e4289"
@@ -4154,6 +4160,12 @@
       "createdAt": "2025-12-12T17:26:52.994Z",
       "id": "J09NNQhWt9FvC7x9",
       "name": "Telegram"
+    },
+    {
+      "updatedAt": "2025-11-08T19:43:00.150Z",
+      "createdAt": "2025-11-08T19:43:00.150Z",
+      "id": "Njsl4hZJ3E75k2I3",
+      "name": "prod"
     }
   ]
 }

@@ -31,7 +31,8 @@
 
 ```
 smart-license-analyzer/
-├── Smart-License-Usage-Analyzer.json   # n8n workflow экспорт
+├── Smart-License-Usage-Analyzer.json   # основное n8n воркфлоу
+├── Global Error Handler SLUA.json      # воркфлоу n8n для отправки ошибок в ходе выполнения основного воркфлоу
 ├── setup_postgres_db.sql               # Инициализация БД
 ├── load_data.sh                        # Скрипт загрузки CSV данных
 └── README.md                           # Этот файл
@@ -147,8 +148,9 @@ SELECT * FROM software_catalog;
    ```
    - Откройте n8n dashboard
    - Нажмите "Import"
-   - Выберите Smart-License-Usage-Analyzer.json
+   - Выберите [Smart-License-Usage-Analyzer.json](/07_Smart_License_Usage_Analyzer/Smart%20License%20Usage%20Analyzer.json)
    - Нажмите "Import Workflow"
+   - Выполните аналогичные действия для [Global Error Handler SLUA.json](/07_Smart_License_Usage_Analyzer/Global%20Error%20Handler%20SLUA.json)
    ```
 
 3. **Настроить Postgres подключение**
@@ -303,7 +305,3 @@ alert_sent       BOOLEAN
 MIT License - смотрите файл [LICENSE](../LICENSE)
 
 ---
-
-**Версия:** 1.0.0  
-**Последнее обновление:** 2026-01-03  
-**Status:** ✅ Production Ready
