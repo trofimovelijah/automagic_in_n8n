@@ -62,6 +62,31 @@
                 },
                 "conditions": [
                   {
+                    "id": "811bd768-6580-4cb0-8a0d-079434d39abb",
+                    "leftValue": "={{ $('Edit Fields').item.json.text }}",
+                    "rightValue": "/vmdetails",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals",
+                      "name": "filter.operator.equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "Детали ВМ"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
                     "id": "06f8b71a-a419-4fc2-8746-c0569ad7bfbd",
                     "leftValue": "={{ $('Edit Fields').item.json.text }}",
                     "rightValue": "=/createvm",
@@ -88,17 +113,17 @@
                   {
                     "id": "8104b393-31e7-47be-b040-daa9528965e5",
                     "leftValue": "={{ $('Edit Fields').item.json.text }}",
-                    "rightValue": "=^/(myresources|softwarecatalog|vmdetails)",
+                    "rightValue": "=/softwarecatalog",
                     "operator": {
                       "type": "string",
-                      "operation": "regex"
+                      "operation": "equals"
                     }
                   }
                 ],
                 "combinator": "and"
               },
               "renameOutput": true,
-              "outputKey": "2 - Просмотр (объединённое)"
+              "outputKey": "2 - Каталог/Мои ресурсы"
             },
             {
               "conditions": {
@@ -147,6 +172,31 @@
               },
               "renameOutput": true,
               "outputKey": "5 - Удаление ВМ"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "id": "ae9d214a-b40e-49f2-b197-227c7d0310ed",
+                    "leftValue": "={{ $('Edit Fields').item.json.text }}",
+                    "rightValue": "/myresources",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals",
+                      "name": "filter.operator.equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "Мои ресурсы"
             },
             {
               "conditions": {
@@ -218,8 +268,8 @@
       "type": "n8n-nodes-base.if",
       "typeVersion": 2.2,
       "position": [
-        2752,
-        -2656
+        3632,
+        -1568
       ],
       "id": "194596e1-c58d-4983-a075-33e815f34c67",
       "name": "User Registered?"
@@ -231,8 +281,8 @@
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        3136,
-        -2992
+        3952,
+        -1664
       ],
       "id": "bc5dda3a-cf37-41f6-a1d1-d93088b27f42",
       "name": "Check License Limit",
@@ -266,8 +316,8 @@
       "type": "n8n-nodes-base.if",
       "typeVersion": 2.2,
       "position": [
-        3440,
-        -2992
+        4256,
+        -1664
       ],
       "id": "9a2d9155-9b3b-44da-a693-a51cb5f47bca",
       "name": "Can Create VM?"
@@ -279,8 +329,8 @@
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        3424,
-        -2656
+        4240,
+        -1296
       ],
       "id": "d824493a-e444-4b75-98e6-df0a0cae263b",
       "name": "Create VM with Software",
@@ -297,8 +347,8 @@
       "type": "n8n-nodes-base.telegram",
       "typeVersion": 1.2,
       "position": [
-        3936,
-        -2672
+        4752,
+        -1312
       ],
       "id": "71f24402-c0be-4470-b215-d70cafd1ef1a",
       "name": "Send: VM Created",
@@ -313,14 +363,14 @@
     {
       "parameters": {
         "content": "# Создание ВМ (/create_vm)\n\n\n",
-        "height": 1040,
+        "height": 1104,
         "width": 2128,
         "color": 6
       },
       "type": "n8n-nodes-base.stickyNote",
       "position": [
-        2400,
-        -3360
+        3216,
+        -2032
       ],
       "typeVersion": 1,
       "id": "ee6b75ec-84c2-423c-b32b-44f68811793a",
@@ -328,20 +378,20 @@
     },
     {
       "parameters": {
-        "jsCode": "const userData = $('Get User').first().json;\nconst allVMs = $('Get VMs for Resources').all();\n\n// Фильтруем ВМ текущего пользователя\nconst userVMs = allVMs.filter(vm => vm.json.user_id === userData.user_id);\n\nlet totalCost = 0;\nlet activeCount = 0;\nlet idleCount = 0;\nlet stoppedCount = 0;\nlet activeCost = 0;\nlet idleCost = 0;\nlet stoppedCost = 0;\n\nuserVMs.forEach(vm => {\n  totalCost += vm.json.monthly_cost;\n  \n  if (vm.json.status === 'active') {\n    activeCount++;\n    activeCost += vm.json.monthly_cost;\n  } else if (vm.json.status === 'idle') {\n    idleCount++;\n    idleCost += vm.json.monthly_cost;\n  } else {\n    stoppedCount++;\n    stoppedCost += vm.json.monthly_cost;\n  }\n});\n\nconst licenseMap = {\n  basic: { name: 'Basic', limit: 3, cost: 5000 },\n  standard: { name: 'Standard', limit: 10, cost: 15000 },\n  premium: { name: 'Premium', limit: 50, cost: 40000 }\n};\n\nconst license = licenseMap[userData.license_type];\n\nlet message = `📊 Ваши ресурсы\\n━━━━━━━━━━━━━━━\\n\\n`;\nmessage += `👤 Пользователь: ${userData.username}\\n`;\nmessage += `💼 Лицензия: ${license.name} (${userVMs.length}/${license.limit} ВМ)\\n`;\nmessage += `💰 Затраты: ${totalCost.toLocaleString()}₽/мес\\n\\n`;\n\nmessage += `🖥️ Виртуальные машины:\\n`;\nmessage += `✅ Активных: ${activeCount} (${activeCost.toLocaleString()}₽)\\n`;\nmessage += `⚠️ Простаивающих: ${idleCount} (${idleCost.toLocaleString()}₽)\\n`;\nmessage += `❌ Остановленных: ${stoppedCount} (${stoppedCost.toLocaleString()}₽)\\n\\n`;\n\n// ДОБАВЛЯЕМ СПИСОК ВМ\nif (userVMs.length > 0) {\n  message += `📋 Список ВМ:\\n`;\n  userVMs.forEach((vm, index) => {\n    const statusIcon = vm.json.status === 'active' ? '✅' : \n                       vm.json.status === 'idle' ? '⚠️' : '❌';\n    message += `${index + 1}. ${statusIcon} ${vm.json.vm_name}\\n`;\n    message += `   💿 ПО: ${vm.json.software_installed}\\n`;\n    message += `   💰 ${vm.json.monthly_cost.toLocaleString()}₽/мес\\n`;\n    message += `   🔍 /vmdetails ${vm.json.vm_id}\\n\\n`;\n  });\n}\n\nmessage += `━━━━━━━━━━━━━━━\\n`;\nmessage += `💡 Используйте:\\n`;\nmessage += `/optimize - Получить рекомендации\\n`;\nmessage += `/checkidle - Проверить простаивающие ВМ`;\n\nreturn {\n  json: {\n    message,\n    chat_id: $('Webhook - Telegram Bot').item.json.message.chat.id\n  }\n};"
+        "jsCode": "// Получаем все элементы (все ВМ)\nconst vms = $input.all().map(item => item.json);\nconst user = $input.first().json; // Данные пользователя (они дублируются в каждой строке)\n\n// Статистика\nlet activeCount = 0;\nlet idleCount = 0;\nlet stoppedCount = 0;\n\nlet activeCost = 0;\nlet idleCost = 0;\nlet stoppedCost = 0;\nlet totalCost = 0;\n\nlet vmListText = \"\";\n\n// Проходим по каждой ВМ\nvms.forEach((vm, index) => {\n  // Парсим стоимость в число (исправляем конкатенацию строк)\n  const cost = parseFloat(vm.monthly_cost) || 0;\n  totalCost += cost;\n\n  // Считаем статусы\n  let statusIcon = \"❓\";\n  if (vm.status === 'active' || vm.status === 'running') {\n    activeCount++;\n    activeCost += cost;\n    statusIcon = \"✅\";\n  } else if (vm.status === 'idle') {\n    idleCount++;\n    idleCost += cost;\n    statusIcon = \"⚠️\";\n  } else {\n    stoppedCount++;\n    stoppedCost += cost;\n    statusIcon = \"❌\";\n  }\n\n  // Формируем список ВМ\n  // ИСПРАВЛЕНИЕ: используем software_names если есть, иначе software_installed\n  const software = vm.software_names || vm.software_installed || \"Нет ПО\";\n  \n  vmListText += `${index + 1}. ${statusIcon} ${vm.vm_name}\\n` +\n                `   💿 ПО: ${software}\\n` +\n                `   💰 ${cost.toLocaleString()}₽/мес\\n` +\n                `   🔍 /vmdetails ${vm.vm_id}\\n\\n`;\n});\n\n// Формируем итоговое сообщение\nconst message = `📊 Ваши ресурсы\n━━━━━━━━━━━━━━━\n\n👤 Пользователь: ${user.username || 'Unknown'}\n💼 Лицензия: ${user.license_type || 'Basic'} (${vms.length}/${user.license_limit || '?'} ВМ)\n💰 Затраты: ${totalCost.toLocaleString()}₽/мес\n\n🖥️ Виртуальные машины:\n✅ Активных: ${activeCount} (${activeCost.toLocaleString()}₽)\n⚠️ Простаивающих: ${idleCount} (${idleCost.toLocaleString()}₽)\n❌ Остановленных: ${stoppedCount} (${stoppedCost.toLocaleString()}₽)\n\n📋 Список ВМ:\n${vmListText}━━━━━━━━━━━━━━━\n💡 Используйте:\n/optimize - Получить рекомендации\n/checkidle - Проверить простаивающие ВМ`;\n\nreturn {\n  json: {\n    message: message,\n    chat_id: user.telegram_id || user.chat_id\n  }\n};"
       },
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        2176,
-        -1232
+        4432,
+        1760
       ],
       "id": "d6ec69c9-bbad-437d-8169-4ac1407613bd",
       "name": "Calculate Summary"
     },
     {
       "parameters": {
-        "chatId": "={{ $json.chat_id }}",
+        "chatId": "={{ $('Command Router').first().json.telegram_id }}",
         "text": "={{ $json.message }}",
         "additionalFields": {
           "appendAttribution": false
@@ -350,8 +400,8 @@
       "type": "n8n-nodes-base.telegram",
       "typeVersion": 1.2,
       "position": [
-        2384,
-        -1232
+        4640,
+        1760
       ],
       "id": "0870e412-ba63-4e79-9a91-f1b8c43c5b29",
       "name": "Send: Resources Summary",
@@ -366,14 +416,14 @@
     {
       "parameters": {
         "content": "# Мои ресурсы (/my_resources)\n",
-        "height": 608,
-        "width": 1568,
+        "height": 576,
+        "width": 1616,
         "color": 6
       },
       "type": "n8n-nodes-base.stickyNote",
       "position": [
-        1152,
-        -1376
+        3360,
+        1648
       ],
       "typeVersion": 1,
       "id": "1f4afba8-fffe-4981-9857-5b999b0776a1",
@@ -388,8 +438,8 @@
       },
       "type": "n8n-nodes-base.stickyNote",
       "position": [
-        3776,
-        -848
+        3408,
+        -704
       ],
       "typeVersion": 1,
       "id": "436b1b9d-e5eb-48e5-9bcd-04ed2f9a9dd5",
@@ -402,8 +452,8 @@
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        4656,
-        -672
+        4288,
+        -528
       ],
       "id": "b41246c9-33ee-4b8c-9c84-2827f1214e79",
       "name": "Build Optimization Prompt"
@@ -418,8 +468,8 @@
       "type": "@n8n/n8n-nodes-langchain.lmChatOpenRouter",
       "typeVersion": 1,
       "position": [
-        4864,
-        -464
+        4496,
+        -320
       ],
       "id": "75e3c87b-96dc-4a06-91a5-7fdea3b8b61d",
       "name": "OpenRouter Chat Model",
@@ -442,8 +492,8 @@
       "type": "n8n-nodes-base.telegram",
       "typeVersion": 1.2,
       "position": [
-        5504,
-        -672
+        5136,
+        -528
       ],
       "id": "7f8836ea-6f2f-4d62-8968-50408ad96f1a",
       "name": "Send: AI Recommendations",
@@ -463,8 +513,8 @@
       },
       "type": "n8n-nodes-base.stickyNote",
       "position": [
-        1136,
-        -448
+        3424,
+        112
       ],
       "typeVersion": 1,
       "id": "67d68421-fc1b-4073-b529-410564f2dd59",
@@ -477,8 +527,8 @@
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        2176,
-        -208
+        4464,
+        352
       ],
       "id": "bed67e04-c167-4823-b4ce-c9e4cd3c5479",
       "name": "Detect Idle VMs"
@@ -494,8 +544,8 @@
       "type": "n8n-nodes-base.telegram",
       "typeVersion": 1.2,
       "position": [
-        2384,
-        -208
+        4672,
+        352
       ],
       "id": "45f1b667-8fea-46e1-be0a-ccbc97b381b2",
       "name": "Send: Idle Report",
@@ -516,8 +566,8 @@
       },
       "type": "n8n-nodes-base.stickyNote",
       "position": [
-        1056,
-        -2096
+        1232,
+        -1296
       ],
       "typeVersion": 1,
       "id": "f2634ec0-07b5-4f14-a45b-b1a3fed607fc",
@@ -530,8 +580,8 @@
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        2064,
-        -1872
+        2240,
+        -1072
       ],
       "id": "6d49c7ad-d88c-40b1-9aa2-b6cc8901da94",
       "name": "Format Catalog Message"
@@ -547,8 +597,8 @@
       "type": "n8n-nodes-base.telegram",
       "typeVersion": 1.2,
       "position": [
-        2336,
-        -1872
+        2512,
+        -1072
       ],
       "id": "61ba462e-9b47-483b-acbf-90e46bcd18d9",
       "name": "Send: Software Catalog",
@@ -622,8 +672,8 @@
       "type": "@n8n/n8n-nodes-langchain.chainLlm",
       "typeVersion": 1.7,
       "position": [
-        4928,
-        -672
+        4560,
+        -528
       ],
       "id": "722c261a-da63-4a6d-8b49-7fdf2016b60d",
       "name": "AI Optimization Analysis"
@@ -632,13 +682,13 @@
       "parameters": {
         "content": "# Детали ВМ (/vm_details)\n",
         "height": 768,
-        "width": 2432,
+        "width": 2224,
         "color": 4
       },
       "type": "n8n-nodes-base.stickyNote",
       "position": [
-        3776,
-        -2000
+        1312,
+        -2832
       ],
       "typeVersion": 1,
       "id": "bf972a42-3c75-4fed-8aab-1a1d71f7be67",
@@ -656,8 +706,8 @@
       "type": "n8n-nodes-base.telegram",
       "typeVersion": 1.2,
       "position": [
-        3136,
-        -2640
+        3968,
+        -1488
       ],
       "id": "5acfb95b-455d-43ec-ba07-1e1a3d11973d",
       "name": "Send: Not Registered",
@@ -680,8 +730,8 @@
       "type": "n8n-nodes-base.telegram",
       "typeVersion": 1.2,
       "position": [
-        3696,
-        -2848
+        4512,
+        -1488
       ],
       "id": "37684bcc-ef48-4976-8ef2-6653208409e4",
       "name": "Send: Limit Exceeded",
@@ -755,8 +805,8 @@
       "type": "n8n-nodes-base.if",
       "typeVersion": 2.2,
       "position": [
-        1728,
-        -1136
+        3984,
+        1856
       ],
       "id": "044e43af-0259-41eb-9894-0a35bdc751ee",
       "name": "User Found for Resources?"
@@ -770,8 +820,8 @@
       "type": "n8n-nodes-base.telegram",
       "typeVersion": 1.2,
       "position": [
-        1984,
-        -1008
+        4240,
+        1984
       ],
       "id": "f0a69a15-53bf-4a0f-bb51-df3bfe33c294",
       "name": "Send: Not Registered for Resources",
@@ -810,8 +860,8 @@
       "type": "n8n-nodes-base.if",
       "typeVersion": 2.2,
       "position": [
-        4160,
-        -656
+        3792,
+        -512
       ],
       "id": "e03afe6d-5c8a-4fb5-88d4-fcccde57439e",
       "name": "User Found for Optimize?"
@@ -825,8 +875,8 @@
       "type": "n8n-nodes-base.telegram",
       "typeVersion": 1.2,
       "position": [
-        4400,
-        -480
+        4032,
+        -336
       ],
       "id": "eb22042c-661e-4e48-b8bc-c2d0c635d445",
       "name": "Send: Not Registered for Optimize",
@@ -865,8 +915,8 @@
       "type": "n8n-nodes-base.if",
       "typeVersion": 2.2,
       "position": [
-        1648,
-        -208
+        3936,
+        352
       ],
       "id": "fb9c8dfe-d815-43a4-ae28-97caefc2baf6",
       "name": "User Found for Idle Check?"
@@ -880,8 +930,8 @@
       "type": "n8n-nodes-base.telegram",
       "typeVersion": 1.2,
       "position": [
-        1920,
-        -80
+        4208,
+        480
       ],
       "id": "da1c44c8-5088-4cb6-83a9-8968dd28746a",
       "name": "Send: Not Registered for Idle Check",
@@ -904,8 +954,8 @@
       "type": "n8n-nodes-base.telegram",
       "typeVersion": 1.2,
       "position": [
-        1360,
-        -3040
+        1968,
+        -3552
       ],
       "id": "33e2a4bc-ec4c-4de2-aa24-3d16653f32a5",
       "name": "Send Request Organization",
@@ -946,8 +996,8 @@
       "type": "n8n-nodes-base.set",
       "typeVersion": 3.4,
       "position": [
-        3696,
-        -3152
+        4512,
+        -1824
       ],
       "id": "979d66ef-d4d4-4a17-8504-77a21ad463b6",
       "name": "Prepare Software Menu",
@@ -967,8 +1017,8 @@
       "type": "n8n-nodes-base.telegram",
       "typeVersion": 1.2,
       "position": [
-        1360,
-        -3344
+        2400,
+        -3904
       ],
       "id": "f6c215de-f75b-4526-8fcd-12a23bff3065",
       "name": "Send Request Email",
@@ -983,13 +1033,13 @@
     {
       "parameters": {
         "content": "# Регистрация пользователя",
-        "height": 1440,
-        "width": 2272
+        "height": 1312,
+        "width": 1456
       },
       "type": "n8n-nodes-base.stickyNote",
       "position": [
-        -208,
-        -3728
+        1312,
+        -4224
       ],
       "typeVersion": 1,
       "id": "26a95861-777c-4451-a1a3-7d00fc1d570a",
@@ -1002,8 +1052,8 @@
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        368,
-        -3344
+        1744,
+        -3904
       ],
       "id": "bbdeea5b-27fb-46f9-bcfb-84118dcc15d7",
       "name": "Generate Registration Data"
@@ -1038,8 +1088,8 @@
       "type": "n8n-nodes-base.if",
       "typeVersion": 2.2,
       "position": [
-        48,
-        -3440
+        1520,
+        -4000
       ],
       "id": "d90202c0-a2d3-49a9-b2d9-380c16f6fc5e",
       "name": "Already Registered?"
@@ -1078,96 +1128,6 @@
       "id": "26d593c5-c4ac-406d-b6c5-de6e0c455f29",
       "name": "Has Message",
       "onError": "continueErrorOutput"
-    },
-    {
-      "parameters": {
-        "rules": {
-          "values": [
-            {
-              "conditions": {
-                "options": {
-                  "caseSensitive": true,
-                  "leftValue": "",
-                  "typeValidation": "strict",
-                  "version": 2
-                },
-                "conditions": [
-                  {
-                    "id": "e535af2d-aef2-4ca3-a78a-875f1390765f",
-                    "leftValue": "={{ $('Edit Fields').item.json.text }}",
-                    "rightValue": "/softwarecatalog",
-                    "operator": {
-                      "type": "string",
-                      "operation": "equals",
-                      "name": "filter.operator.equals"
-                    }
-                  }
-                ],
-                "combinator": "and"
-              },
-              "renameOutput": true,
-              "outputKey": "Каталог ПО"
-            },
-            {
-              "conditions": {
-                "options": {
-                  "caseSensitive": true,
-                  "leftValue": "",
-                  "typeValidation": "strict",
-                  "version": 2
-                },
-                "conditions": [
-                  {
-                    "id": "d41b2f57-2360-451b-9581-734edde4171a",
-                    "leftValue": "={{ $('Edit Fields').item.json.text }}",
-                    "rightValue": "/vmdetails",
-                    "operator": {
-                      "type": "string",
-                      "operation": "startsWith"
-                    }
-                  }
-                ],
-                "combinator": "and"
-              },
-              "renameOutput": true,
-              "outputKey": "Подробности ВМ"
-            },
-            {
-              "conditions": {
-                "options": {
-                  "caseSensitive": true,
-                  "leftValue": "",
-                  "typeValidation": "strict",
-                  "version": 2
-                },
-                "conditions": [
-                  {
-                    "leftValue": "={{ $('Edit Fields').item.json.text }}",
-                    "rightValue": "/myresources",
-                    "operator": {
-                      "type": "string",
-                      "operation": "equals"
-                    },
-                    "id": "56cbe9ef-c4cf-46ea-925d-a95795418f6f"
-                  }
-                ],
-                "combinator": "and"
-              },
-              "renameOutput": true,
-              "outputKey": "Мои ресурсы"
-            }
-          ]
-        },
-        "options": {}
-      },
-      "type": "n8n-nodes-base.switch",
-      "typeVersion": 3.3,
-      "position": [
-        416,
-        -1632
-      ],
-      "id": "8945baf7-d9c1-4a6a-8028-e2d1eada9390",
-      "name": "Switch View"
     },
     {
       "parameters": {
@@ -1229,8 +1189,8 @@
       "type": "n8n-nodes-base.switch",
       "typeVersion": 3.3,
       "position": [
-        448,
-        -944
+        2816,
+        -96
       ],
       "id": "73dd1f05-9f1e-4072-a765-148eb033db47",
       "name": "Switch Analyze"
@@ -1238,13 +1198,13 @@
     {
       "parameters": {
         "content": "# Проверка регистрации\n\n",
-        "height": 1200,
-        "width": 1312
+        "height": 1520,
+        "width": 1184
       },
       "type": "n8n-nodes-base.stickyNote",
       "position": [
-        -2288,
-        -2544
+        -2208,
+        -3072
       ],
       "typeVersion": 1,
       "id": "7ca0318b-e3e6-42f1-a2d4-956b49b6496f",
@@ -1337,31 +1297,6 @@
                 },
                 "conditions": [
                   {
-                    "id": "bbc97e3a-2ff5-4538-9922-bf008749dc0a",
-                    "leftValue": "={{ $json.state }}",
-                    "rightValue": "awaiting_software_selection",
-                    "operator": {
-                      "type": "string",
-                      "operation": "equals",
-                      "name": "filter.operator.equals"
-                    }
-                  }
-                ],
-                "combinator": "and"
-              },
-              "renameOutput": true,
-              "outputKey": "Выбор ПО из каталога"
-            },
-            {
-              "conditions": {
-                "options": {
-                  "caseSensitive": true,
-                  "leftValue": "",
-                  "typeValidation": "strict",
-                  "version": 2
-                },
-                "conditions": [
-                  {
                     "id": "71e50ea5-20fd-4386-8d9f-14a972bc8cf7",
                     "leftValue": "={{ $json.state }}",
                     "rightValue": "awaiting_vm_id",
@@ -1376,6 +1311,31 @@
               },
               "renameOutput": true,
               "outputKey": "Идентификатор ВМ"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "id": "bbc97e3a-2ff5-4538-9922-bf008749dc0a",
+                    "leftValue": "={{ $json.state }}",
+                    "rightValue": "awaiting_software_selection",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals",
+                      "name": "filter.operator.equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "Выбор ПО из каталога"
             }
           ]
         },
@@ -1404,8 +1364,8 @@
       "type": "n8n-nodes-base.telegram",
       "typeVersion": 1.2,
       "position": [
-        4144,
-        -3008
+        4960,
+        -1680
       ],
       "id": "967cbaec-7583-4173-af3e-9e9c597275ef",
       "name": "Send Software Menu",
@@ -1476,8 +1436,8 @@
       "type": "n8n-nodes-base.switch",
       "typeVersion": 3.3,
       "position": [
-        1808,
-        -1888
+        1984,
+        -1088
       ],
       "id": "bc790321-4683-49b7-b270-744418149a7b",
       "name": "Route Catalog Output"
@@ -1489,8 +1449,8 @@
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        1520,
-        -1888
+        1696,
+        -1088
       ],
       "id": "12dfb281-5c26-40bd-97ae-cd0b206ffafc",
       "name": "Add Context Info"
@@ -1502,8 +1462,8 @@
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        5280,
-        -672
+        4912,
+        -528
       ],
       "id": "07ad8e24-1823-430a-8bdc-f9e2e9d03145",
       "name": "Add Footer to Message"
@@ -1519,8 +1479,8 @@
       "type": "n8n-nodes-base.telegram",
       "typeVersion": 1.2,
       "position": [
-        1360,
-        -2832
+        1968,
+        -3344
       ],
       "id": "4d761128-c825-456b-9ce2-8a5e1b061fe8",
       "name": "Send Request License Count",
@@ -1543,8 +1503,8 @@
       "type": "n8n-nodes-base.telegram",
       "typeVersion": 1.2,
       "position": [
-        368,
-        -3552
+        1744,
+        -4112
       ],
       "id": "ee1df14f-b92f-42f5-8f34-5c9f6b5a376d",
       "name": "Send: Already Registered",
@@ -1567,8 +1527,8 @@
       "type": "n8n-nodes-base.telegram",
       "typeVersion": 1.2,
       "position": [
-        1568,
-        -2624
+        2176,
+        -3136
       ],
       "id": "26db6b7b-4791-4c79-9c25-f754c130b742",
       "name": "Send: Registration Finish",
@@ -1607,8 +1567,8 @@
       "type": "n8n-nodes-base.postgres",
       "typeVersion": 2.6,
       "position": [
-        2560,
-        -2656
+        3440,
+        -1568
       ],
       "id": "61b98a87-f107-4a35-9de3-682d8c131614",
       "name": "Get User for VM Creation",
@@ -1623,33 +1583,15 @@
     },
     {
       "parameters": {
-        "operation": "select",
-        "schema": {
-          "__rl": true,
-          "mode": "list",
-          "value": "public"
-        },
-        "table": {
-          "__rl": true,
-          "value": "virtual_machines",
-          "mode": "list",
-          "cachedResultName": "virtual_machines"
-        },
-        "where": {
-          "values": [
-            {
-              "column": "user_id",
-              "value": "={{ $json.user_id }}"
-            }
-          ]
-        },
+        "operation": "executeQuery",
+        "query": "SELECT \n  v.vm_id,\n  v.vm_name,\n  v.status,\n  v.cpu_usage_avg,\n  v.ram_usage_avg,\n  v.monthly_cost,\n  v.created_at,\n  v.software_installed, -- на всякий случай оставим оригинал\n  (\n    SELECT string_agg(s.name, ', ')\n    FROM software_catalog s\n    WHERE s.software_id = ANY(v.software_installed)\n  ) as software_names\nFROM virtual_machines v\nWHERE v.user_id = {{ $json.user_id }}",
         "options": {}
       },
       "type": "n8n-nodes-base.postgres",
       "typeVersion": 2.6,
       "position": [
-        1984,
-        -1232
+        4240,
+        1760
       ],
       "id": "fcd657f6-fdc4-4f2d-b608-b8f98ad6b2ae",
       "name": "Get VMs for Resources",
@@ -1687,8 +1629,8 @@
       "type": "n8n-nodes-base.postgres",
       "typeVersion": 2.6,
       "position": [
-        3888,
-        -592
+        3520,
+        -512
       ],
       "id": "ede47811-9012-48fa-8e1f-1c917f62d145",
       "name": "Get User for Optimize",
@@ -1709,8 +1651,8 @@
       "type": "n8n-nodes-base.postgres",
       "typeVersion": 2.6,
       "position": [
-        4400,
-        -672
+        4032,
+        -528
       ],
       "id": "0e6aea3c-3f78-4c63-889b-7489122963f0",
       "name": "Get VMs for Optimize",
@@ -1731,8 +1673,8 @@
       "type": "n8n-nodes-base.postgres",
       "typeVersion": 2.6,
       "position": [
-        1392,
-        -208
+        3680,
+        352
       ],
       "id": "d23dcf84-5baa-45fb-9348-3178cd4ae382",
       "name": "Get User for Idle Check",
@@ -1753,8 +1695,8 @@
       "type": "n8n-nodes-base.postgres",
       "typeVersion": 2.6,
       "position": [
-        1920,
-        -304
+        4208,
+        256
       ],
       "id": "bcda25c0-10dd-48a9-b395-35375fe6cee6",
       "name": "Get VMs for Idle Check",
@@ -1792,8 +1734,8 @@
       "type": "n8n-nodes-base.postgres",
       "typeVersion": 2.6,
       "position": [
-        1280,
-        -1888
+        1456,
+        -1088
       ],
       "id": "6e820cb0-27e9-41aa-ab1d-cce583663b18",
       "name": "Load Software Catalog",
@@ -1920,8 +1862,8 @@
       "type": "n8n-nodes-base.postgres",
       "typeVersion": 2.6,
       "position": [
-        608,
-        -3344
+        1968,
+        -3904
       ],
       "id": "96f03720-d6b1-4408-b746-ee79367e454a",
       "name": "Add New User",
@@ -1942,8 +1884,8 @@
       "type": "n8n-nodes-base.postgres",
       "typeVersion": 2.6,
       "position": [
-        912,
-        -2624
+        1520,
+        -3136
       ],
       "id": "2eb1fbf7-1f70-4080-8fa6-7fc4c2e915fe",
       "name": "Update User with Limit",
@@ -2114,8 +2056,8 @@
       "type": "n8n-nodes-base.postgres",
       "typeVersion": 2.6,
       "position": [
-        3696,
-        -2672
+        4512,
+        -1312
       ],
       "id": "b639fa0a-ddab-47fc-a557-557ff88ed76f",
       "name": "Add VM to DB",
@@ -2154,8 +2096,8 @@
       "type": "n8n-nodes-base.postgres",
       "typeVersion": 2.6,
       "position": [
-        1296,
-        -1152
+        3632,
+        1856
       ],
       "id": "863c103b-1f9e-42d8-9b92-b5b04803df07",
       "name": "Get User",
@@ -2178,8 +2120,8 @@
       "type": "n8n-nodes-base.redis",
       "typeVersion": 1,
       "position": [
-        1120,
-        -3344
+        2176,
+        -3904
       ],
       "id": "b9c7a2b3-3c2a-412d-a102-98e0ded5158b",
       "name": "Set User State register",
@@ -2199,8 +2141,8 @@
       "type": "n8n-nodes-base.postgres",
       "typeVersion": 2.6,
       "position": [
-        912,
-        -3040
+        1520,
+        -3552
       ],
       "id": "b8a13d8b-70b1-4349-b60d-d2228a25f857",
       "name": "Update User with Email",
@@ -2223,8 +2165,8 @@
       "type": "n8n-nodes-base.redis",
       "typeVersion": 1,
       "position": [
-        -16,
-        -2640
+        -32,
+        -2608
       ],
       "id": "9a082a1c-45e8-4e1c-a431-ef00f36e438a",
       "name": "Get Current State",
@@ -2244,8 +2186,8 @@
       "type": "n8n-nodes-base.postgres",
       "typeVersion": 2.6,
       "position": [
-        912,
-        -2832
+        1520,
+        -3344
       ],
       "id": "1df04e0d-ecf1-4928-8110-2b29253514cb",
       "name": "Update Users with Org",
@@ -2268,8 +2210,8 @@
       "type": "n8n-nodes-base.redis",
       "typeVersion": 1,
       "position": [
-        1120,
-        -3040
+        1728,
+        -3552
       ],
       "id": "0e7e6b93-08fd-4f9a-b4a2-7239f5121733",
       "name": "Update State Email",
@@ -2291,8 +2233,8 @@
       "type": "n8n-nodes-base.redis",
       "typeVersion": 1,
       "position": [
-        1120,
-        -2832
+        1728,
+        -3344
       ],
       "id": "0fce0751-2372-4f40-b2ef-f28da8d39c69",
       "name": "Update State Organization",
@@ -2314,8 +2256,8 @@
       "type": "n8n-nodes-base.redis",
       "typeVersion": 1,
       "position": [
-        1120,
-        -2624
+        1728,
+        -3136
       ],
       "id": "a42d579f-78c3-47fc-826e-5bc198f962ff",
       "name": "Update State License",
@@ -2334,8 +2276,8 @@
       "type": "n8n-nodes-base.redis",
       "typeVersion": 1,
       "position": [
-        1776,
-        -2624
+        2384,
+        -3136
       ],
       "id": "fe2ddb12-0669-40da-9c48-c83a74f6a57c",
       "name": "Clear User State",
@@ -2354,8 +2296,8 @@
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        224,
-        -2640
+        208,
+        -2608
       ],
       "id": "a443c44d-04b3-4b1d-806b-51fb29d378b5",
       "name": "Parse State",
@@ -2374,8 +2316,8 @@
       "type": "n8n-nodes-base.redis",
       "typeVersion": 1,
       "position": [
-        3936,
-        -3152
+        4752,
+        -1824
       ],
       "id": "ef81ee38-8ad0-4f79-a89d-0c8c1fa2a08a",
       "name": "Set State: Awaiting Software",
@@ -2397,8 +2339,8 @@
       "type": "n8n-nodes-base.telegram",
       "typeVersion": 1.2,
       "position": [
-        3696,
-        -2496
+        4512,
+        -1120
       ],
       "id": "92d67b7f-c760-4a09-81a0-8a9f3c488bf6",
       "name": "Error ID Software",
@@ -2417,8 +2359,8 @@
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        1184,
-        608
+        3472,
+        1168
       ],
       "id": "d15c6c3f-de8c-45ea-a95d-a1a783ad2500",
       "name": "Parse Delete Command"
@@ -2450,8 +2392,8 @@
       "type": "n8n-nodes-base.postgres",
       "typeVersion": 2.6,
       "position": [
-        1488,
-        608
+        3776,
+        1168
       ],
       "id": "1b9f38f0-2985-410c-b031-9e8d739559fb",
       "name": "Get User for VM Deletion",
@@ -2495,8 +2437,8 @@
       "type": "n8n-nodes-base.postgres",
       "typeVersion": 2.6,
       "position": [
-        1744,
-        608
+        4032,
+        1168
       ],
       "id": "dd262eff-a698-476f-9c04-3b6afbfa2723",
       "name": "Get VM by NameID_",
@@ -2535,8 +2477,8 @@
       "type": "n8n-nodes-base.if",
       "typeVersion": 2.3,
       "position": [
-        1952,
-        608
+        4240,
+        1168
       ],
       "id": "08612b22-b5dc-4b58-a946-317f2bdbec60",
       "name": "VM Found?"
@@ -2550,8 +2492,8 @@
       "type": "n8n-nodes-base.postgres",
       "typeVersion": 2.6,
       "position": [
-        2256,
-        496
+        4544,
+        1056
       ],
       "id": "f9e7ce62-02c3-4dfa-9772-cd220f46a8eb",
       "name": "Delete VM from DB",
@@ -2570,8 +2512,8 @@
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        2464,
-        496
+        4752,
+        1056
       ],
       "id": "5bbcb99d-87d6-4fdf-b5e8-0e09c337eee9",
       "name": "Format Delete Response"
@@ -2587,8 +2529,8 @@
       "type": "n8n-nodes-base.telegram",
       "typeVersion": 1.2,
       "position": [
-        2672,
-        496
+        4960,
+        1056
       ],
       "id": "6e51a11a-6c65-4ebb-a3f9-0265129c8b72",
       "name": "Send Delete Confirmation",
@@ -2611,8 +2553,8 @@
       "type": "n8n-nodes-base.telegram",
       "typeVersion": 1.2,
       "position": [
-        2256,
-        752
+        4544,
+        1312
       ],
       "id": "2200936f-4d6d-41a9-8878-7ef22f96eda0",
       "name": "Send VM Not Found",
@@ -2741,8 +2683,8 @@
       "type": "n8n-nodes-base.postgres",
       "typeVersion": 2.6,
       "position": [
-        -1376,
-        -2016
+        -1360,
+        -2432
       ],
       "id": "31633bdd-28aa-4663-a0ee-78dd68abd413",
       "name": "Check User Exists (Register)",
@@ -2782,8 +2724,8 @@
       "type": "n8n-nodes-base.postgres",
       "typeVersion": 2.6,
       "position": [
-        -1792,
-        -2336
+        -1776,
+        -2752
       ],
       "id": "7c771db3-dfd7-4f8a-9130-9de70b78dcd7",
       "name": "Get User for Start",
@@ -2823,8 +2765,8 @@
       "type": "n8n-nodes-base.if",
       "typeVersion": 2.3,
       "position": [
-        -1584,
-        -2336
+        -1568,
+        -2752
       ],
       "id": "2ffc2ed0-e19f-4f13-b91c-c14945a796e9",
       "name": "If User Exists?"
@@ -2840,8 +2782,8 @@
       "type": "n8n-nodes-base.telegram",
       "typeVersion": 1.2,
       "position": [
-        -1376,
-        -2256
+        -1360,
+        -2672
       ],
       "id": "115a6a5e-e0e1-4536-98c4-9bddc44c481c",
       "name": "Send Welcome (New User)",
@@ -2864,8 +2806,8 @@
       "type": "n8n-nodes-base.telegram",
       "typeVersion": 1.2,
       "position": [
-        -1376,
-        -2432
+        -1360,
+        -2848
       ],
       "id": "72a0a0ec-656e-4722-8f4d-a05b6e058e80",
       "name": "Send noRetry Reg",
@@ -2904,8 +2846,8 @@
       "type": "n8n-nodes-base.postgres",
       "typeVersion": 2.6,
       "position": [
-        -1376,
-        -1712
+        -1360,
+        -2000
       ],
       "id": "8274653e-e69b-404a-8cc8-b4bda7f1692a",
       "name": "Check UserId",
@@ -2926,8 +2868,8 @@
       },
       "type": "n8n-nodes-base.stickyNote",
       "position": [
-        1056,
-        400
+        3344,
+        960
       ],
       "typeVersion": 1,
       "id": "79ed248e-0add-48cc-9aa4-6685427c5996",
@@ -2960,8 +2902,8 @@
       "type": "n8n-nodes-base.postgres",
       "typeVersion": 2.6,
       "position": [
-        1328,
-        -2624
+        1936,
+        -3136
       ],
       "id": "7b7c8c4b-2979-4f87-b5f0-441c3bdc39b2",
       "name": "Select rows from a table",
@@ -2995,8 +2937,8 @@
       "type": "n8n-nodes-base.redis",
       "typeVersion": 1,
       "position": [
-        4160,
-        -2672
+        4976,
+        -1312
       ],
       "id": "5ad979fd-b5e5-4e18-a204-60da9822cc8f",
       "name": "Clear User State2",
@@ -3015,8 +2957,8 @@
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        3920,
-        -1616
+        1456,
+        -2448
       ],
       "id": "f747e2b9-ae61-4c24-a3f9-5b4b93026aa0",
       "name": "Check VM Details State",
@@ -3050,8 +2992,8 @@
       "type": "n8n-nodes-base.if",
       "typeVersion": 2.3,
       "position": [
-        4128,
-        -1616
+        1664,
+        -2448
       ],
       "id": "35c4fb8d-01b7-4d9b-a608-cd0279d6b77f",
       "name": "Has Pending State?"
@@ -3063,8 +3005,8 @@
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        4416,
-        -1472
+        1952,
+        -2304
       ],
       "id": "595ea893-f31e-4b90-9a2a-ba61367d6444",
       "name": "Set Redis State",
@@ -3078,8 +3020,8 @@
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        4416,
-        -1744
+        1952,
+        -2576
       ],
       "id": "f4b033c1-8423-4791-a762-7edfd567cbbd",
       "name": "Parse VM Input",
@@ -3113,8 +3055,8 @@
       "type": "n8n-nodes-base.if",
       "typeVersion": 2.3,
       "position": [
-        4624,
-        -1744
+        2160,
+        -2576
       ],
       "id": "be825e02-f855-4970-8fc7-8bfdc02d5493",
       "name": "Is Numeric?"
@@ -3130,8 +3072,8 @@
       "type": "n8n-nodes-base.telegram",
       "typeVersion": 1.2,
       "position": [
-        4832,
-        -1472
+        2368,
+        -2304
       ],
       "id": "42ab5f78-b283-4f65-8b4c-4c90527eec92",
       "name": "Ask for VM ID",
@@ -3145,37 +3087,15 @@
     },
     {
       "parameters": {
-        "operation": "select",
-        "schema": {
-          "__rl": true,
-          "mode": "list",
-          "value": "public"
-        },
-        "table": {
-          "__rl": true,
-          "value": "virtual_machines",
-          "mode": "list",
-          "cachedResultName": "virtual_machines"
-        },
-        "where": {
-          "values": [
-            {
-              "column": "vm_id",
-              "value": "={{ $json.input }}"
-            },
-            {
-              "column": "user_id",
-              "value": "={{ $json.user_id }}"
-            }
-          ]
-        },
+        "operation": "executeQuery",
+        "query": "SELECT \n  v.vm_id,\n  v.vm_name,\n  v.status,\n  v.cpu_usage_avg,\n  v.ram_usage_avg,\n  v.monthly_cost,\n  v.created_at,\n  v.software_installed, -- на всякий случай оставим оригинал\n  (\n    SELECT string_agg(s.name, ', ')\n    FROM software_catalog s\n    WHERE s.software_id = ANY(v.software_installed)\n  ) as software_names\nFROM virtual_machines v\nWHERE v.vm_id = {{ $json.input }}",
         "options": {}
       },
       "type": "n8n-nodes-base.postgres",
       "typeVersion": 2.6,
       "position": [
-        4832,
-        -1840
+        2368,
+        -2672
       ],
       "id": "5a819638-b725-4e8f-8e1e-9d3c6c5f4039",
       "name": "Get VM by ID",
@@ -3189,14 +3109,14 @@
     {
       "parameters": {
         "operation": "executeQuery",
-        "query": "Query:\nSELECT \n  vm_id,\n  vm_name,\n  status,\n  cpu_usage_avg,\n  ram_usage_avg,\n  monthly_cost,\n  software_installed,\n  created_at\nFROM virtual_machines\nWHERE LOWER(vm_name) = LOWER($1) AND user_id = $2\n\nParameters:\n$1 = {{ $json.input }}\n$2 = {{ $json.user_id }}",
+        "query": "SELECT \n  v.vm_id,\n  v.vm_name,\n  v.status,\n  v.cpu_usage_avg,\n  v.ram_usage_avg,\n  v.monthly_cost,\n  v.created_at,\n  v.software_installed, \n  (\n    SELECT string_agg(s.name, ', ')\n    FROM software_catalog s\n    WHERE s.software_id = ANY(v.software_installed)\n  ) as software_names\nFROM virtual_machines v\nWHERE v.vm_name = '{{ $json.input }}'",
         "options": {}
       },
       "type": "n8n-nodes-base.postgres",
       "typeVersion": 2.6,
       "position": [
-        4832,
-        -1648
+        2368,
+        -2480
       ],
       "id": "402e1833-eab9-405e-b3e9-681e7b4c6722",
       "name": "Get VM by Name",
@@ -3212,26 +3132,11 @@
       "type": "n8n-nodes-base.merge",
       "typeVersion": 3.2,
       "position": [
-        5056,
-        -1744
+        2592,
+        -2576
       ],
       "id": "5578e67f-dfae-4153-ae8e-d79c3b0e8c86",
       "name": "Merge"
-    },
-    {
-      "parameters": {
-        "jsCode": "const userId = $json.user_id;\nconst redisKey = {{redis-state:{{ $('Command Router').item.json.telegram_id }}}};\n\nreturn {\n  redis_key: redisKey,\n  action: \"delete\"\n};"
-      },
-      "type": "n8n-nodes-base.code",
-      "typeVersion": 2,
-      "position": [
-        5264,
-        -1744
-      ],
-      "id": "fe9fe7f2-868f-4d28-a19f-401a65b49765",
-      "name": "Clear Redis State",
-      "retryOnFail": true,
-      "disabled": true
     },
     {
       "parameters": {
@@ -3241,8 +3146,8 @@
       "type": "n8n-nodes-base.redis",
       "typeVersion": 1,
       "position": [
-        5472,
-        -1744
+        2800,
+        -2576
       ],
       "id": "b9696d59-83eb-46f0-a4ba-378fdb99846d",
       "name": "Redis State Delete",
@@ -3255,13 +3160,13 @@
     },
     {
       "parameters": {
-        "jsCode": "// Получаем данные\nconst item = $input.first();\nlet vm = null;\n\n// ВАРИАНТ 1: Если данные пришли напрямую от Postgres (есть поле rows)\nif (item.json.rows && Array.isArray(item.json.rows) && item.json.rows.length > 0) {\n    vm = item.json.rows[0];\n} \n// ВАРИАНТ 2: Если данные пришли от Merge (данные на верхнем уровне)\nelse if (item.json.vm_id) {\n    vm = item.json;\n}\n// ВАРИАНТ 3: Если Merge вернул массив в rows (редко, но бывает)\nelse if (item.json.rows && item.json.rows[0]) {\n    vm = item.json.rows[0];\n}\n\n// Если ВМ не найдена\nif (!vm) {\n  return { \n    text: \"❌ ВМ не найдена. Проверьте ID или имя.\",\n    is_error: true \n  };\n}\n\nconst statusEmoji = vm.status === 'running' ? '✅' : '⏸️';\n\nconst text = `\n🖥️ *Детали ВМ*\n\n*Имя:* ${vm.vm_name}\n*ID:* ${vm.vm_id}\n*Статус:* ${statusEmoji} ${vm.status}\n\n📊 *Ресурсы:*\nCPU: ${vm.cpu_usage_avg}%\nRAM: ${vm.ram_usage_avg}%\n\n💰 *Стоимость:* ${vm.monthly_cost}₽/мес\n\n📦 *Установленное ПО:*\n${vm.software_installed}\n\n📅 *Создана:* ${new Date(vm.created_at).toLocaleDateString('ru-RU')}\n`;\n\nreturn { \n  text: text,\n  is_error: false \n};"
+        "jsCode": "// Получаем данные\nconst item = $input.first();\nlet vm = null;\n\n// ВАРИАНТ 1: Если данные пришли напрямую от Postgres (есть поле rows)\nif (item.json.rows && Array.isArray(item.json.rows) && item.json.rows.length > 0) {\n    vm = item.json.rows[0];\n} \n// ВАРИАНТ 2: Если данные пришли от Merge (данные на верхнем уровне)\nelse if (item.json.vm_id) {\n    vm = item.json;\n}\n// ВАРИАНТ 3: Если Merge вернул массив в rows (редко, но бывает)\nelse if (item.json.rows && item.json.rows[0]) {\n    vm = item.json.rows[0];\n}\n\n// Если ВМ не найдена\nif (!vm) {\n  return { \n    text: \"❌ ВМ не найдена. Проверьте ID или имя.\",\n    is_error: true \n  };\n}\n\nconst statusEmoji = vm.status === 'running' ? '✅' : '⏸️';\n\nconst text = `\n🖥️ *Детали ВМ*\n\n*Имя:* ${vm.vm_name}\n*ID:* ${vm.vm_id}\n*Статус:* ${statusEmoji} ${vm.status}\n\n📊 *Ресурсы:*\nCPU: ${vm.cpu_usage_avg}%\nRAM: ${vm.ram_usage_avg}%\n\n💰 *Стоимость:* ${vm.monthly_cost}₽/мес\n\n📦 *Установленное ПО:*\n${vm.software_names}\n\n📅 *Создана:* ${new Date(vm.created_at).toLocaleDateString('ru-RU')}\n`;\n\nreturn { \n  text: text,\n  is_error: false \n};"
       },
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        5680,
-        -1744
+        3008,
+        -2576
       ],
       "id": "b6c5f31f-0e65-4062-b8c1-37c900c6ea1b",
       "name": "Format VM Details",
@@ -3279,8 +3184,8 @@
       "type": "n8n-nodes-base.telegram",
       "typeVersion": 1.2,
       "position": [
-        5888,
-        -1744
+        3216,
+        -2576
       ],
       "id": "69e21a84-505c-4c74-91b5-a2f6081bcafa",
       "name": "Send Details",
@@ -3303,8 +3208,8 @@
       "type": "n8n-nodes-base.redis",
       "typeVersion": 1,
       "position": [
-        4624,
-        -1472
+        2160,
+        -2304
       ],
       "id": "e99556b4-d47d-4b74-b6ec-a5edb8b17c20",
       "name": "Set State (vmdetails)",
@@ -3340,6 +3245,13 @@
         ],
         [
           {
+            "node": "Check VM Details State",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
             "node": "Get User for VM Creation",
             "type": "main",
             "index": 0
@@ -3347,7 +3259,7 @@
         ],
         [
           {
-            "node": "Switch View",
+            "node": "Load Software Catalog",
             "type": "main",
             "index": 0
           }
@@ -3362,6 +3274,13 @@
         [
           {
             "node": "Parse Delete Command",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Get User",
             "type": "main",
             "index": 0
           }
@@ -3647,31 +3566,6 @@
         ]
       ]
     },
-    "Switch View": {
-      "main": [
-        [
-          {
-            "node": "Load Software Catalog",
-            "type": "main",
-            "index": 0
-          }
-        ],
-        [
-          {
-            "node": "Check VM Details State",
-            "type": "main",
-            "index": 0
-          }
-        ],
-        [
-          {
-            "node": "Get User",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
     "Switch Analyze": {
       "main": [
         [
@@ -3715,14 +3609,14 @@
         ],
         [
           {
-            "node": "Load Software Catalog",
+            "node": "Check VM Details State",
             "type": "main",
             "index": 0
           }
         ],
         [
           {
-            "node": "Check VM Details State",
+            "node": "Load Software Catalog",
             "type": "main",
             "index": 0
           }
@@ -4001,7 +3895,8 @@
             "type": "main",
             "index": 0
           }
-        ]
+        ],
+        []
       ]
     },
     "Set State: Awaiting Software": {
@@ -4286,17 +4181,6 @@
       "main": [
         [
           {
-            "node": "Clear Redis State",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Clear Redis State": {
-      "main": [
-        [
-          {
             "node": "Redis State Delete",
             "type": "main",
             "index": 0
@@ -4338,7 +4222,7 @@
       ]
     }
   },
-  "active": true,
+  "active": false,
   "settings": {
     "executionOrder": "v1",
     "timeSavedMode": "fixed",
@@ -4346,7 +4230,7 @@
     "availableInMCP": false,
     "errorWorkflow": "0cyaeiAogQ373wZ5"
   },
-  "versionId": "4f796a3d-65df-437e-b244-29003a00e0e3",
+  "versionId": "9cf1706f-a231-46f0-bc4a-4264ff906552",
   "meta": {
     "templateCredsSetupCompleted": true,
     "instanceId": "f4300700b5a89163b88ad6a908ff9e3076c705e8b03a3f40f03ff2f29f7e4289"
