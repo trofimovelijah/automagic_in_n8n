@@ -29,7 +29,7 @@
 
 ## 🗂️ Структура проекта
 
-```
+```bash
 smart-license-analyzer/
 ├── Smart-License-Usage-Analyzer.json   # основное n8n воркфлоу
 ├── Global Error Handler SLUA.json      # воркфлоу n8n для отправки ошибок в ходе выполнения основного воркфлоу

@@ -1,0 +1,1551 @@
+{
+  "name": "github issue",
+  "nodes": [
+    {
+      "parameters": {
+        "operation": "get",
+        "key": "=github_token_{{ $json.user_id }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.redis",
+      "typeVersion": 1,
+      "position": [
+        960,
+        -608
+      ],
+      "id": "058274bb-3764-4d01-bb94-e44d5e95f161",
+      "name": "3a Get Token",
+      "credentials": {
+        "redis": {
+          "id": "k3rZiJXMKohxs4tn",
+          "name": "Redis beget 47"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "get",
+        "key": "=github_token_{{ $json.user_id }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.redis",
+      "typeVersion": 1,
+      "position": [
+        960,
+        -304
+      ],
+      "id": "bac4f0eb-e86a-4457-b803-c9d5ac9308d0",
+      "name": "5a Get Token",
+      "credentials": {
+        "redis": {
+          "id": "k3rZiJXMKohxs4tn",
+          "name": "Redis beget 47"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "get",
+        "key": "=github_token_{{ $json.user_id }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.redis",
+      "typeVersion": 1,
+      "position": [
+        960,
+        528
+      ],
+      "id": "7904d632-ac09-469d-9468-b77769462801",
+      "name": "6a️ Get Token",
+      "credentials": {
+        "redis": {
+          "id": "k3rZiJXMKohxs4tn",
+          "name": "Redis beget 47"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "set",
+        "key": "=github_repo_{{ $('2 Extract User Data').item.json.user_id }}",
+        "value": "={{ $('6b Handler - Repo Selected').item.json.selected_repo }}",
+        "expire": true,
+        "ttl": 3600
+      },
+      "type": "n8n-nodes-base.redis",
+      "typeVersion": 1,
+      "position": [
+        1808,
+        528
+      ],
+      "id": "2e032b95-b7de-4773-ab78-0c8f170a9813",
+      "name": "6d Save Repo",
+      "executeOnce": false,
+      "retryOnFail": false,
+      "credentials": {
+        "redis": {
+          "id": "k3rZiJXMKohxs4tn",
+          "name": "Redis beget 47"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "chatId": "={{ $('2 Extract User Data').item.json.user_id }}",
+        "text": "=Выбран репозиторий <b>{{ $('6c Get Repo Details').item.json.full_name }}</b>\n\nДля заведения issue нажми /create_issue",
+        "additionalFields": {
+          "appendAttribution": false,
+          "parse_mode": "HTML"
+        }
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        2096,
+        528
+      ],
+      "id": "5355038a-cc73-4815-808b-971de2b4bfd1",
+      "name": "6e Send Confirmation",
+      "webhookId": "4ea99e33-0456-4adf-a081-2f2d0d0763b4",
+      "retryOnFail": true,
+      "alwaysOutputData": false,
+      "executeOnce": false,
+      "credentials": {
+        "telegramApi": {
+          "id": "oGGOqQyZOq6C6lc7",
+          "name": "Personal_Issue_GitHub"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "get",
+        "key": "=github_token_{{ $json.user_id }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.redis",
+      "typeVersion": 1,
+      "position": [
+        960,
+        128
+      ],
+      "id": "48441c39-256d-4949-9ab3-32838ea98cc0",
+      "name": "12a️ Get Token",
+      "credentials": {
+        "redis": {
+          "id": "k3rZiJXMKohxs4tn",
+          "name": "Redis beget 47"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const clientId = \"Ov23liRrDCSaWPkttCNo\"; // ← ЗАМЕНИ!\nconst redirectUri = \"https://n8n.vsellm.ru/rest/oauth2-credential/callback\"; // ← ЗАМЕНИ!\nconst scope = \"repo,user,gist\";\nconst state = $json.user_id; // from Extract User Data\n\nconst authUrl = `https://github.com/login/oauth/authorize?client_id=${clientId}&redirect_uri=${encodeURIComponent(redirectUri)}&scope=${encodeURIComponent(scope)}&state=${state}`;\n\nreturn {\n  authUrl: authUrl,\n  user_id: $json.user_id,\n  chat_id: $json.chat_id\n};"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        960,
+        336
+      ],
+      "id": "38a4f48c-d345-4209-a3f5-1bf5024772c0",
+      "name": "4a️ Generate - OAuth URL"
+    },
+    {
+      "parameters": {
+        "chatId": "={{ $('2 Extract User Data').item.json.user_id }}",
+        "text": "=🔐 Кликни на ссылку ниже для авторизации GitHub:\n{{ $json.authUrl }}",
+        "additionalFields": {
+          "appendAttribution": false
+        }
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        1232,
+        336
+      ],
+      "id": "0bf39055-4d09-4ad1-bfcf-f9bfb2eab475",
+      "name": "4d️ Send - OAuth Link to User",
+      "webhookId": "008be7a9-ebf7-4f25-9f53-bd58c59ce56e",
+      "credentials": {
+        "telegramApi": {
+          "id": "oGGOqQyZOq6C6lc7",
+          "name": "Personal_Issue_GitHub"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "updates": [
+          "message",
+          "callback_query"
+        ],
+        "additionalFields": {}
+      },
+      "type": "n8n-nodes-base.telegramTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        -416,
+        48
+      ],
+      "id": "34490009-3ded-4209-a069-0f8c8aa8b472",
+      "name": "1 Telegram Webhook",
+      "webhookId": "cf0fc16d-30e1-4ddc-b588-662098f32c74",
+      "alwaysOutputData": false,
+      "credentials": {
+        "telegramApi": {
+          "id": "oGGOqQyZOq6C6lc7",
+          "name": "Personal_Issue_GitHub"
+        }
+      },
+      "onError": "continueErrorOutput"
+    },
+    {
+      "parameters": {
+        "rules": {
+          "values": [
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.message_text }}",
+                    "rightValue": "/start",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    },
+                    "id": "e85a9439-efa5-46b9-8272-adb90fa91b29"
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "Узел 3 /start"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "id": "7eae8b68-5d77-4668-ac8f-a708eb858017",
+                    "leftValue": "={{ $json.message_text }}",
+                    "rightValue": "/repos",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals",
+                      "name": "filter.operator.equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "Узел 5 /repos"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "id": "a3be3f72-61fb-4244-9b68-5dc44eb106c5",
+                    "leftValue": "={{ $json.message_text }}",
+                    "rightValue": "/create_issue",
+                    "operator": {
+                      "type": "string",
+                      "operation": "startsWith"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "Узел 8 /create_issue"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "id": "129fa2d1-7152-45c2-a5c9-a815f0483d58",
+                    "leftValue": "={{ $json.message_text }}",
+                    "rightValue": "/logout",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals",
+                      "name": "filter.operator.equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "Узел 12 /logout"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "id": "4e42f2fa-4a8b-4d80-9882-30eba6260d34",
+                    "leftValue": "={{ $json.message_text }}",
+                    "rightValue": "/auth",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals",
+                      "name": "filter.operator.equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "Узел 5 /auth"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "id": "34b7daa6-ed17-4224-b7d5-0a4890b2b6df",
+                    "leftValue": "={{ $json.callback_query }}",
+                    "rightValue": "callback_query",
+                    "operator": {
+                      "type": "string",
+                      "operation": "exists",
+                      "singleValue": true
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "Узел 6-7"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "id": "95d6d977-b1c5-4445-b7f2-841968c3cb71",
+                    "leftValue": "={{ $json.message_text && !$json.message_text.startsWith('/') }}\n",
+                    "rightValue": "/",
+                    "operator": {
+                      "type": "string",
+                      "operation": "notStartsWith"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "Узел 13 Text Issue Handler"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3.4,
+      "position": [
+        416,
+        0
+      ],
+      "id": "75229ee6-fefb-403f-9b93-e8b0c51e534c",
+      "name": "3 Router - Dispatch by Command"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "c66c1a48-fad5-4bb0-b1cb-cce8766662b3",
+              "leftValue": "={{ $json.value !== null && $json.value !== '' }}\n",
+              "rightValue": "",
+              "operator": {
+                "type": "string",
+                "operation": "exists",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        1232,
+        -608
+      ],
+      "id": "455dc931-de74-46b4-a5e8-acb7acb44d19",
+      "name": "3b Check Token Exists"
+    },
+    {
+      "parameters": {
+        "chatId": "={{ $('2 Extract User Data').item.json.user_id }}",
+        "text": "Привет! Ты уже авторизован. Используй /repos",
+        "additionalFields": {
+          "appendAttribution": false
+        }
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        1520,
+        -704
+      ],
+      "id": "83478bf8-8a5a-4a6d-8ebc-1f42b5d11b69",
+      "name": "3c Send - Already Authorized",
+      "webhookId": "1e62a9ea-70ce-4cc2-abd5-ff0b81bdca7a",
+      "credentials": {
+        "telegramApi": {
+          "id": "oGGOqQyZOq6C6lc7",
+          "name": "Personal_Issue_GitHub"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "chatId": "={{ $('2 Extract User Data').item.json.user_id }}",
+        "text": "Ты не авторизован. Используй /auth для подключения GitHub",
+        "additionalFields": {
+          "appendAttribution": false
+        }
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        1520,
+        -512
+      ],
+      "id": "bb459b75-03a6-4c5a-a63d-0503f72056f8",
+      "name": "3d Send - Not Authorized",
+      "webhookId": "1028b1f1-8d4c-41c2-943c-fd0d4ffdc61f",
+      "credentials": {
+        "telegramApi": {
+          "id": "oGGOqQyZOq6C6lc7",
+          "name": "Personal_Issue_GitHub"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "url": "https://api.github.com/user/repos?per_page=100&sort=updated&type=owner",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "httpBearerAuth",
+        "options": {
+          "response": {
+            "response": {
+              "responseFormat": "json"
+            }
+          }
+        }
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.3,
+      "position": [
+        1232,
+        -304
+      ],
+      "id": "3027e121-1d46-4e77-aea1-19e93b8513a2",
+      "name": "5b Get Repos from GitHub",
+      "credentials": {
+        "githubOAuth2Api": {
+          "id": "38fG1yNDegYUFRUk",
+          "name": "GitHub issue"
+        },
+        "httpBearerAuth": {
+          "id": "Cq6hGs7e6CBkjKap",
+          "name": "Bearer GitHub"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "chatId": "={{ $('2 Extract User Data').item.json.user_id }}",
+        "text": "=🔗 Выбери репозиторий:\n",
+        "replyMarkup": "=inlineKeyboard",
+        "forceReply": {},
+        "inlineKeyboard": {
+          "rows": [
+            {
+              "row": {
+                "buttons": [
+                  {
+                    "text": "={{ $json.name }}",
+                    "additionalFields": {
+                      "callback_data": "=repo_{{ $json.name }}"
+                    }
+                  }
+                ]
+              }
+            }
+          ]
+        },
+        "replyKeyboardOptions": {},
+        "replyKeyboardRemove": {},
+        "additionalFields": {
+          "appendAttribution": false
+        }
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        1520,
+        -304
+      ],
+      "id": "ae296762-f3c0-4b6c-b014-5f78c80b5fa1",
+      "name": "5с Send - List of Repos",
+      "webhookId": "3a3c9655-e366-4a83-b3b2-769bbaeb411c",
+      "credentials": {
+        "telegramApi": {
+          "id": "oGGOqQyZOq6C6lc7",
+          "name": "Personal_Issue_GitHub"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const repoName = $('3 Router - Dispatch by Command').first().json.callback_query.replace('repo_', '');\n\nreturn {\n  user_id: $json.user_id,\n  owner: \"trofimovelijah\",\n  selected_repo: repoName,\n  chat_id: $('1 Telegram Webhook').first().json.callback_query.message.chat.id\n};"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1232,
+        528
+      ],
+      "id": "c704a3ed-e6f8-4157-b0dd-0addf3a5cf72",
+      "name": "6b Handler - Repo Selected"
+    },
+    {
+      "parameters": {
+        "url": "=https://api.github.com/repos/{{ $json.owner }}/{{ $json.selected_repo }}",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "httpBearerAuth",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Accept",
+              "value": "application/vnd.github+json"
+            }
+          ]
+        },
+        "options": {
+          "response": {
+            "response": {
+              "responseFormat": "json"
+            }
+          }
+        }
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.3,
+      "position": [
+        1504,
+        528
+      ],
+      "id": "462d45e4-257a-45be-aa0f-7a54f5d61e6a",
+      "name": "6c Get Repo Details",
+      "credentials": {
+        "githubOAuth2Api": {
+          "id": "38fG1yNDegYUFRUk",
+          "name": "GitHub issue"
+        },
+        "httpBearerAuth": {
+          "id": "Cq6hGs7e6CBkjKap",
+          "name": "Bearer GitHub"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "authentication": "oAuth2",
+        "owner": {
+          "__rl": true,
+          "value": "=trofimovelijah",
+          "mode": "name"
+        },
+        "repository": {
+          "__rl": true,
+          "value": "={{ $('16c Get Repo').item.json.values() }}",
+          "mode": "name"
+        },
+        "title": "={{ $('16c Get Title').item.json.propertyName }}",
+        "body": "={{ $('16c Get Body').item.json.propertyName }}",
+        "labels": [
+          {
+            "label": "telegram-bot"
+          }
+        ],
+        "assignees": []
+      },
+      "type": "n8n-nodes-base.github",
+      "typeVersion": 1.1,
+      "position": [
+        2816,
+        896
+      ],
+      "id": "3eabe9f4-fbe7-47bd-a8c0-22538b9c1b2e",
+      "name": "10 Create Issue on GitHub",
+      "webhookId": "fb3f2dc3-c7aa-4667-a4d8-952325b73af6",
+      "retryOnFail": true,
+      "credentials": {
+        "githubOAuth2Api": {
+          "id": "38fG1yNDegYUFRUk",
+          "name": "GitHub issue"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "chatId": "={{ $('3 Router - Dispatch by Command').item.json.user_id }}",
+        "text": "=✅ Issue успешно создана!\n\n📌 Номер: {{ $json.number }}\n🔗 Ссылка: {{ $json.html_url }}\n\n/repos - Выбрать другой репо\n/create_issue - Создать ещё issue\n",
+        "additionalFields": {
+          "appendAttribution": false,
+          "parse_mode": "HTML"
+        }
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        3040,
+        896
+      ],
+      "id": "38a3bdad-1fd5-40b2-ad5f-c5ef33771794",
+      "name": "11 Send - Issue Created Success",
+      "webhookId": "84daf86a-1b36-49ef-929d-247088e383ed",
+      "notesInFlow": true,
+      "retryOnFail": true,
+      "alwaysOutputData": false,
+      "executeOnce": false,
+      "credentials": {
+        "telegramApi": {
+          "id": "oGGOqQyZOq6C6lc7",
+          "name": "Personal_Issue_GitHub"
+        }
+      },
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "chatId": "={{ $('2 Extract User Data').item.json.user_id }}",
+        "text": "=Вы разлогинились! Теперь при необходимости новой работы с репозиториями, Вам нужно будет заново пройти процедуру регистрации.",
+        "additionalFields": {
+          "appendAttribution": false
+        }
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        1232,
+        128
+      ],
+      "id": "6d961d19-f06e-4323-8d24-f95296c194a9",
+      "name": "12b️ Send - Logout Handler",
+      "webhookId": "65b0296d-c2c5-4ee3-9d92-89b463ee8ddf",
+      "credentials": {
+        "telegramApi": {
+          "id": "oGGOqQyZOq6C6lc7",
+          "name": "Personal_Issue_GitHub"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "delete",
+        "key": "=github_token_{{ $json.user_id }}"
+      },
+      "type": "n8n-nodes-base.redis",
+      "typeVersion": 1,
+      "position": [
+        1520,
+        128
+      ],
+      "id": "97854731-ed51-466e-973d-fac02857ff97",
+      "name": "12c️ Clear - Delete Token",
+      "credentials": {
+        "redis": {
+          "id": "k3rZiJXMKohxs4tn",
+          "name": "Redis beget 47"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "bd337300-8e6b-4934-a67d-63be7fa0f97a",
+              "name": "user_id",
+              "value": "={{ $json.callback_query ? $json.callback_query.from.id : $json.message.chat.id }}",
+              "type": "number"
+            },
+            {
+              "id": "19bf3db0-250d-40d9-970c-27e416305a4f",
+              "name": "message_text",
+              "value": "={{ $json.message ? $json.message.text : '' }}",
+              "type": "string"
+            },
+            {
+              "id": "f3aa9ade-3c46-4f3e-91a1-95d9b08eb365",
+              "name": "callback_query",
+              "value": "={{ $json.callback_query ? $json.callback_query.data : undefined }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -160,
+        48
+      ],
+      "id": "b331ae28-6a1b-4cf7-b37e-c2ff5092ef17",
+      "name": "2 Extract User Data"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "c24f5c65-31b1-4cee-9bae-8cf8ed3d2861",
+              "leftValue": "={{ $json.user_id }}",
+              "rightValue": 154080553,
+              "operator": {
+                "type": "number",
+                "operation": "equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        48,
+        48
+      ],
+      "id": "f159e1bc-f0f2-4dbd-9b44-fee1cc857cf6",
+      "name": "2a Check Allowed User"
+    },
+    {
+      "parameters": {
+        "chatId": "={{ $('2 Extract User Data').item.json.user_id }}",
+        "text": "=❌ У тебя нет доступа к этому боту.\nЭтот бот работает только для авторизованного пользователя.",
+        "additionalFields": {
+          "appendAttribution": false
+        }
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        384,
+        400
+      ],
+      "id": "cde59f0f-48a1-4a64-8ab3-33a3ffdb8a67",
+      "name": "2b Send - Access Denied",
+      "webhookId": "e50e7cb0-8c1e-4bf7-a545-d536b9a1b474",
+      "credentials": {
+        "telegramApi": {
+          "id": "oGGOqQyZOq6C6lc7",
+          "name": "Personal_Issue_GitHub"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "chatId": "={{ $json.user_id }}",
+        "text": "=Введите заголовок (Title) для новой задачи:",
+        "replyMarkup": "forceReply",
+        "forceReply": {
+          "force_reply": true
+        },
+        "additionalFields": {
+          "appendAttribution": false
+        }
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        1232,
+        -80
+      ],
+      "id": "82b7c8e7-570b-4870-9a50-d2f524a6bae9",
+      "name": "8 Send - Ask Title",
+      "webhookId": "01deb005-b8b9-49f9-9f66-660d0c33f72a",
+      "credentials": {
+        "telegramApi": {
+          "id": "oGGOqQyZOq6C6lc7",
+          "name": "Personal_Issue_GitHub"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "set",
+        "key": "=chat_state_{{ $json.user_id }}",
+        "value": "awaiting_title",
+        "expire": true,
+        "ttl": 600
+      },
+      "type": "n8n-nodes-base.redis",
+      "typeVersion": 1,
+      "position": [
+        960,
+        -80
+      ],
+      "id": "14096f4d-c46a-4c79-af4b-2e72af60ba34",
+      "name": "8a Set State - Awaiting Title",
+      "credentials": {
+        "redis": {
+          "id": "k3rZiJXMKohxs4tn",
+          "name": "Redis beget 47"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "get",
+        "key": "=chat_state_{{ $json.user_id }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.redis",
+      "typeVersion": 1,
+      "position": [
+        960,
+        800
+      ],
+      "id": "58ed29d0-f131-49fa-80b0-5e87194f807c",
+      "name": "13 Get State",
+      "credentials": {
+        "redis": {
+          "id": "k3rZiJXMKohxs4tn",
+          "name": "Redis beget 47"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "rules": {
+          "values": [
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.propertyName }}",
+                    "rightValue": "awaiting_title",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    },
+                    "id": "0fec7f7f-8d8b-40db-90a6-cd50e4bf5db4"
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "awaiting_title"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "id": "011e8c55-f746-4343-8f95-a6c469445053",
+                    "leftValue": "={{ $json.propertyName }}",
+                    "rightValue": "awaiting_body",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals",
+                      "name": "filter.operator.equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "awaiting_body"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3.4,
+      "position": [
+        1248,
+        800
+      ],
+      "id": "e3a2a4da-0e33-47fc-8b30-5fc525a03efd",
+      "name": "14 Check State"
+    },
+    {
+      "parameters": {
+        "operation": "set",
+        "key": "=issue_title_{{ $('3 Router - Dispatch by Command').item.json.user_id }}",
+        "value": "=={{ $('2 Extract User Data').item.json.message_text }}",
+        "expire": true,
+        "ttl": 600
+      },
+      "type": "n8n-nodes-base.redis",
+      "typeVersion": 1,
+      "position": [
+        1520,
+        688
+      ],
+      "id": "513706a7-6907-4699-9d4a-d3faa4e68ddc",
+      "name": "15a Save Title",
+      "credentials": {
+        "redis": {
+          "id": "k3rZiJXMKohxs4tn",
+          "name": "Redis beget 47"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "set",
+        "key": "=chat_state_{{ $('3 Router - Dispatch by Command').item.json.user_id }}",
+        "value": "awaiting_body",
+        "expire": true,
+        "ttl": 600
+      },
+      "type": "n8n-nodes-base.redis",
+      "typeVersion": 1,
+      "position": [
+        1760,
+        688
+      ],
+      "id": "af4c52dc-4fd4-455b-8231-1d01f48fe0a3",
+      "name": "15b Set State - Awaiting Body",
+      "credentials": {
+        "redis": {
+          "id": "k3rZiJXMKohxs4tn",
+          "name": "Redis beget 47"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "chatId": "={{ $('2 Extract User Data').item.json.user_id }}",
+        "text": "=Отлично! Теперь введите описание (Body) для задачи:",
+        "replyMarkup": "forceReply",
+        "forceReply": {
+          "force_reply": true
+        },
+        "additionalFields": {
+          "appendAttribution": false
+        }
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        1968,
+        688
+      ],
+      "id": "ec2659c5-c7a6-465c-b1fd-7bf76d5f8d12",
+      "name": "15c Ask Body",
+      "webhookId": "b6f9eefe-3af3-44d6-91a6-2ad9aabaae5a",
+      "credentials": {
+        "telegramApi": {
+          "id": "oGGOqQyZOq6C6lc7",
+          "name": "Personal_Issue_GitHub"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "set",
+        "key": "=issue_body_{{ $('3 Router - Dispatch by Command').item.json.user_id }}",
+        "value": "={{ $('2 Extract User Data').item.json.message_text }}",
+        "expire": true,
+        "ttl": 600
+      },
+      "type": "n8n-nodes-base.redis",
+      "typeVersion": 1,
+      "position": [
+        1520,
+        896
+      ],
+      "id": "549ea1c0-918f-4154-8333-f7770b7066ed",
+      "name": "16a Save Body",
+      "credentials": {
+        "redis": {
+          "id": "k3rZiJXMKohxs4tn",
+          "name": "Redis beget 47"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "delete",
+        "key": "=chat_state_{{ $('3 Router - Dispatch by Command').item.json.user_id }}"
+      },
+      "type": "n8n-nodes-base.redis",
+      "typeVersion": 1,
+      "position": [
+        1760,
+        896
+      ],
+      "id": "2dd630f8-4b4c-4c54-ab87-f2fc58501e49",
+      "name": "16b Clear State",
+      "credentials": {
+        "redis": {
+          "id": "k3rZiJXMKohxs4tn",
+          "name": "Redis beget 47"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "get",
+        "key": "=github_repo_{{ $('2 Extract User Data').item.json.user_id }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.redis",
+      "typeVersion": 1,
+      "position": [
+        1968,
+        896
+      ],
+      "id": "5bb86170-e2ff-4521-9b70-64d94b91c73d",
+      "name": "16c Get Repo",
+      "credentials": {
+        "redis": {
+          "id": "k3rZiJXMKohxs4tn",
+          "name": "Redis beget 47"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "get",
+        "key": "=issue_title_{{ $('2 Extract User Data').item.json.user_id }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.redis",
+      "typeVersion": 1,
+      "position": [
+        2176,
+        896
+      ],
+      "id": "092c2e73-9cda-480a-be3d-5f8d37b7743b",
+      "name": "16c Get Title",
+      "credentials": {
+        "redis": {
+          "id": "k3rZiJXMKohxs4tn",
+          "name": "Redis beget 47"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "get",
+        "key": "=issue_body_{{ $('2 Extract User Data').item.json.user_id }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.redis",
+      "typeVersion": 1,
+      "position": [
+        2384,
+        896
+      ],
+      "id": "6722d002-4969-4d2f-a252-69d3431de7c6",
+      "name": "16c Get Body",
+      "credentials": {
+        "redis": {
+          "id": "k3rZiJXMKohxs4tn",
+          "name": "Redis beget 47"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "get",
+        "key": "=github_token_{{ $('2 Extract User Data').item.json.user_id }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.redis",
+      "typeVersion": 1,
+      "position": [
+        2592,
+        896
+      ],
+      "id": "fa1b3277-d689-4cb6-b0f4-110d8c08d3ee",
+      "name": "16c Get Token",
+      "credentials": {
+        "redis": {
+          "id": "k3rZiJXMKohxs4tn",
+          "name": "Redis beget 47"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "3a Get Token": {
+      "main": [
+        [
+          {
+            "node": "3b Check Token Exists",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "5a Get Token": {
+      "main": [
+        [
+          {
+            "node": "5b Get Repos from GitHub",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "6a️ Get Token": {
+      "main": [
+        [
+          {
+            "node": "6b Handler - Repo Selected",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "6d Save Repo": {
+      "main": [
+        [
+          {
+            "node": "6e Send Confirmation",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "12a️ Get Token": {
+      "main": [
+        [
+          {
+            "node": "12b️ Send - Logout Handler",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "4a️ Generate - OAuth URL": {
+      "main": [
+        [
+          {
+            "node": "4d️ Send - OAuth Link to User",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "1 Telegram Webhook": {
+      "main": [
+        [
+          {
+            "node": "2 Extract User Data",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "3 Router - Dispatch by Command": {
+      "main": [
+        [
+          {
+            "node": "3a Get Token",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "5a Get Token",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "8a Set State - Awaiting Title",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "12a️ Get Token",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "4a️ Generate - OAuth URL",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "6a️ Get Token",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "13 Get State",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "3b Check Token Exists": {
+      "main": [
+        [
+          {
+            "node": "3c Send - Already Authorized",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "3d Send - Not Authorized",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "3d Send - Not Authorized": {
+      "main": [
+        []
+      ]
+    },
+    "5b Get Repos from GitHub": {
+      "main": [
+        [
+          {
+            "node": "5с Send - List of Repos",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "6b Handler - Repo Selected": {
+      "main": [
+        [
+          {
+            "node": "6c Get Repo Details",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "6c Get Repo Details": {
+      "main": [
+        [
+          {
+            "node": "6d Save Repo",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "10 Create Issue on GitHub": {
+      "main": [
+        [
+          {
+            "node": "11 Send - Issue Created Success",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "12b️ Send - Logout Handler": {
+      "main": [
+        [
+          {
+            "node": "12c️ Clear - Delete Token",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "12c️ Clear - Delete Token": {
+      "main": [
+        []
+      ]
+    },
+    "2 Extract User Data": {
+      "main": [
+        [
+          {
+            "node": "2a Check Allowed User",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "2a Check Allowed User": {
+      "main": [
+        [
+          {
+            "node": "3 Router - Dispatch by Command",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "2b Send - Access Denied",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "8a Set State - Awaiting Title": {
+      "main": [
+        [
+          {
+            "node": "8 Send - Ask Title",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "13 Get State": {
+      "main": [
+        [
+          {
+            "node": "14 Check State",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "14 Check State": {
+      "main": [
+        [
+          {
+            "node": "15a Save Title",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "16a Save Body",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "15a Save Title": {
+      "main": [
+        [
+          {
+            "node": "15b Set State - Awaiting Body",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "15b Set State - Awaiting Body": {
+      "main": [
+        [
+          {
+            "node": "15c Ask Body",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "16a Save Body": {
+      "main": [
+        [
+          {
+            "node": "16b Clear State",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "16b Clear State": {
+      "main": [
+        [
+          {
+            "node": "16c Get Repo",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "16c Get Repo": {
+      "main": [
+        [
+          {
+            "node": "16c Get Title",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "16c Get Title": {
+      "main": [
+        [
+          {
+            "node": "16c Get Body",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "16c Get Body": {
+      "main": [
+        [
+          {
+            "node": "16c Get Token",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "16c Get Token": {
+      "main": [
+        [
+          {
+            "node": "10 Create Issue on GitHub",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1",
+    "timeSavedMode": "fixed",
+    "callerPolicy": "workflowsFromSameOwner",
+    "availableInMCP": false,
+    "errorWorkflow": "0cyaeiAogQ373wZ5"
+  },
+  "versionId": "8d26d2ad-f7ff-4f26-bd56-4fa7e3f212d8",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "f4300700b5a89163b88ad6a908ff9e3076c705e8b03a3f40f03ff2f29f7e4289"
+  },
+  "id": "XDVma5a9EiHdyolv",
+  "tags": [
+    {
+      "updatedAt": "2025-12-12T17:26:52.994Z",
+      "createdAt": "2025-12-12T17:26:52.994Z",
+      "id": "J09NNQhWt9FvC7x9",
+      "name": "Telegram"
+    },
+    {
+      "updatedAt": "2025-12-23T16:13:07.338Z",
+      "createdAt": "2025-12-23T16:13:07.338Z",
+      "id": "oBNMw112RZ7TdiTo",
+      "name": "GitHub"
+    }
+  ]
+}

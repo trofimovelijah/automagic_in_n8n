@@ -1,0 +1,4217 @@
+{
+  "name": "wf red flags 0.1",
+  "nodes": [
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=Шаг 1: Прочитай фрагмент документа ниже.\nШаг 2: Выдели из него все фразы, которые могут указывать на юридические риски.\nШаг 3: Для каждой такой фразы ОБЯЗАТЕЛЬНО выполни поиск по базе ru_documents_embeddings, используя инструмент.\nШаг 4: На основании ТОЛЬКО результатов поиска сформируй ответ.\n\nЕсли ты не вызвал инструмент — твой ответ будет считаться ошибкой.\n\n====\n{{ $json.chunk_text }}\n====",
+        "hasOutputParser": true,
+        "options": {
+          "systemMessage": "Ты — специализированный юридический аналитик по выявлению рисков в договорах и пользовательских соглашениях.\n\nКРИТИЧЕСКИ ВАЖНО: Ты ОБЯЗАН для КАЖДОГО фрагмента документа вызвать инструмент поиска по базе ru_documents_embeddings. Без вызова инструмента ты НЕ МОЖЕШЬ выдать результат анализа. Это не рекомендация, а обязательное требование.\n\nАлгоритм работы (строго по шагам):\n1. Получи фрагмент документа\n2. Выдели из него 2-4 ключевые фразы, описывающие потенциальные риски (например: \"одностороннее изменение условий\", \"отказ от ответственности\", \"прекращение услуг без уведомления\")\n3. Для КАЖДОЙ ключевой фразы вызови инструмент поиска по ru_documents_embeddings\n4. Сопоставь результаты поиска с текстом документа\n5. Для каждого совпадения зафиксируй: название риска из базы, severity, confidence_score, цитату из документа, рекомендацию\n6. Определи тип документа и юрисдикцию\n7. Сформируй HTML-резюме\n\nСтрогие правила:\n— ЗАПРЕЩЕНО отвечать без предварительного вызова инструмента поиска\n— ЗАПРЕЩЕНО придумывать риски, которых нет в базе\n— Все текстовые поля — только на русском языке\n— Если после поиска по базе совпадений не найдено — верни пустой массив risks: [] и укажи это в summary_html\n— severity: строго одно из HIGH, MEDIUM, LOW\n— confidence_score: число от 0.0 до 1.0\n— В summary_html формируй ответ СТРОГО по следующему шаблону:\n\n<b>📋 Тип документа:</b> {document_type}\n<b>⚖️ Юрисдикция:</b> {jurisdiction}\n<b>⚠️ Найдено рисков: {count}</b>\n\n<b>🔴 Высокий риск</b>\n• {название риска}: {краткое объяснение}\n• {название риска}: {краткое объяснение}\n\n<b>🟡 Средний риск</b>\n• {название риска}: {краткое объяснение}\n\n<b>🟢 Низкий риск</b>\n• {название риска}: {краткое объяснение}\n\nСекция выводится ТОЛЬКО если в ней есть хотя бы один риск.\nКаждый пункт — ровно один риск с одной маркировкой.\nЕсли рисков не найдено, выводи: \"✅ Риски не выявлены. Документ содержит стандартные условия, характерные для данного типа сервиса.\""
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 2,
+      "position": [
+        5776,
+        480
+      ],
+      "id": "1132c71f-30ca-4e45-bb75-7aa169e49f2a",
+      "name": "AI Agent",
+      "retryOnFail": false,
+      "onError": "continueErrorOutput"
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.chatTrigger",
+      "typeVersion": 1.1,
+      "position": [
+        4816,
+        96
+      ],
+      "id": "e5e50d88-19e1-4228-8672-afb297095b8a",
+      "name": "When chat message received",
+      "webhookId": "4091fa09-fb9a-4039-9411-7104d213f601",
+      "disabled": true
+    },
+    {
+      "parameters": {
+        "content": "### 🐕 Retriever Service\n\nRAG-пайплайн анализа",
+        "height": 924,
+        "width": 1320,
+        "color": 7
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        5312,
+        192
+      ],
+      "typeVersion": 1,
+      "id": "9e0ed639-de89-44e1-8181-bd6367bbcfc8",
+      "name": "Sticky Note2"
+    },
+    {
+      "parameters": {
+        "modelName": "intfloat/multilingual-e5-base",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.embeddingsHuggingFaceInference",
+      "typeVersion": 1,
+      "position": [
+        5728,
+        976
+      ],
+      "id": "507a1d65-078c-48ab-b1e1-a4bda4d7af52",
+      "name": "Embeddings HuggingFace Inference",
+      "credentials": {
+        "huggingFaceApi": {
+          "id": "LfH5piW1Ce4LPeUu",
+          "name": "redF"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "options": {
+          "temperature": 0.2
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenRouter",
+      "typeVersion": 1,
+      "position": [
+        5632,
+        816
+      ],
+      "id": "a32bdd80-3d62-489b-be00-dd51c3c82e0d",
+      "name": "OpenRouter Chat Model",
+      "credentials": {
+        "openRouterApi": {
+          "id": "vTmXgtf5tUnqsJGf",
+          "name": "OpenRouter posapr"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "updates": [
+          "message",
+          "callback_query"
+        ],
+        "additionalFields": {
+          "download": true
+        }
+      },
+      "type": "n8n-nodes-base.telegramTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        -736,
+        1488
+      ],
+      "id": "a14fcc41-8c1c-4039-90b0-f3f636f71f5e",
+      "name": "Telegram Trigger",
+      "webhookId": "b972a064-6f02-45b3-8ad5-8197c1115bac",
+      "credentials": {
+        "telegramApi": {
+          "id": "ofJWfQOJnrvkEwK1",
+          "name": "redFlags"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "content": "### 📱 Telegram Bot Gateway\n\nТочка входа пользователя",
+        "height": 2224,
+        "width": 3376,
+        "color": 7
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        -944,
+        400
+      ],
+      "typeVersion": 1,
+      "id": "9cf9e2e9-1d00-4987-a19d-7a1f01bcc72a",
+      "name": "Sticky Note"
+    },
+    {
+      "parameters": {
+        "content": "### 🔑 Session & Rate Limit Service\n\nУправление состоянием через `Redis`",
+        "height": 576,
+        "width": 2192,
+        "color": 7
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        2480,
+        1168
+      ],
+      "typeVersion": 1,
+      "id": "524edfad-9e0a-4089-bd4e-f5bbc82e2d67",
+      "name": "Sticky Note3"
+    },
+    {
+      "parameters": {
+        "content": "### 📄 Client Document Parser\n\nОбработка документов",
+        "height": 448,
+        "width": 1520,
+        "color": 4
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        3680,
+        672
+      ],
+      "typeVersion": 1,
+      "id": "e4bfff7b-6e00-4018-97de-f133f3e977d4",
+      "name": "Sticky Note4"
+    },
+    {
+      "parameters": {
+        "content": "### 🐘 Data Persistence (PostgreSQL)\n\nРеляционная СУБД",
+        "height": 624,
+        "width": 816,
+        "color": 7
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        4768,
+        1168
+      ],
+      "typeVersion": 1,
+      "id": "a0dbcd66-281f-4982-aa04-d0b90e61b13e",
+      "name": "Sticky Note6"
+    },
+    {
+      "parameters": {
+        "content": "### 📤 Response Delivery\n\nОтветы пользователю",
+        "height": 640,
+        "width": 1856,
+        "color": 7
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        8048,
+        736
+      ],
+      "typeVersion": 1,
+      "id": "7592b0af-b3d1-43bc-89bc-0c8691814088",
+      "name": "Sticky Note7"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "24d360b9-cd96-42ad-8814-857a1bb03791",
+              "name": "telegram_id",
+              "value": "={{ $json.message?.from?.id || $json.callback_query?.from?.id }}",
+              "type": "string"
+            },
+            {
+              "id": "74fab2ae-0eef-4680-9f43-b90e3ab5fe2a",
+              "name": "text",
+              "value": "={{ $json.message?.text || $json.callback_query?.message?.text || \"\" }}",
+              "type": "string"
+            },
+            {
+              "id": "330cff4d-fdca-4dc9-8dd3-d5bfdb675f4c",
+              "name": "username",
+              "value": "={{ $json.message?.chat?.first_name || $json.callback_query?.from?.first_name || \"\" }}",
+              "type": "string"
+            },
+            {
+              "id": "9374c734-d70e-44eb-8b4b-0af34b6c04ec",
+              "name": "chat_id",
+              "value": "={{ $json.message?.chat?.id || $json.callback_query?.message?.chat?.id }}",
+              "type": "number"
+            },
+            {
+              "id": "2df2b3b9-004f-4ff1-8904-e2248339b793",
+              "name": "has_document",
+              "value": "={{ $json.message?.document?.file_id || \"\" }}",
+              "type": "string"
+            },
+            {
+              "id": "1044fe35-78e6-4a44-b481-1d3e4b408d29",
+              "name": "callback_data",
+              "value": "={{ $json.callback_query?.data || \"\" }}",
+              "type": "string"
+            },
+            {
+              "id": "51dceec2-c270-49c6-b5cc-0ed4d14c1344",
+              "name": "event_type",
+              "value": "={{\n  $json.message?.text === '/start'\n    ? 'START'\n    : $json.callback_query?.data\n      ? 'CALLBACK'\n      : $json.message?.document?.file_id\n        ? 'FILE_UPLOAD'\n        : 'TEXT_INPUT'\n}}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -496,
+        1488
+      ],
+      "id": "0d105e9a-9efc-45d6-88f7-7f16713ef6cf",
+      "name": "Extract Message Fields"
+    },
+    {
+      "parameters": {
+        "rules": {
+          "values": [
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.input_type }}",
+                    "rightValue": "FILE",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    },
+                    "id": "a79746cc-f019-4dbf-9d45-7ac648faf94a"
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "File Upload"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "id": "91f39a66-7c9a-4033-81e8-d1e639f8e362",
+                    "leftValue": "={{ $json.input_type }}",
+                    "rightValue": "TEXT",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "Text Input"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3.4,
+      "position": [
+        3872,
+        1328
+      ],
+      "id": "b22c2445-65a2-42e2-be05-02abb258741e",
+      "name": "Input Type Router"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "e32a3b60-b99f-45b6-a61a-89b00497072e",
+              "leftValue": "={{ $('Redis Increment Daily Counter').item.json['limit:154080553:daily'] }}",
+              "rightValue": 3,
+              "operator": {
+                "type": "number",
+                "operation": "lte"
+              }
+            }
+          ],
+          "combinator": "or"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        2928,
+        1424
+      ],
+      "id": "c57d64a5-f4bc-4222-a8d6-9ebd56d225e6",
+      "name": "Rate Limit Check"
+    },
+    {
+      "parameters": {
+        "operation": "get",
+        "propertyName": "db1",
+        "key": "=limit:{{ $('Extract Message Fields').item.json.telegram_id }}:daily",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.redis",
+      "typeVersion": 1,
+      "position": [
+        560,
+        464
+      ],
+      "id": "45bed0e4-48b0-40ea-9120-6ff4ac5d8a67",
+      "name": "Redis Check Daily Limit",
+      "credentials": {
+        "redis": {
+          "id": "k3rZiJXMKohxs4tn",
+          "name": "Redis beget 47"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "incr",
+        "key": "=limit:{{ $('Extract Message Fields').item.json.telegram_id }}:daily",
+        "expire": true,
+        "ttl": "={{$now.setZone('Europe/Moscow').endOf('day').toISO()}}"
+      },
+      "type": "n8n-nodes-base.redis",
+      "typeVersion": 1,
+      "position": [
+        2672,
+        1424
+      ],
+      "id": "e4f83b8c-ce13-4585-946f-cfae92575139",
+      "name": "Redis Increment Daily Counter",
+      "credentials": {
+        "redis": {
+          "id": "k3rZiJXMKohxs4tn",
+          "name": "Redis beget 47"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "set",
+        "key": "=analysis:{{ $('Extract Message Fields').item.json.telegram_id }}:status",
+        "value": "PENDING",
+        "expire": true,
+        "ttl": 300
+      },
+      "type": "n8n-nodes-base.redis",
+      "typeVersion": 1,
+      "position": [
+        3600,
+        1328
+      ],
+      "id": "02835df5-7929-4507-951f-521b07cab57e",
+      "name": "Redis Cache Analysis Status",
+      "credentials": {
+        "redis": {
+          "id": "k3rZiJXMKohxs4tn",
+          "name": "Redis beget 47"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "set",
+        "key": "=analysis:{{ $('Extract Message Fields').first().json.telegram_id }}:result",
+        "value": "={{ $('Set Merge Analysis Types + Answer').first().json.summary_html }}",
+        "expire": true,
+        "ttl": 1800
+      },
+      "type": "n8n-nodes-base.redis",
+      "typeVersion": 1,
+      "position": [
+        8672,
+        976
+      ],
+      "id": "ecff19f6-c360-4d5d-a61b-57a63b11517a",
+      "name": "Redis Cache Analysis Result",
+      "credentials": {
+        "redis": {
+          "id": "k3rZiJXMKohxs4tn",
+          "name": "Redis beget 47"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "upload",
+        "bucketName": "analysis-reports",
+        "fileName": "={{ $json.uploadUrl }}",
+        "binaryPropertyName": "=htmlReport",
+        "additionalFields": {}
+      },
+      "type": "n8n-nodes-base.s3",
+      "typeVersion": 1,
+      "position": [
+        7584,
+        -272
+      ],
+      "id": "72ee48ac-0053-475a-a384-45407d42117e",
+      "name": "S3 Upload Analysis Report",
+      "retryOnFail": false,
+      "credentials": {
+        "s3": {
+          "id": "D97DhQlkxmSxjqUW",
+          "name": "minio beget"
+        }
+      },
+      "disabled": true
+    },
+    {
+      "parameters": {
+        "chatId": "={{ $('Extract Message Fields').first().json.chat_id }}",
+        "text": "={{ $('Format S3 Upload Response').first().json.clean_html }}",
+        "additionalFields": {
+          "appendAttribution": false,
+          "parse_mode": "HTML"
+        }
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        8432,
+        976
+      ],
+      "id": "5aaccfbb-cd00-496a-b5a4-d0039d548cd3",
+      "name": "Telegram Send Result",
+      "webhookId": "d5199c7b-e1f5-4d16-8de1-eccd0312f76d",
+      "credentials": {
+        "telegramApi": {
+          "id": "ofJWfQOJnrvkEwK1",
+          "name": "redFlags"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "chatId": "={{ $('Extract Message Fields').item.json.chat_id }}",
+        "text": "Превышено число попыток на вашем тарифе",
+        "additionalFields": {
+          "appendAttribution": false
+        }
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        3184,
+        1520
+      ],
+      "id": "b821c601-b39a-4552-ace3-57c6580de887",
+      "name": "Telegram Send Rate Limit Warning",
+      "webhookId": "d5199c7b-e1f5-4d16-8de1-eccd0312f76d",
+      "credentials": {
+        "telegramApi": {
+          "id": "ofJWfQOJnrvkEwK1",
+          "name": "redFlags"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "schema": {
+          "__rl": true,
+          "value": "red_flag",
+          "mode": "list",
+          "cachedResultName": "red_flag"
+        },
+        "table": {
+          "__rl": true,
+          "value": "chunks",
+          "mode": "list",
+          "cachedResultName": "chunks"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "session_id": "={{ $('Select Session ID').item.json.session_id }}",
+            "chunk_text": "={{ $json.text }}",
+            "chunk_number": 1,
+            "chunk_length": 0
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "chunk_id",
+              "displayName": "chunk_id",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "number",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "session_id",
+              "displayName": "session_id",
+              "required": true,
+              "defaultMatch": false,
+              "display": true,
+              "type": "number",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "chunk_number",
+              "displayName": "chunk_number",
+              "required": true,
+              "defaultMatch": false,
+              "display": true,
+              "type": "number",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "chunk_text",
+              "displayName": "chunk_text",
+              "required": true,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "chunk_length",
+              "displayName": "chunk_length",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "number",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "embedding",
+              "displayName": "embedding",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "tsvector",
+              "displayName": "tsvector",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "created_at",
+              "displayName": "created_at",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "dateTime",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "deleted_at",
+              "displayName": "deleted_at",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "dateTime",
+              "canBeUsedToMatch": true
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        5120,
+        1408
+      ],
+      "id": "2a00fb85-dca4-4b13-aed1-74b5c8479910",
+      "name": "Postgres Save Chunks",
+      "credentials": {
+        "postgres": {
+          "id": "5a0KEJEwCR9bjmW6",
+          "name": "Postgres beget redf"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "mode": "retrieve-as-tool",
+        "toolDescription": "=Обязательный инструмент для поиска красных флажков. Содержит базу юридических рисков (ru_documents_embeddings). Используй этот инструмент для КАЖДОГО анализируемого фрагмента — передай ключевую фразу о потенциальном риске и получи совпадения из базы. Без вызова этого инструмента анализ невозможен.",
+        "qdrantCollection": {
+          "__rl": true,
+          "value": "ru_documents_embeddings",
+          "mode": "list",
+          "cachedResultName": "ru_documents_embeddings"
+        },
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.vectorStoreQdrant",
+      "typeVersion": 1.3,
+      "position": [
+        5808,
+        800
+      ],
+      "id": "91a210f2-9171-4a6f-aa28-50e9ed32ebe1",
+      "name": "Qdrant Retriever",
+      "credentials": {
+        "qdrantApi": {
+          "id": "vbsRFYdj084lYfLz",
+          "name": "QdrantApi beget"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "schema": {
+          "__rl": true,
+          "value": "red_flag",
+          "mode": "list",
+          "cachedResultName": "red_flag"
+        },
+        "table": {
+          "__rl": true,
+          "value": "analysis_results",
+          "mode": "list",
+          "cachedResultName": "analysis_results"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "session_id": "={{ $('Loop Over Items').item.json.session_id }}",
+            "risk_id": "={{ $json.risk_id }}",
+            "analysis_type_id": "={{ $('Loop Over Items').item.json.analysis_type_id }}",
+            "evidence_chunk_id": "={{ $('Loop Over Items').item.json.chunk_id }}",
+            "evidence_text": "={{ $('Loop Over Items').item.json.evidence_text }}",
+            "found_severity": "={{ $('Loop Over Items').item.json.severity }}",
+            "recommendation": "={{ $('Loop Over Items').item.json.recommendation }}",
+            "confidence_score": "={{ $('Loop Over Items').item.json.confidence_score }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "result_id",
+              "displayName": "result_id",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "number",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "session_id",
+              "displayName": "session_id",
+              "required": true,
+              "defaultMatch": false,
+              "display": true,
+              "type": "number",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "risk_id",
+              "displayName": "risk_id",
+              "required": true,
+              "defaultMatch": false,
+              "display": true,
+              "type": "number",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "analysis_type_id",
+              "displayName": "analysis_type_id",
+              "required": true,
+              "defaultMatch": false,
+              "display": true,
+              "type": "number",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "found_severity",
+              "displayName": "found_severity",
+              "required": true,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "confidence_score",
+              "displayName": "confidence_score",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "number",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "evidence_text",
+              "displayName": "evidence_text",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "evidence_chunk_id",
+              "displayName": "evidence_chunk_id",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "number",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "recommendation",
+              "displayName": "recommendation",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "created_at",
+              "displayName": "created_at",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "dateTime",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "updated_at",
+              "displayName": "updated_at",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "dateTime",
+              "canBeUsedToMatch": true
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        7376,
+        288
+      ],
+      "id": "0b10bdaa-b909-4be2-9d22-982befe2779a",
+      "name": "Postgres Save Analysis Results",
+      "credentials": {
+        "postgres": {
+          "id": "5a0KEJEwCR9bjmW6",
+          "name": "Postgres beget redf"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "schema": {
+          "__rl": true,
+          "value": "red_flag",
+          "mode": "list",
+          "cachedResultName": "red_flag"
+        },
+        "table": {
+          "__rl": true,
+          "value": "audit_logs",
+          "mode": "list",
+          "cachedResultName": "audit_logs"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "action": "ANALYSIS_RESULT_SAVED",
+            "resource_type": "analysis_result",
+            "resource_id": "={{ $json.result_id }}",
+            "status": "SUCCESS",
+            "user_id": "={{ $('Select Session ID').first().json.user_id }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "log_id",
+              "displayName": "log_id",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "number",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "user_id",
+              "displayName": "user_id",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "number",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "action",
+              "displayName": "action",
+              "required": true,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "resource_type",
+              "displayName": "resource_type",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "resource_id",
+              "displayName": "resource_id",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "status",
+              "displayName": "status",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "error_message",
+              "displayName": "error_message",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "old_value",
+              "displayName": "old_value",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "object",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "new_value",
+              "displayName": "new_value",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "object",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "timestamp",
+              "displayName": "timestamp",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "dateTime",
+              "canBeUsedToMatch": true
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        7584,
+        384
+      ],
+      "id": "701efeed-1237-476c-b0e5-3c2c414c459f",
+      "name": "Postgres Log Audit",
+      "credentials": {
+        "postgres": {
+          "id": "5a0KEJEwCR9bjmW6",
+          "name": "Postgres beget redf"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "get",
+        "propertyName": "input_type",
+        "key": "=session:{{ $('Extract Message Fields').item.json.telegram_id }}:input_type",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.redis",
+      "typeVersion": 1,
+      "position": [
+        3392,
+        1328
+      ],
+      "id": "46b1e019-7e32-498a-aa37-ac31ae543e0a",
+      "name": "Redis Get FSM State",
+      "credentials": {
+        "redis": {
+          "id": "k3rZiJXMKohxs4tn",
+          "name": "Redis beget 47"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "chatId": "={{ $('Extract Message Fields').item.json.chat_id }}",
+        "text": "Привет! Я бот для поиска красных флажков... У вас доступно 3/3 попыток",
+        "replyMarkup": "inlineKeyboard",
+        "inlineKeyboard": {
+          "rows": [
+            {
+              "row": {
+                "buttons": [
+                  {
+                    "text": "=📝 Ввести текст",
+                    "additionalFields": {
+                      "callback_data": "btn_add_text"
+                    }
+                  },
+                  {
+                    "text": "📎 Прикрепить файл",
+                    "additionalFields": {
+                      "callback_data": "btn_add_file"
+                    }
+                  }
+                ]
+              }
+            },
+            {
+              "row": {
+                "buttons": [
+                  {
+                    "text": "🖼 Добавить изображение (в разработке)",
+                    "additionalFields": {
+                      "callback_data": "btn_add_image"
+                    }
+                  }
+                ]
+              }
+            },
+            {
+              "row": {
+                "buttons": [
+                  {
+                    "text": "🔒 Выполнить анализ",
+                    "additionalFields": {
+                      "callback_data": "btn_analyze_locked"
+                    }
+                  }
+                ]
+              }
+            }
+          ]
+        },
+        "additionalFields": {
+          "appendAttribution": false
+        }
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        816,
+        464
+      ],
+      "id": "b20d0a90-e055-419b-8f46-f54ee2898ae3",
+      "name": "Send a start message",
+      "webhookId": "acace746-a6b8-4325-aecb-cb2c03aac5d3",
+      "credentials": {
+        "telegramApi": {
+          "id": "ofJWfQOJnrvkEwK1",
+          "name": "redFlags"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "upsert",
+        "schema": {
+          "__rl": true,
+          "value": "red_flag",
+          "mode": "list",
+          "cachedResultName": "red_flag"
+        },
+        "table": {
+          "__rl": true,
+          "value": "users",
+          "mode": "list",
+          "cachedResultName": "users"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "is_active": true,
+            "first_name": "={{ $json.username }}",
+            "telegram_id": "={{ $json.telegram_id }}",
+            "tariff_id": 1
+          },
+          "matchingColumns": [
+            "telegram_id"
+          ],
+          "schema": [
+            {
+              "id": "user_id",
+              "displayName": "user_id",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "number",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "telegram_id",
+              "displayName": "telegram_id",
+              "required": true,
+              "defaultMatch": false,
+              "display": true,
+              "type": "number",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "email",
+              "displayName": "email",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": false,
+              "removed": true
+            },
+            {
+              "id": "first_name",
+              "displayName": "first_name",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": false
+            },
+            {
+              "id": "last_name",
+              "displayName": "last_name",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": false
+            },
+            {
+              "id": "tariff_id",
+              "displayName": "tariff_id",
+              "required": true,
+              "defaultMatch": false,
+              "display": true,
+              "type": "number",
+              "canBeUsedToMatch": false,
+              "removed": false
+            },
+            {
+              "id": "subscription_start",
+              "displayName": "subscription_start",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "dateTime",
+              "canBeUsedToMatch": false
+            },
+            {
+              "id": "subscription_end",
+              "displayName": "subscription_end",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "dateTime",
+              "canBeUsedToMatch": false
+            },
+            {
+              "id": "is_active",
+              "displayName": "is_active",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "boolean",
+              "canBeUsedToMatch": false
+            },
+            {
+              "id": "created_at",
+              "displayName": "created_at",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "dateTime",
+              "canBeUsedToMatch": false
+            },
+            {
+              "id": "updated_at",
+              "displayName": "updated_at",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "dateTime",
+              "canBeUsedToMatch": false
+            },
+            {
+              "id": "deleted_at",
+              "displayName": "deleted_at",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "dateTime",
+              "canBeUsedToMatch": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        352,
+        464
+      ],
+      "id": "f6b36c3e-ecad-4a08-8ccb-ec69cd3145ed",
+      "name": "Postgres Upsert User",
+      "credentials": {
+        "postgres": {
+          "id": "5a0KEJEwCR9bjmW6",
+          "name": "Postgres beget redf"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "get",
+        "propertyName": "db0",
+        "key": "=session:{{ $('Extract Message Fields').item.json.telegram_id }}:state",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.redis",
+      "typeVersion": 1,
+      "position": [
+        272,
+        2176
+      ],
+      "id": "008d1d40-439a-446a-a0b9-313d9482f32a",
+      "name": "Redis Get FSM State1",
+      "retryOnFail": false,
+      "executeOnce": false,
+      "credentials": {
+        "redis": {
+          "id": "k3rZiJXMKohxs4tn",
+          "name": "Redis beget 47"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "rules": {
+          "values": [
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.callback_data }}",
+                    "rightValue": "btn_add_text",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    },
+                    "id": "b960cabc-c775-4991-9a7a-f4c64e3fe3db"
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "Ввод текста"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "id": "9e596706-3857-4a27-8f3d-2181667e999b",
+                    "leftValue": "={{ $json.callback_data }}",
+                    "rightValue": "btn_add_file",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals",
+                      "name": "filter.operator.equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "Прикрепление файла"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "id": "b26ef36a-78de-434d-9044-1e812a217766",
+                    "leftValue": "={{ $json.callback_data }}",
+                    "rightValue": "btn_analyze_locked",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals",
+                      "name": "filter.operator.equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "\"Выполнить анализ\" заблочена"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "id": "b7cb3f11-3b5c-447c-a7e9-efb0852ff4ef",
+                    "leftValue": "={{ $json.callback_data }}",
+                    "rightValue": "btn_add_image",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals",
+                      "name": "filter.operator.equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "Прикреплено изображение"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "id": "f0c03e41-c455-4030-acf3-cb174c941f2b",
+                    "leftValue": "={{ $json.callback_data }}",
+                    "rightValue": "btn_analyze_start",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals",
+                      "name": "filter.operator.equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "Анализ запущен"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3.4,
+      "position": [
+        304,
+        1040
+      ],
+      "id": "e90b3f97-dd5f-4cf1-9c22-715c15f8c775",
+      "name": "Callback Action Router"
+    },
+    {
+      "parameters": {
+        "operation": "set",
+        "key": "=session:{{ $('Extract Message Fields').item.json.telegram_id }}:state",
+        "value": "IDLE",
+        "expire": true,
+        "ttl": 3600
+      },
+      "type": "n8n-nodes-base.redis",
+      "typeVersion": 1,
+      "position": [
+        1040,
+        464
+      ],
+      "id": "8b8c3200-c333-495c-8dcd-e6a2d1617568",
+      "name": "Redis Set State IDLE",
+      "credentials": {
+        "redis": {
+          "id": "k3rZiJXMKohxs4tn",
+          "name": "Redis beget 47"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "set",
+        "key": "=input:{{ $json.session_id }}:text",
+        "value": "={{ $('Extract Message Fields').item.json.text }}",
+        "expire": true,
+        "ttl": 1800
+      },
+      "type": "n8n-nodes-base.redis",
+      "typeVersion": 1,
+      "position": [
+        1184,
+        2064
+      ],
+      "id": "9792b797-b353-483a-a22f-5761599581b6",
+      "name": "Redis Cache User Text",
+      "credentials": {
+        "redis": {
+          "id": "k3rZiJXMKohxs4tn",
+          "name": "Redis beget 47"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "set",
+        "key": "=session:{{ $('Extract Message Fields').item.json.telegram_id }}:state",
+        "value": "AWAITING_TEXT",
+        "expire": true,
+        "ttl": 3600
+      },
+      "type": "n8n-nodes-base.redis",
+      "typeVersion": 1,
+      "position": [
+        672,
+        752
+      ],
+      "id": "2c2784f0-d4f9-4c4e-a967-830584500e1d",
+      "name": "Redis Set State Awaiting Text",
+      "credentials": {
+        "redis": {
+          "id": "k3rZiJXMKohxs4tn",
+          "name": "Redis beget 47"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "set",
+        "key": "=session:{{ $('Extract Message Fields').item.json.telegram_id }}:state",
+        "value": "AWAITING_FILE",
+        "expire": true,
+        "ttl": 3600
+      },
+      "type": "n8n-nodes-base.redis",
+      "typeVersion": 1,
+      "position": [
+        672,
+        944
+      ],
+      "id": "c66a5a97-400a-4fc5-8e92-c33f78cc14d2",
+      "name": "Redis Set State Awaiting File",
+      "credentials": {
+        "redis": {
+          "id": "k3rZiJXMKohxs4tn",
+          "name": "Redis beget 47"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "set",
+        "key": "=session:{{ $('Extract Message Fields').item.json.telegram_id }}:state",
+        "value": "ANALYZING",
+        "expire": true,
+        "ttl": 3600
+      },
+      "type": "n8n-nodes-base.redis",
+      "typeVersion": 1,
+      "position": [
+        880,
+        1520
+      ],
+      "id": "d1df608e-b7ab-4651-bd0d-ea968fe28ae3",
+      "name": "Redis Set State Analyzing",
+      "credentials": {
+        "redis": {
+          "id": "k3rZiJXMKohxs4tn",
+          "name": "Redis beget 47"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "set",
+        "key": "=analysis:{{ $('Extract Message Fields').first().json.telegram_id }}:input",
+        "value": "={{ $('Format S3 Upload User Response').first().json.s3key }}",
+        "expire": true,
+        "ttl": 600
+      },
+      "type": "n8n-nodes-base.redis",
+      "typeVersion": 1,
+      "position": [
+        1296,
+        1760
+      ],
+      "id": "96c7baf3-9a22-48a2-a564-8789335325f1",
+      "name": "Redis Cache User File",
+      "credentials": {
+        "redis": {
+          "id": "k3rZiJXMKohxs4tn",
+          "name": "Redis beget 47"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "45018dbf-8ad5-4b55-b872-8410d1aa972f",
+              "leftValue": "={{ $json.db0 }}",
+              "rightValue": "AWAITING_TEXT",
+              "operator": {
+                "type": "string",
+                "operation": "equals",
+                "name": "filter.operator.equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        480,
+        2176
+      ],
+      "id": "98500f46-fdb0-4265-b81e-381465162600",
+      "name": "FSM Check AWAITING_TEXT"
+    },
+    {
+      "parameters": {
+        "chatId": "={{ $('Extract Message Fields').item.json.chat_id }}",
+        "text": "Пришлите текст",
+        "additionalFields": {
+          "appendAttribution": false
+        }
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        960,
+        752
+      ],
+      "id": "5b79566c-cc7f-4023-ab79-cf8ce8b483c6",
+      "name": "Telegram Prompt Enter Text",
+      "webhookId": "090a2a62-1660-4f11-b355-42c9ff017f7f",
+      "credentials": {
+        "telegramApi": {
+          "id": "ofJWfQOJnrvkEwK1",
+          "name": "redFlags"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "chatId": "={{ $('Extract Message Fields').item.json.chat_id }}",
+        "text": "Загрузите PDF или TXT",
+        "additionalFields": {
+          "appendAttribution": false
+        }
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        960,
+        944
+      ],
+      "id": "f4c0c952-8616-49c0-8859-9a19abbf10b0",
+      "name": "Telegram Prompt Upload File",
+      "webhookId": "090a2a62-1660-4f11-b355-42c9ff017f7f",
+      "credentials": {
+        "telegramApi": {
+          "id": "ofJWfQOJnrvkEwK1",
+          "name": "redFlags"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "chatId": "={{ $('Extract Message Fields').item.json.chat_id }}",
+        "text": "Анализ запущен ⏳",
+        "additionalFields": {
+          "appendAttribution": false
+        }
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        1104,
+        1520
+      ],
+      "id": "af875449-6ae8-476b-b7cd-7630474011ed",
+      "name": "Telegram Send Analyzing Status",
+      "webhookId": "090a2a62-1660-4f11-b355-42c9ff017f7f",
+      "credentials": {
+        "telegramApi": {
+          "id": "ofJWfQOJnrvkEwK1",
+          "name": "redFlags"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "chatId": "={{ $('Extract Message Fields').item.json.chat_id }}",
+        "text": "Данные получены! Нажмите \"Выполнить анализ\"",
+        "replyMarkup": "inlineKeyboard",
+        "inlineKeyboard": {
+          "rows": [
+            {
+              "row": {
+                "buttons": [
+                  {
+                    "text": "🚀 Выполнить анализ",
+                    "additionalFields": {
+                      "callback_data": "btn_analyze_start"
+                    }
+                  }
+                ]
+              }
+            }
+          ]
+        },
+        "additionalFields": {
+          "appendAttribution": false
+        }
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        1760,
+        2064
+      ],
+      "id": "09bedcb0-7396-4099-bcb7-3fbe3669b921",
+      "name": "Telegram Send Text Ready",
+      "webhookId": "9fc50eb8-74dd-4a0e-8bb1-e3e018ef1ae6",
+      "credentials": {
+        "telegramApi": {
+          "id": "ofJWfQOJnrvkEwK1",
+          "name": "redFlags"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "chatId": "={{ $('Extract Message Fields').item.json.chat_id }}",
+        "text": "Данные получены! Нажмите \"Выполнить анализ\"",
+        "replyMarkup": "inlineKeyboard",
+        "inlineKeyboard": {
+          "rows": [
+            {
+              "row": {
+                "buttons": [
+                  {
+                    "text": "🚀 Выполнить анализ",
+                    "additionalFields": {
+                      "callback_data": "btn_analyze_start"
+                    }
+                  }
+                ]
+              }
+            }
+          ]
+        },
+        "additionalFields": {
+          "appendAttribution": false
+        }
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        2096,
+        1760
+      ],
+      "id": "0f83c873-9e83-4994-acf8-d19403a22a3c",
+      "name": "Telegram Send File Ready",
+      "webhookId": "9fc50eb8-74dd-4a0e-8bb1-e3e018ef1ae6",
+      "credentials": {
+        "telegramApi": {
+          "id": "ofJWfQOJnrvkEwK1",
+          "name": "redFlags"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "resource": "callback",
+        "queryId": "={{ $json.callback.d }}",
+        "additionalFields": {
+          "show_alert": true,
+          "text": "Сначала добавьте текст или прикрепите файл!"
+        }
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        672,
+        1104
+      ],
+      "id": "a5dd79c6-9f7b-4018-95c9-bf8f75c766c9",
+      "name": "Telegram Alert Analyze Locked",
+      "webhookId": "6e079a9b-f8ca-47d7-925e-a0898fbf5446",
+      "credentials": {
+        "telegramApi": {
+          "id": "ofJWfQOJnrvkEwK1",
+          "name": "redFlags"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "resource": "callback",
+        "queryId": "={{ $json.callback_query.id }}",
+        "additionalFields": {
+          "show_alert": true,
+          "text": "Функция находится в разработке"
+        }
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        880,
+        1280
+      ],
+      "id": "6177f5c4-89bc-432d-9bea-1de0b977a317",
+      "name": "Telegram Alert Image WIP",
+      "webhookId": "6e079a9b-f8ca-47d7-925e-a0898fbf5446",
+      "credentials": {
+        "telegramApi": {
+          "id": "ofJWfQOJnrvkEwK1",
+          "name": "redFlags"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "set",
+        "key": "=session:{{ $('Extract Message Fields').item.json.telegram_id }}:state",
+        "value": "TEXT_ENTERED",
+        "expire": true,
+        "ttl": 3600
+      },
+      "type": "n8n-nodes-base.redis",
+      "typeVersion": 1,
+      "position": [
+        1376,
+        2064
+      ],
+      "id": "6ba7f0e4-ddcc-4783-b084-118b09e38b39",
+      "name": "Redis Set FSM State Text Entered",
+      "retryOnFail": false,
+      "executeOnce": false,
+      "credentials": {
+        "redis": {
+          "id": "k3rZiJXMKohxs4tn",
+          "name": "Redis beget 47"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "set",
+        "key": "=session:{{ $('Extract Message Fields').item.json.telegram_id }}:state",
+        "value": "FILE_UPLOADED",
+        "expire": true,
+        "ttl": 3600
+      },
+      "type": "n8n-nodes-base.redis",
+      "typeVersion": 1,
+      "position": [
+        1504,
+        1760
+      ],
+      "id": "2145d4b6-61b1-4b01-8196-dec46a947176",
+      "name": "Redis Set FSM State File Uploaded",
+      "retryOnFail": false,
+      "executeOnce": false,
+      "credentials": {
+        "redis": {
+          "id": "k3rZiJXMKohxs4tn",
+          "name": "Redis beget 47"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "set",
+        "key": "=upload:{{ $json.session_id }}:meta",
+        "value": "={{ $('Format S3 Upload User Response').item.json.s3key }}",
+        "expire": true,
+        "ttl": 600
+      },
+      "type": "n8n-nodes-base.redis",
+      "typeVersion": 1,
+      "position": [
+        1904,
+        1760
+      ],
+      "id": "70c16e40-424f-4045-8e97-4594cf5f83dd",
+      "name": "Redis Set Upload Meta",
+      "credentials": {
+        "redis": {
+          "id": "k3rZiJXMKohxs4tn",
+          "name": "Redis beget 47"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "schema": {
+          "__rl": true,
+          "value": "red_flag",
+          "mode": "list",
+          "cachedResultName": "red_flag"
+        },
+        "table": {
+          "__rl": true,
+          "value": "sessions",
+          "mode": "list",
+          "cachedResultName": "sessions"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "file_name": "Текстовый ввод",
+            "user_id": "={{ $json.user_id }}",
+            "telegram_user_id": "={{ $json.telegram_id }}",
+            "chunk_count": 0
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "session_id",
+              "displayName": "session_id",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "number",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "user_id",
+              "displayName": "user_id",
+              "required": true,
+              "defaultMatch": false,
+              "display": true,
+              "type": "number",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "telegram_user_id",
+              "displayName": "telegram_user_id",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "number",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "file_name",
+              "displayName": "file_name",
+              "required": true,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "file_path",
+              "displayName": "file_path",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "file_format_id",
+              "displayName": "file_format_id",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "number",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "document_type_id",
+              "displayName": "document_type_id",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "number",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "jurisdiction_id",
+              "displayName": "jurisdiction_id",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "number",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "language_code",
+              "displayName": "language_code",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "upload_status",
+              "displayName": "upload_status",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "file_size_bytes",
+              "displayName": "file_size_bytes",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "number",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "chunk_count",
+              "displayName": "chunk_count",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "number",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "created_at",
+              "displayName": "created_at",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "dateTime",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "updated_at",
+              "displayName": "updated_at",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "dateTime",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "upload_timestamp",
+              "displayName": "upload_timestamp",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "dateTime",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "deleted_at",
+              "displayName": "deleted_at",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "dateTime",
+              "canBeUsedToMatch": true,
+              "removed": true
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        992,
+        2064
+      ],
+      "id": "d4f936d0-1bc1-4af6-8773-48ab27db82b0",
+      "name": "Postgres Create Session1",
+      "credentials": {
+        "postgres": {
+          "id": "5a0KEJEwCR9bjmW6",
+          "name": "Postgres beget redf"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "chatId": "={{ $('Extract Message Fields').item.json.chat_id }}",
+        "text": "Сначала нажмите кнопку для ввода текста",
+        "additionalFields": {
+          "appendAttribution": false
+        }
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        784,
+        2304
+      ],
+      "id": "8002289d-07d3-40f6-9a3f-67feb677749b",
+      "name": "Send a Awaiting Text",
+      "webhookId": "f020ebbd-a2aa-47b4-82b5-e8c892041acc",
+      "credentials": {
+        "telegramApi": {
+          "id": "ofJWfQOJnrvkEwK1",
+          "name": "redFlags"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "select",
+        "schema": {
+          "__rl": true,
+          "value": "red_flag",
+          "mode": "list",
+          "cachedResultName": "red_flag"
+        },
+        "table": {
+          "__rl": true,
+          "value": "users",
+          "mode": "list",
+          "cachedResultName": "users"
+        },
+        "where": {
+          "values": [
+            {
+              "column": "telegram_id",
+              "value": "={{ $('Event Type Router').item.json.telegram_id }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        784,
+        2064
+      ],
+      "id": "f7e0dc46-c037-48fe-90c0-cbfe60414d90",
+      "name": "Select User ID",
+      "credentials": {
+        "postgres": {
+          "id": "5a0KEJEwCR9bjmW6",
+          "name": "Postgres beget redf"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "select",
+        "schema": {
+          "__rl": true,
+          "value": "red_flag",
+          "mode": "list",
+          "cachedResultName": "red_flag"
+        },
+        "table": {
+          "__rl": true,
+          "value": "sessions",
+          "mode": "list",
+          "cachedResultName": "sessions"
+        },
+        "limit": 1,
+        "where": {
+          "values": [
+            {
+              "column": "telegram_user_id",
+              "value": "={{ $('Redis Set State Analyzing').item.json.telegram_id }}"
+            }
+          ]
+        },
+        "sort": {
+          "values": [
+            {
+              "column": "created_at",
+              "direction": "DESC"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        3184,
+        1328
+      ],
+      "id": "90799022-45f3-4dbd-a154-deff162276dd",
+      "name": "Select Session ID",
+      "credentials": {
+        "postgres": {
+          "id": "5a0KEJEwCR9bjmW6",
+          "name": "Postgres beget redf"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsonSchemaExample": "{\n  \"document_type\": \"Пользовательское соглашение\",\n  \"jurisdiction\": \"РФ\",\n  \"risks\": [\n    {\n      \"risk_name\": \"Одностороннее изменение условий без уведомления\",\n      \"severity\": \"HIGH\",\n      \"confidence_score\": 0.92,\n      \"evidence_text\": \"Компания вправе в одностороннем порядке изменять условия...\",\n      \"recommendation\": \"Требовать письменного уведомления за 30 дней до вступления изменений в силу\"\n    }\n  ],\n  \"summary_html\": \"<b>📋 Тип документа:</b> Пользовательское соглашение\\n<b>⚖️ Юрисдикция:</b> РФ\\n<b>⚠️ Найдено рисков: 1</b>\\n\\n<b>🔴 Высокий риск</b>\\n• 🔴 Одностороннее изменение условий: Компания может менять условия без уведомления, что создаёт риск потери прав пользователя\"\n}"
+      },
+      "type": "@n8n/n8n-nodes-langchain.outputParserStructured",
+      "typeVersion": 1.3,
+      "position": [
+        6160,
+        816
+      ],
+      "id": "8198698c-8012-4455-870b-07b27ef3f48f",
+      "name": "Structured Output Parser",
+      "retryOnFail": true,
+      "maxTries": 2
+    },
+    {
+      "parameters": {
+        "operation": "select",
+        "schema": {
+          "__rl": true,
+          "value": "red_flag",
+          "mode": "list",
+          "cachedResultName": "red_flag"
+        },
+        "table": {
+          "__rl": true,
+          "value": "analysis_types",
+          "mode": "list",
+          "cachedResultName": "analysis_types"
+        },
+        "limit": 1,
+        "where": {
+          "values": [
+            {
+              "column": "type_name",
+              "value": "STANDARD"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        6304,
+        480
+      ],
+      "id": "5acf83ce-7c24-4131-8b06-337feaae852d",
+      "name": "Select Analysis Type",
+      "credentials": {
+        "postgres": {
+          "id": "5a0KEJEwCR9bjmW6",
+          "name": "Postgres beget redf"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "n8n-nodes-base.splitInBatches",
+      "typeVersion": 3,
+      "position": [
+        6912,
+        96
+      ],
+      "id": "1077fdad-af44-45be-98f1-59a497689954",
+      "name": "Loop Over Items"
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "SELECT COALESCE(\n  (\n    SELECT risk_id \n    FROM red_flag.risk_definitions\n    WHERE risk_name ILIKE '%' || $1 || '%'\n    ORDER BY similarity(risk_name, $1) DESC\n    LIMIT 1\n  ),\n  (SELECT risk_id FROM red_flag.risk_definitions ORDER BY risk_id LIMIT 1)\n) AS risk_id;",
+        "options": {
+          "queryReplacement": "=[\"{{ $json.risk_name }}\"]"
+        }
+      },
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        7152,
+        208
+      ],
+      "id": "de67bd10-3202-44b0-a03a-6bc340d85388",
+      "name": "Postgres lookup risk_id",
+      "credentials": {
+        "postgres": {
+          "id": "5a0KEJEwCR9bjmW6",
+          "name": "Postgres beget redf"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const items = $input.all();\nconst sessionId = $('Select Session ID').first().json.session_id;\nconst chunks    = $('Postgres Save Chunks').all();\n\nconst htmlBuffer = Buffer.from(\n  items.find(i => i.json.output?.summary_html)?.json.output?.summary_html || '<b>Анализ завершён</b>',\n  'utf-8'\n);\nconst binaryData = {\n  htmlReport: {\n    data:     htmlBuffer.toString('base64'),\n    mimeType: 'text/html',\n    fileName: `report_${sessionId}_${new Date().toISOString()}.html`\n  }\n};\n\nconst result = [];\n\nitems.forEach((item, index) => {\n  const output   = item.json.output || {};\n  const chunkId  = chunks[index]?.json?.chunk_id ?? null;\n  const risks    = Array.isArray(output.risks) ? output.risks : [];\n  const summaryHtml  = output.summary_html  || '<b>Анализ завершён</b>';\n  const documentType = output.document_type || 'Не определён';\n  const jurisdiction = output.jurisdiction  || 'Россия';\n\n  if (risks.length === 0) {\n    result.push({\n      json: {\n        session_id: sessionId, chunk_id: chunkId,\n        summary_html: summaryHtml, document_type: documentType, jurisdiction,\n        risk_name: null, severity: null, confidence_score: null,\n        evidence_text: 'Красных флажков не обнаружено', recommendation: null,\n        is_empty: true\n      },\n      binary: binaryData\n    });\n  } else {\n    risks.forEach(risk => {\n      let conf = typeof risk.confidence_score === 'number' ? risk.confidence_score : parseFloat(risk.confidence_score);\n      if (isNaN(conf)) conf = 0.5;\n      conf = Math.round(Math.min(100, Math.max(0, conf > 1 ? conf : conf * 100)));\n\n      result.push({\n        json: {\n          session_id: sessionId, chunk_id: chunkId,\n          summary_html: summaryHtml, document_type: documentType, jurisdiction,\n          risk_name:        risk.risk_name      || null,\n          severity:         (risk.severity || 'LOW').toUpperCase(),\n          confidence_score: conf,\n          evidence_text:    risk.evidence_text  || null,\n          recommendation:   risk.recommendation || null,\n          is_empty: false\n        },\n        binary: binaryData\n      });\n    });\n  }\n});\n\nreturn result;"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        6128,
+        480
+      ],
+      "id": "cc346a1e-9513-40e3-b979-52e269ea3ca0",
+      "name": "Code Answer",
+      "alwaysOutputData": false,
+      "executeOnce": false,
+      "notesInFlow": false,
+      "retryOnFail": false
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "de8eb046-f5b1-4916-abcb-8f36e065208e",
+              "name": "session_id",
+              "value": "={{ $('Code Answer').item.json.session_id }}",
+              "type": "number"
+            },
+            {
+              "id": "12f502d2-4223-4a72-8b47-a74af9e4efc6",
+              "name": "chunk_id",
+              "value": "={{ $('Code Answer').item.json.chunk_id }}",
+              "type": "number"
+            },
+            {
+              "id": "3e7aeff0-d2dd-4618-99ad-5b7156d29de1",
+              "name": "summary_html",
+              "value": "={{ $('Code Answer').item.json.summary_html }}",
+              "type": "string"
+            },
+            {
+              "id": "f4d06f60-fa64-4857-b15a-9ecdb8b8737d",
+              "name": "analysis_type_id",
+              "value": "={{ $json.analysis_type_id }}",
+              "type": "number"
+            },
+            {
+              "id": "3cdfa391-7a8e-4e8e-a296-3cd455a4e308",
+              "name": "jurisdiction",
+              "value": "={{ $('Code Answer').item.json.jurisdiction }}",
+              "type": "string"
+            },
+            {
+              "id": "3c273675-8754-438d-8630-1036545b3e8a",
+              "name": "severity",
+              "value": "={{ $('Code Answer').item.json.severity }}",
+              "type": "string"
+            },
+            {
+              "id": "45fde3f7-491d-45c4-9eb7-c462090ab526",
+              "name": "risk_name",
+              "value": "={{ $('Code Answer').item.json.risk_name }}",
+              "type": "string"
+            },
+            {
+              "id": "dd76b6cd-b0b1-4799-aa95-dbc66ad74201",
+              "name": "confidence_score",
+              "value": "={{ $('Code Answer').item.json.confidence_score }}",
+              "type": "string"
+            },
+            {
+              "id": "4d736ea6-ad28-467c-a6e0-0dd716d374f9",
+              "name": "evidence_text",
+              "value": "={{ $('Code Answer').item.json.evidence_text }}",
+              "type": "string"
+            },
+            {
+              "id": "7e88cc0f-d411-46fd-9b7b-3e5eb230e561",
+              "name": "recommendation",
+              "value": "={{ $('Code Answer').item.json.recommendation }}",
+              "type": "string"
+            },
+            {
+              "id": "1a8507c3-59c5-49bc-91d0-e3c17e257e69",
+              "name": "is_empty",
+              "value": "={{ $('Code Answer').item.json.is_empty }}",
+              "type": "boolean"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        6480,
+        480
+      ],
+      "id": "67bb747f-3003-4c51-8242-3687685f1b72",
+      "name": "Set Merge Analysis Types + Answer"
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "UPDATE red_flag.sessions\nSET \n  document_type_id = (\n    SELECT document_type_id FROM red_flag.document_types \n    WHERE type_name ILIKE '%' || $2 || '%' LIMIT 1\n  ),\n  jurisdiction_id = (\n    SELECT jurisdiction_id FROM red_flag.jurisdictions \n    WHERE jurisdiction_name ILIKE '%' || $3 || '%' \n       OR jurisdiction_code ILIKE $3 LIMIT 1\n  )\nWHERE session_id = $1;",
+        "options": {
+          "queryReplacement": "={{ [$('Select Session ID').first().json.session_id, $('Code Answer').first().json.documenttype ?? '', $('Code Answer').first().json.jurisdiction ?? ''] }}"
+        }
+      },
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        8192,
+        976
+      ],
+      "id": "702b55e0-322a-4084-b705-b1b5f4f44007",
+      "name": "Update Sessions",
+      "credentials": {
+        "postgres": {
+          "id": "5a0KEJEwCR9bjmW6",
+          "name": "Postgres beget redf"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "content": "### Debug\nСейчас проверяется условие на 30 попыток",
+        "height": 1040,
+        "width": 272
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        3088,
+        976
+      ],
+      "typeVersion": 1,
+      "id": "c980d967-d76b-44c0-8420-4fa87f58ec5f",
+      "name": "Sticky Note8"
+    },
+    {
+      "parameters": {
+        "jsCode": "// Берём summaryhtml напрямую из ноды, где он был создан\nconst summaryHtml = $('Code Answer').first().json.summary_html\n  || $('Redis Cache Analysis Status').first().json.text\n  || '<p>No report generated</p>';\n\n// sessionid берём из ноды, которая его точно имеет\nconst sessionId = $('Select Session ID').first().json.sessionid;\n\nconst htmlBuffer = Buffer.from(summaryHtml, 'utf-8');\n\nreturn [{\n  json: {\n    sessionid: sessionId,\n    summaryhtml: summaryHtml\n  },\n  binary: {\n    htmlReport: {\n      data: htmlBuffer.toString('base64'),\n      mimeType: 'text/html',\n      fileName: `report_${sessionId}_${new Date().toISOString()}.html`\n    }\n  }\n}];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        7152,
+        -32
+      ],
+      "id": "2e1d4878-1d26-419f-b2c6-2aeb27e96eb6",
+      "name": "Prepare Report Binary"
+    },
+    {
+      "parameters": {
+        "jsCode": "const crypto = require('crypto');\n\nconst accessKey = 'n8n_service';\nconst secretKey = 'P@ssw0rd_RedFlag_2026!'; \n// Далее нужно заменить на \n// const accessKey = $env.N8N_MINIO_ACCESS_KEY;\n// const secretKey = $env.N8N_MINIO_SECRET_KEY;\n\nconst region = 'us-east-1';\nconst host = '84.54.28.193:9000';\nconst bucket = 'analysis-reports';\n\nconst item = $input.first();\nconst buffer = Buffer.from(item.binary.htmlReport.data, 'base64');\nconst sessionId = $('Set Merge Analysis Types + Answer').first().json.session_id || 'unknown';\n\nconst ts = new Date();\nconst dateStamp = ts.toISOString().slice(0,10).replace(/-/g,'');\nconst amzDate = ts.toISOString().replace(/[:\\-]/g,'').slice(0,15) + 'Z';\nconst fileName = `${sessionId}/${dateStamp}_report.html`;\n\nconst payloadHash = crypto.createHash('sha256').update(buffer).digest('hex');\n\nconst canonicalHeaders = \n  `content-type:text/html\\n` +\n  `host:${host}\\n` +\n  `x-amz-content-sha256:${payloadHash}\\n` +\n  `x-amz-date:${amzDate}\\n`;\n\nconst signedHeaders = 'content-type;host;x-amz-content-sha256;x-amz-date';\n\nconst canonicalRequest = [\n  'PUT',\n  `/${bucket}/${fileName}`,\n  '',\n  canonicalHeaders,\n  signedHeaders,\n  payloadHash\n].join('\\n');\n\nconst credentialScope = `${dateStamp}/${region}/s3/aws4_request`;\nconst stringToSign = [\n  'AWS4-HMAC-SHA256',\n  amzDate,\n  credentialScope,\n  crypto.createHash('sha256').update(canonicalRequest).digest('hex')\n].join('\\n');\n\nfunction hmac(key, data, enc) {\n  return crypto.createHmac('sha256', key).update(data).digest(enc || undefined);\n}\n\nconst signingKey = hmac(hmac(hmac(hmac(\n  Buffer.from('AWS4' + secretKey), dateStamp), region), 's3'), 'aws4_request');\nconst signature = hmac(signingKey, stringToSign, 'hex');\n\nconst authHeader = `AWS4-HMAC-SHA256 Credential=${accessKey}/${credentialScope}, SignedHeaders=${signedHeaders}, Signature=${signature}`;\n\nreturn [{\n  json: {\n    uploadUrl: `http://${host}/${bucket}/${fileName}`,\n    authHeader,\n    amzDate,\n    payloadHash,\n    fileName\n  },\n  binary: item.binary\n}];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        7392,
+        -32
+      ],
+      "id": "8fc8aed7-5d93-49f2-872d-79d62f73cc13",
+      "name": "Build S3 Signature"
+    },
+    {
+      "parameters": {
+        "method": "PUT",
+        "url": "={{ $json.uploadUrl }}",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "={{ $json.authHeader }}"
+            },
+            {
+              "name": "x-amz-date",
+              "value": "={{ $json.amzDate }}"
+            },
+            {
+              "name": "x-amz-content-sha256",
+              "value": "={{ $json.payloadHash }}"
+            },
+            {
+              "name": "Content-Type",
+              "value": "text/html"
+            }
+          ]
+        },
+        "sendBody": true,
+        "contentType": "binaryData",
+        "inputDataFieldName": "htmlReport",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        7600,
+        -32
+      ],
+      "id": "eb688086-84e6-493d-a22c-630eec3f49c4",
+      "name": "S3 Upload Analysis Report (HTTP Request)"
+    },
+    {
+      "parameters": {
+        "content": "### Debug\nВместо узла `S3 Upload Analysis Report` пришлось сделать конструкцию из узлов `Code`+`HTTP Request`, чтобы исправить ситуацию с ошибкой **403**.\n\nЭто известная проблема. Стандартная S3-нода `n8n` использует `AWS SDK`, который при наличии кастомного endpoint всё равно обращается к `sts.amazonaws.com` для валидации credentials — `MinIO` там не зарегистрирован, отсюда **403**. Баг открыт в репозитории n8n с 2022 года и до сих пор не закрыт.",
+        "height": 688,
+        "width": 640
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        7328,
+        -512
+      ],
+      "typeVersion": 1,
+      "id": "063ec059-933a-4cac-9385-61872a6785ad",
+      "name": "Sticky Note9"
+    },
+    {
+      "parameters": {
+        "jsCode": "const rawHtml = $('Prepare Report Binary').first().json.summaryhtml ?? '';\n\nconst cleanHtml = rawHtml\n  // Заголовки → жирный + двойной перенос\n  .replace(/<h[1-6][^>]*>(.*?)<\\/h[1-6]>/gi, '\\n\\n<b>$1</b>\\n')\n  // Пункты списка → тире + перенос\n  .replace(/<li[^>]*>(.*?)<\\/li>/gi, '\\n• $1')\n  // Абзацы → двойной перенос\n  .replace(/<\\/p>/gi, '\\n\\n')\n  .replace(/<p[^>]*>/gi, '')\n  // <br> → перенос\n  .replace(/<br\\s*\\/?>/gi, '\\n')\n  // Убрать теги ul/ol/div/span и прочие неподдерживаемые\n  .replace(/<\\/?(?!b>|\\/b>|i>|\\/i>|u>|\\/u>|s>|\\/s>|code>|\\/code>|pre>|\\/pre>|a[ >]|\\/a>)[a-z][^>]*>/gi, '')\n  // Убрать тройные и более переносы\n  .replace(/\\n{3,}/g, '\\n\\n')\n  .trim();\n\nconst fileName = $('Build S3 Signature').first().json.fileName;\nconst sessionId = $('Select Session ID').first().json.session_id;\n\nreturn [{\n  json: {\n    session_id: sessionId,\n    s3_status: 'SUCCESS',\n    s3_message: `\\n\\n✅ Отчёт <code>${fileName}</code> сохранён в analysis-reports`,\n    file_name: fileName,\n    clean_html: cleanHtml\n  }\n}];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        7808,
+        -32
+      ],
+      "id": "55bb036e-6180-445d-a5ca-ebfa43ed9b62",
+      "name": "Format S3 Upload Response"
+    },
+    {
+      "parameters": {
+        "jsCode": "const telegramId = $('Extract Message Fields').first().json.telegram_id;\nconst redisKey = `limit:${telegramId}:daily`;\nconst dailyUsed = $('Redis Increment Daily Counter').first().json[redisKey] ?? 1;\n\nconst dailyLimit = 3;\nconst remaining = Math.max(0, dailyLimit - dailyUsed);\n\nconst emoji = remaining === 0 ? '🔴' : remaining === 1 ? '🟡' : '🟢';\n\nreturn [{\n  json: {\n    chat_id: $('Extract Message Fields').first().json.chatid,\n    used: dailyUsed,\n    remaining: remaining,\n    status_text: `${emoji} Использовано запросов сегодня: ${dailyUsed} из ${dailyLimit}\\nОсталось: ${remaining}\\n\\nЧто делаем дальше?`\n  }\n}];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        9072,
+        976
+      ],
+      "id": "38a30e28-51c2-4b73-99d4-4ae76a4a70a6",
+      "name": "Build Post-Analysis Status"
+    },
+    {
+      "parameters": {
+        "chatId": "={{ $('Extract Message Fields').first().json.chat_id }}",
+        "text": "={{ $json.status_text }}",
+        "replyMarkup": "inlineKeyboard",
+        "inlineKeyboard": {
+          "rows": [
+            {
+              "row": {
+                "buttons": [
+                  {
+                    "text": "=📝 Ввести текст",
+                    "additionalFields": {
+                      "callback_data": "btn_add_text"
+                    }
+                  },
+                  {
+                    "text": "📎 Прикрепить файл",
+                    "additionalFields": {
+                      "callback_data": "btn_add_file"
+                    }
+                  }
+                ]
+              }
+            },
+            {
+              "row": {
+                "buttons": [
+                  {
+                    "text": "🔒 Повторить анализ",
+                    "additionalFields": {
+                      "callback_data": "btn_analyze_locked"
+                    }
+                  }
+                ]
+              }
+            },
+            {
+              "row": {
+                "buttons": [
+                  {
+                    "text": "🖼 Добавить изображение (в разработке)",
+                    "additionalFields": {
+                      "callback_data": "btn_add_image"
+                    }
+                  },
+                  {
+                    "text": "❓ Помощь",
+                    "additionalFields": {
+                      "callback_data": "btn_help"
+                    }
+                  }
+                ]
+              }
+            }
+          ]
+        },
+        "additionalFields": {
+          "appendAttribution": false
+        }
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        9584,
+        1104
+      ],
+      "id": "a295516c-ec47-4433-8eeb-10dd4e7e2496",
+      "name": "Telegram Send Post-Analysis Menu",
+      "webhookId": "acace746-a6b8-4325-aecb-cb2c03aac5d3",
+      "credentials": {
+        "telegramApi": {
+          "id": "ofJWfQOJnrvkEwK1",
+          "name": "redFlags"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "set",
+        "key": "=session:{{ $('Extract Message Fields').first().json.telegram_id }}:state",
+        "value": "IDLE",
+        "expire": true,
+        "ttl": 86400
+      },
+      "type": "n8n-nodes-base.redis",
+      "typeVersion": 1,
+      "position": [
+        8864,
+        976
+      ],
+      "id": "1fa88fd6-4cd4-4c3d-96e1-1a985e9e9fa7",
+      "name": "Redis",
+      "credentials": {
+        "redis": {
+          "id": "k3rZiJXMKohxs4tn",
+          "name": "Redis beget 47"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "schema": {
+          "__rl": true,
+          "value": "red_flag",
+          "mode": "list",
+          "cachedResultName": "red_flag"
+        },
+        "table": {
+          "__rl": true,
+          "value": "sessions",
+          "mode": "list",
+          "cachedResultName": "sessions"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "file_name": "Текстовый ввод",
+            "user_id": "={{ $json.user_id }}",
+            "telegram_user_id": "={{ $json.telegram_id }}",
+            "chunk_count": 0
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "session_id",
+              "displayName": "session_id",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "number",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "user_id",
+              "displayName": "user_id",
+              "required": true,
+              "defaultMatch": false,
+              "display": true,
+              "type": "number",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "telegram_user_id",
+              "displayName": "telegram_user_id",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "number",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "file_name",
+              "displayName": "file_name",
+              "required": true,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "file_path",
+              "displayName": "file_path",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "file_format_id",
+              "displayName": "file_format_id",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "number",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "document_type_id",
+              "displayName": "document_type_id",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "number",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "jurisdiction_id",
+              "displayName": "jurisdiction_id",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "number",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "language_code",
+              "displayName": "language_code",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "upload_status",
+              "displayName": "upload_status",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "file_size_bytes",
+              "displayName": "file_size_bytes",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "number",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "chunk_count",
+              "displayName": "chunk_count",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "number",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "created_at",
+              "displayName": "created_at",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "dateTime",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "updated_at",
+              "displayName": "updated_at",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "dateTime",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "upload_timestamp",
+              "displayName": "upload_timestamp",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "dateTime",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "deleted_at",
+              "displayName": "deleted_at",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "dateTime",
+              "canBeUsedToMatch": true,
+              "removed": true
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        1136,
+        1760
+      ],
+      "id": "deeb4085-1667-48b8-9dfd-283e3f4db92d",
+      "name": "Postgres Create Session2",
+      "credentials": {
+        "postgres": {
+          "id": "5a0KEJEwCR9bjmW6",
+          "name": "Postgres beget redf"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "select",
+        "schema": {
+          "__rl": true,
+          "value": "red_flag",
+          "mode": "list",
+          "cachedResultName": "red_flag"
+        },
+        "table": {
+          "__rl": true,
+          "value": "users",
+          "mode": "list",
+          "cachedResultName": "users"
+        },
+        "where": {
+          "values": [
+            {
+              "column": "telegram_id",
+              "value": "={{ $('Event Type Router').item.json.telegram_id }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        976,
+        1760
+      ],
+      "id": "1ee33fac-d036-4984-a126-f6e402ae5dde",
+      "name": "Select User ID1",
+      "credentials": {
+        "postgres": {
+          "id": "5a0KEJEwCR9bjmW6",
+          "name": "Postgres beget redf"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const item = $input.first();\n\n// Из предыдущего узла (Build S3 Signature) берём fileName напрямую\n// HTTP Request мог вернуть пустой body (MinIO возвращает 200 без тела на PUT)\nconst fileName = $('Build S3 Signature User Upload').first().json.fileName\nconst uploadUrl = $('Build S3 Signature User Upload').first().json.uploadUrl\n\n// s3key = всё что после /user-uploads/\nconst s3key = fileName;\n\nreturn [{\n  json: {\n    s3key,\n    fileName: fileName.split('/').pop(),  // только имя файла без пути\n    uploadUrl,\n    s3message: `✅ Файл сохранён: ${s3key}`\n  }\n}];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        816,
+        1760
+      ],
+      "id": "41fb2607-8a4a-4f17-82d4-28e8b964d6b3",
+      "name": "Format S3 Upload User Response"
+    },
+    {
+      "parameters": {
+        "operation": "get",
+        "propertyName": "s3key",
+        "key": "=analysis:{{ $('Extract Message Fields').first().json.telegram_id }}:input",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.redis",
+      "typeVersion": 1,
+      "position": [
+        4128,
+        816
+      ],
+      "id": "d9d53d94-cabc-4463-9718-06d1bc6fc592",
+      "name": "Redis Get S3 Key",
+      "credentials": {
+        "redis": {
+          "id": "k3rZiJXMKohxs4tn",
+          "name": "Redis beget 47"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "pdf",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.extractFromFile",
+      "typeVersion": 1.1,
+      "position": [
+        4624,
+        816
+      ],
+      "id": "4c1a0662-0436-420d-ba87-e0bcee2a711e",
+      "name": "Extract from PDF"
+    },
+    {
+      "parameters": {
+        "jsCode": "const items = $input.all();\nconst results = [];\n\nconst CHUNK_SIZE = 2000;\nconst OVERLAP   = 300;\n\nfor (const item of items) {\n  let text = item.json.text || '';\n\n  // Чистка\n  text = text\n    .replace(/\\r\\n/g, '\\n')\n    .replace(/\\n{3,}/g, '\\n\\n')\n    .replace(/[ \\t]+/g, ' ')\n    .trim();\n\n  if (!text) throw new Error('Extracted text is empty');\n\n  // Нарезка с перекрытием\n  let start = 0;\n  let chunkIndex = 0;\n\n  while (start < text.length) {\n    const end = Math.min(start + CHUNK_SIZE, text.length);\n    const chunkText = text.slice(start, end).trim();\n\n    if (chunkText.length > 0) {\n      results.push({\n        json: {\n          ...item.json,\n          chunk_text:  chunkText,\n          chunk_index: chunkIndex\n        }\n      });\n      chunkIndex++;\n    }\n\n    if (end === text.length) break;\n    start = end - OVERLAP;\n  }\n}\n\nreturn results;"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        4896,
+        816
+      ],
+      "id": "bb7b5ee5-6308-454c-b2b5-e5bdc55b2101",
+      "name": "Document Chunker"
+    },
+    {
+      "parameters": {
+        "resource": "file",
+        "fileId": "={{ $('Extract Message Fields').first().json.has_document }}",
+        "additionalFields": {}
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        320,
+        1760
+      ],
+      "id": "40a58450-86ed-44fa-bc31-afae385a7b40",
+      "name": "Telegram Get File",
+      "webhookId": "bdbccd6b-6574-4a5f-98fa-c5c05fb781d5",
+      "credentials": {
+        "telegramApi": {
+          "id": "ofJWfQOJnrvkEwK1",
+          "name": "redFlags"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const crypto = require('crypto');\n\nconst accessKey = 'n8n_service';\nconst secretKey = 'P@ssw0rd_RedFlag_2026!';\nconst region = 'us-east-1';\nconst host = '84.54.28.193:9000';\nconst bucket = 'user-uploads';\n\n// 1. Правильное извлечение бинарника через хелпер n8n\nconst item = $input.first();\nconst binaryKey = Object.keys(item.binary)[0]; // обычно 'data'\nconst bin = item.binary[binaryKey];\nconst buffer = await this.helpers.getBinaryDataBuffer(0, binaryKey);\n\n// 2. Параметры даты и пути\nconst telegramId = $('Extract Message Fields').first().json.telegram_id;\nconst ts = new Date();\nconst dateStamp = ts.toISOString().slice(0, 10).replace(/-/g, '');\nconst amzDate = ts.toISOString().replace(/[:-]/g, '').split('.')[0] + 'Z';\n\nconst originalName = bin.fileName || 'upload.pdf';\nconst fileName = `${telegramId}/${dateStamp}-${originalName}`;\nconst mimeType = bin.mimeType || 'application/octet-stream';\n\n// 3. Формирование AWS4 подписи\nconst payloadHash = crypto.createHash('sha256').update(buffer).digest('hex');\n\nconst canonicalHeaders =\n  `content-type:${mimeType}\\n` +\n  `host:${host}\\n` +\n  `x-amz-content-sha256:${payloadHash}\\n` +\n  `x-amz-date:${amzDate}\\n`;\n\nconst signedHeaders = 'content-type;host;x-amz-content-sha256;x-amz-date';\n\nconst canonicalRequest = [\n  'PUT',\n  `/${bucket}/${fileName}`,\n  '',\n  canonicalHeaders,\n  signedHeaders,\n  payloadHash\n].join('\\n');\n\nconst credentialScope = `${dateStamp}/${region}/s3/aws4_request`;\nconst stringToSign = [\n  'AWS4-HMAC-SHA256',\n  amzDate,\n  credentialScope,\n  crypto.createHash('sha256').update(canonicalRequest).digest('hex')\n].join('\\n');\n\nfunction hmac(key, data, enc) {\n  return crypto.createHmac('sha256', key).update(data).digest(enc || undefined);\n}\n\nconst signingKey = hmac(hmac(hmac(hmac(\n  Buffer.from('AWS4' + secretKey), dateStamp), region), 's3'), 'aws4_request');\nconst signature = hmac(signingKey, stringToSign, 'hex');\n\nconst authHeader = `AWS4-HMAC-SHA256 Credential=${accessKey}/${credentialScope}, SignedHeaders=${signedHeaders}, Signature=${signature}`;\n\n// Передаём данные в HTTP Request вместе с оригинальным бинарником\nreturn [{\n  json: {\n    uploadUrl: `http://${host}/${bucket}/${fileName}`,\n    authHeader,\n    amzDate,\n    payloadHash,\n    fileName,\n    mimeType,\n    binaryKey\n  },\n  binary: item.binary\n}];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        480,
+        1760
+      ],
+      "id": "777e76b7-dd1c-428c-af6d-a1f6b6d33d25",
+      "name": "Build S3 Signature User Upload"
+    },
+    {
+      "parameters": {
+        "url": "={{ $json.downloadUrl }}",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "={{ $json.authHeader }}"
+            },
+            {
+              "name": "x-amz-date",
+              "value": "={{ $json.amzDate }}"
+            },
+            {
+              "name": "x-amz-content-sha256",
+              "value": "={{ $json.payloadHash }}"
+            }
+          ]
+        },
+        "options": {
+          "response": {
+            "response": {
+              "responseFormat": "file"
+            }
+          }
+        }
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        4464,
+        816
+      ],
+      "id": "7aad6438-3afe-48e0-8c7a-20df65a19986",
+      "name": "HTTP Request"
+    },
+    {
+      "parameters": {
+        "method": "PUT",
+        "url": "={{ $json.uploadUrl }}",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "={{ $json.authHeader }}"
+            },
+            {
+              "name": "x-amz-date",
+              "value": "={{ $json.amzDate }}"
+            },
+            {
+              "name": "x-amz-content-sha256",
+              "value": "={{ $json.payloadHash }}"
+            },
+            {
+              "name": "Content-Type",
+              "value": "={{ $json.mimeType }}"
+            }
+          ]
+        },
+        "sendBody": true,
+        "contentType": "binaryData",
+        "inputDataFieldName": "={{ $json.binaryKey }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        656,
+        1760
+      ],
+      "id": "1dc57983-66fa-4651-b139-e4255ceb54fb",
+      "name": "Upload User Document HTTP"
+    },
+    {
+      "parameters": {
+        "jsCode": "const crypto = require('crypto');\n\nconst accessKey = 'n8n_service';\nconst secretKey = 'P@ssw0rd_RedFlag_2026!';\nconst region = 'us-east-1';\nconst host = '84.54.28.193:9000';\nconst bucket = 'user-uploads';\n\nconst s3key = $input.first().json.s3key;\nif (!s3key) throw new Error(\"No s3key found in input\");\n\nconst ts = new Date();\nconst dateStamp = ts.toISOString().slice(0, 10).replace(/-/g, '');\nconst amzDate = ts.toISOString().replace(/[:-]/g, '').split('.')[0] + 'Z';\n\n// Для GET-запроса тело пустое\nconst payloadHash = crypto.createHash('sha256').update('').digest('hex');\n\n// Кодируем путь для AWS (на случай пробелов или кириллицы)\nconst encodedKey = s3key.split('/').map(encodeURIComponent).join('/');\n\nconst canonicalHeaders =\n  `host:${host}\\n` +\n  `x-amz-content-sha256:${payloadHash}\\n` +\n  `x-amz-date:${amzDate}\\n`;\n\nconst signedHeaders = 'host;x-amz-content-sha256;x-amz-date';\n\nconst canonicalRequest = [\n  'GET',\n  `/${bucket}/${encodedKey}`,\n  '', // Query parameters (пусто)\n  canonicalHeaders,\n  signedHeaders,\n  payloadHash\n].join('\\n');\n\nconst credentialScope = `${dateStamp}/${region}/s3/aws4_request`;\nconst stringToSign = [\n  'AWS4-HMAC-SHA256',\n  amzDate,\n  credentialScope,\n  crypto.createHash('sha256').update(canonicalRequest).digest('hex')\n].join('\\n');\n\nfunction hmac(key, data, enc) {\n  return crypto.createHmac('sha256', key).update(data).digest(enc || undefined);\n}\n\nconst signingKey = hmac(hmac(hmac(hmac(\n  Buffer.from('AWS4' + secretKey), dateStamp), region), 's3'), 'aws4_request');\nconst signature = hmac(signingKey, stringToSign, 'hex');\n\nconst authHeader = `AWS4-HMAC-SHA256 Credential=${accessKey}/${credentialScope}, SignedHeaders=${signedHeaders}, Signature=${signature}`;\n\nreturn [{\n  json: {\n    s3key,\n    downloadUrl: `http://${host}/${bucket}/${encodedKey}`,\n    authHeader,\n    amzDate,\n    payloadHash\n  }\n}];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        4304,
+        816
+      ],
+      "id": "544a6c51-670a-4f9a-8363-2d8674a4d22f",
+      "name": "Build S3 Download Signature"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "384120b9-1da3-47bd-9306-a14b0453a1a6",
+              "leftValue": "={{ $json.severity }}",
+              "rightValue": false,
+              "operator": {
+                "type": "string",
+                "operation": "notEmpty",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.filter",
+      "typeVersion": 2.3,
+      "position": [
+        6704,
+        96
+      ],
+      "id": "e284c26d-a60d-4e9f-aa6f-ced1dceb77dd",
+      "name": "Filter"
+    },
+    {
+      "parameters": {
+        "rules": {
+          "values": [
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.event_type }}",
+                    "rightValue": "START",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    },
+                    "id": "948cc865-8a77-474c-a0a1-298d5bffd3d0"
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "start"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "id": "ebf02bf5-430d-4f34-9f09-d9d04eb5bddf",
+                    "leftValue": "={{ $json.event_type }}",
+                    "rightValue": "CALLBACK",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "Callback"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "id": "51212385-9edf-476a-830e-6e8a63928ee6",
+                    "leftValue": "={{ $json.event_type }}",
+                    "rightValue": "FILE_UPLOAD",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "File Upload"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "id": "d6ecb255-50e6-429a-8695-1fe3896fb06d",
+                    "leftValue": "={{ $json.event_type }}",
+                    "rightValue": "TEXT_INPUT",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "Text Input"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3.4,
+      "position": [
+        -224,
+        1456
+      ],
+      "id": "51c3a20a-f46b-483c-9ce0-951243fc32e2",
+      "name": "Event Type Router"
+    },
+    {
+      "parameters": {
+        "operation": "set",
+        "key": "=session:{{ $('Extract Message Fields').item.json.telegram_id }}:input_type",
+        "value": "TEXT",
+        "expire": true,
+        "ttl": 86400
+      },
+      "type": "n8n-nodes-base.redis",
+      "typeVersion": 1,
+      "position": [
+        1584,
+        2064
+      ],
+      "id": "a90edc3f-53df-428e-bdd0-afb907e0dc4d",
+      "name": "Redis Set Input Type TEXT",
+      "credentials": {
+        "redis": {
+          "id": "k3rZiJXMKohxs4tn",
+          "name": "Redis beget 47"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "set",
+        "key": "=session:{{ $('Extract Message Fields').item.json.telegram_id }}:input_type",
+        "value": "FILE",
+        "expire": true,
+        "ttl": 86400
+      },
+      "type": "n8n-nodes-base.redis",
+      "typeVersion": 1,
+      "position": [
+        1712,
+        1760
+      ],
+      "id": "3aba9f68-02c4-4f61-9386-93a7a544968f",
+      "name": "Redis Set Input Type FILE",
+      "credentials": {
+        "redis": {
+          "id": "k3rZiJXMKohxs4tn",
+          "name": "Redis beget 47"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "get",
+        "propertyName": "text",
+        "key": "=input:{{ $('Select Session ID').first().json.session_id }}:text",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.redis",
+      "typeVersion": 1,
+      "position": [
+        4144,
+        1344
+      ],
+      "id": "334f8922-dd4a-4e0f-b9e9-ed86e960889a",
+      "name": "Redis Get Input Text",
+      "credentials": {
+        "redis": {
+          "id": "k3rZiJXMKohxs4tn",
+          "name": "Redis beget 47"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "bfe4c35f-43fb-469f-afbd-ac5444bcac17",
+              "name": "text",
+              "value": "={{ $json.text || '' }}",
+              "type": "string"
+            },
+            {
+              "id": "8b0be7e8-5f7e-4985-a0cf-a7f09316cbd9",
+              "name": "input_type",
+              "value": "=TEXT_INPUT",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        4352,
+        1344
+      ],
+      "id": "2d7ac842-e452-4e00-8750-ebe83e8a0b1d",
+      "name": "Set Text Payload For Chunker"
+    },
+    {
+      "parameters": {
+        "chatId": "={{ $('Extract Message Fields').first().json.chat_id }}",
+        "text": "=🟡 <b>Лимит запросов на сегодня исчерпан</b>\n\nНа тарифе <b>Free</b> использовано <b>3 из 3</b> запросов.\n\nВы можете:\n• подождать до <b>{{ $now.setZone('Europe/Moscow').plus({ days: 1 }).toFormat('dd.MM HH:mm') }}</b> для обновления лимита;\n• перейти на тариф <b>Pro</b>.\n\nВыберите дальнейшее действие:",
+        "replyMarkup": "inlineKeyboard",
+        "inlineKeyboard": {
+          "rows": [
+            {
+              "row": {
+                "buttons": [
+                  {
+                    "text": "Перейти на тариф Pro (в разработке)",
+                    "additionalFields": {
+                      "callback_data": "btn_transition_pro"
+                    }
+                  }
+                ]
+              }
+            },
+            {
+              "row": {
+                "buttons": [
+                  {
+                    "text": "❓ Помощь",
+                    "additionalFields": {
+                      "callback_data": "btn_help"
+                    }
+                  }
+                ]
+              }
+            },
+            {
+              "row": {
+                "buttons": [
+                  {
+                    "text": "📝 Ввести текст",
+                    "additionalFields": {
+                      "callback_data": "btn_add_text"
+                    }
+                  },
+                  {
+                    "text": "📎 Прикрепить файл",
+                    "additionalFields": {
+                      "callback_data": "btn_add_file"
+                    }
+                  }
+                ]
+              }
+            }
+          ]
+        },
+        "additionalFields": {
+          "appendAttribution": false,
+          "parse_mode": "HTML"
+        }
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        9584,
+        896
+      ],
+      "id": "7ae9a8fd-0ab4-4287-adea-9369b82776a9",
+      "name": "Telegram Send Post-Analysis Finish Free Tariff",
+      "webhookId": "acace746-a6b8-4325-aecb-cb2c03aac5d3",
+      "credentials": {
+        "telegramApi": {
+          "id": "ofJWfQOJnrvkEwK1",
+          "name": "redFlags"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "b8dc1ee7-0204-49a0-a2e7-551c42cedb32",
+              "leftValue": "={{ $json.used }}",
+              "rightValue": 3,
+              "operator": {
+                "type": "number",
+                "operation": "gte"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        9296,
+        976
+      ],
+      "id": "25c512df-958f-428c-bfab-b650e79137cd",
+      "name": "Free Rate Limit has been reached?"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "When chat message received": {
+      "main": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Embeddings HuggingFace Inference": {
+      "ai_embedding": [
+        [
+          {
+            "node": "Qdrant Retriever",
+            "type": "ai_embedding",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenRouter Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Telegram Trigger": {
+      "main": [
+        [
+          {
+            "node": "Extract Message Fields",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Extract Message Fields": {
+      "main": [
+        [
+          {
+            "node": "Event Type Router",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Input Type Router": {
+      "main": [
+        [
+          {
+            "node": "Redis Get S3 Key",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Redis Get Input Text",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Redis Check Daily Limit": {
+      "main": [
+        [
+          {
+            "node": "Send a start message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Rate Limit Check": {
+      "main": [
+        [
+          {
+            "node": "Select Session ID",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Telegram Send Rate Limit Warning",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Redis Increment Daily Counter": {
+      "main": [
+        [
+          {
+            "node": "Rate Limit Check",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Redis Cache Analysis Status": {
+      "main": [
+        [
+          {
+            "node": "Input Type Router",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Postgres Save Chunks": {
+      "main": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Qdrant Retriever": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Agent": {
+      "main": [
+        [
+          {
+            "node": "Code Answer",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Postgres Save Analysis Results": {
+      "main": [
+        [
+          {
+            "node": "Postgres Log Audit",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Postgres Log Audit": {
+      "main": [
+        [
+          {
+            "node": "Loop Over Items",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Send a start message": {
+      "main": [
+        [
+          {
+            "node": "Redis Set State IDLE",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Postgres Upsert User": {
+      "main": [
+        [
+          {
+            "node": "Redis Check Daily Limit",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Redis Get FSM State1": {
+      "main": [
+        [
+          {
+            "node": "FSM Check AWAITING_TEXT",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Callback Action Router": {
+      "main": [
+        [
+          {
+            "node": "Redis Set State Awaiting Text",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Redis Set State Awaiting File",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Telegram Alert Analyze Locked",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Telegram Alert Image WIP",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Redis Set State Analyzing",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Redis Cache User Text": {
+      "main": [
+        [
+          {
+            "node": "Redis Set FSM State Text Entered",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Redis Set State Awaiting Text": {
+      "main": [
+        [
+          {
+            "node": "Telegram Prompt Enter Text",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Redis Set State Awaiting File": {
+      "main": [
+        [
+          {
+            "node": "Telegram Prompt Upload File",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Redis Set State Analyzing": {
+      "main": [
+        [
+          {
+            "node": "Telegram Send Analyzing Status",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Redis Cache User File": {
+      "main": [
+        [
+          {
+            "node": "Redis Set FSM State File Uploaded",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "FSM Check AWAITING_TEXT": {
+      "main": [
+        [
+          {
+            "node": "Select User ID",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Send a Awaiting Text",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Redis Set FSM State Text Entered": {
+      "main": [
+        [
+          {
+            "node": "Redis Set Input Type TEXT",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Redis Set FSM State File Uploaded": {
+      "main": [
+        [
+          {
+            "node": "Redis Set Input Type FILE",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Telegram Send Analyzing Status": {
+      "main": [
+        [
+          {
+            "node": "Redis Increment Daily Counter",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Telegram Send Text Ready": {
+      "main": [
+        []
+      ]
+    },
+    "Redis Get FSM State": {
+      "main": [
+        [
+          {
+            "node": "Redis Cache Analysis Status",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Redis Set Upload Meta": {
+      "main": [
+        [
+          {
+            "node": "Telegram Send File Ready",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Postgres Create Session1": {
+      "main": [
+        [
+          {
+            "node": "Redis Cache User Text",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Select User ID": {
+      "main": [
+        [
+          {
+            "node": "Postgres Create Session1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Select Session ID": {
+      "main": [
+        [
+          {
+            "node": "Redis Get FSM State",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Redis Cache Analysis Result": {
+      "main": [
+        [
+          {
+            "node": "Redis",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "S3 Upload Analysis Report": {
+      "main": [
+        []
+      ]
+    },
+    "Structured Output Parser": {
+      "ai_outputParser": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_outputParser",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Select Analysis Type": {
+      "main": [
+        [
+          {
+            "node": "Set Merge Analysis Types + Answer",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Loop Over Items": {
+      "main": [
+        [
+          {
+            "node": "Prepare Report Binary",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Postgres lookup risk_id",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Postgres lookup risk_id": {
+      "main": [
+        [
+          {
+            "node": "Postgres Save Analysis Results",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code Answer": {
+      "main": [
+        [
+          {
+            "node": "Select Analysis Type",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Set Merge Analysis Types + Answer": {
+      "main": [
+        [
+          {
+            "node": "Filter",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Update Sessions": {
+      "main": [
+        [
+          {
+            "node": "Telegram Send Result",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Prepare Report Binary": {
+      "main": [
+        [
+          {
+            "node": "Build S3 Signature",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Build S3 Signature": {
+      "main": [
+        [
+          {
+            "node": "S3 Upload Analysis Report (HTTP Request)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "S3 Upload Analysis Report (HTTP Request)": {
+      "main": [
+        [
+          {
+            "node": "Format S3 Upload Response",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Format S3 Upload Response": {
+      "main": [
+        [
+          {
+            "node": "Update Sessions",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Telegram Send Result": {
+      "main": [
+        [
+          {
+            "node": "Redis Cache Analysis Result",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Build Post-Analysis Status": {
+      "main": [
+        [
+          {
+            "node": "Free Rate Limit has been reached?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Redis": {
+      "main": [
+        [
+          {
+            "node": "Build Post-Analysis Status",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Postgres Create Session2": {
+      "main": [
+        [
+          {
+            "node": "Redis Cache User File",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Select User ID1": {
+      "main": [
+        [
+          {
+            "node": "Postgres Create Session2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Format S3 Upload User Response": {
+      "main": [
+        [
+          {
+            "node": "Select User ID1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Redis Get S3 Key": {
+      "main": [
+        [
+          {
+            "node": "Build S3 Download Signature",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Extract from PDF": {
+      "main": [
+        [
+          {
+            "node": "Document Chunker",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Document Chunker": {
+      "main": [
+        [
+          {
+            "node": "Postgres Save Chunks",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Telegram Get File": {
+      "main": [
+        [
+          {
+            "node": "Build S3 Signature User Upload",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Build S3 Signature User Upload": {
+      "main": [
+        [
+          {
+            "node": "Upload User Document HTTP",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Upload User Document HTTP": {
+      "main": [
+        [
+          {
+            "node": "Format S3 Upload User Response",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Build S3 Download Signature": {
+      "main": [
+        [
+          {
+            "node": "HTTP Request",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP Request": {
+      "main": [
+        [
+          {
+            "node": "Extract from PDF",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Filter": {
+      "main": [
+        [
+          {
+            "node": "Loop Over Items",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Event Type Router": {
+      "main": [
+        [
+          {
+            "node": "Postgres Upsert User",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Callback Action Router",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Telegram Get File",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Redis Get FSM State1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Redis Set Input Type TEXT": {
+      "main": [
+        [
+          {
+            "node": "Telegram Send Text Ready",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Redis Set Input Type FILE": {
+      "main": [
+        [
+          {
+            "node": "Redis Set Upload Meta",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Redis Get Input Text": {
+      "main": [
+        [
+          {
+            "node": "Set Text Payload For Chunker",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Set Text Payload For Chunker": {
+      "main": [
+        [
+          {
+            "node": "Document Chunker",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Free Rate Limit has been reached?": {
+      "main": [
+        [
+          {
+            "node": "Telegram Send Post-Analysis Finish Free Tariff",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Telegram Send Post-Analysis Menu",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "availableInMCP": false,
+    "timeSavedMode": "fixed",
+    "callerPolicy": "workflowsFromSameOwner",
+    "binaryMode": "separate"
+  },
+  "versionId": "b7c2ee21-10ba-4380-abf0-a3a2e7ab87a8",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "f4300700b5a89163b88ad6a908ff9e3076c705e8b03a3f40f03ff2f29f7e4289"
+  },
+  "id": "aYx9Naj3s8L8mMw5",
+  "tags": [
+    {
+      "updatedAt": "2026-01-08T17:38:13.662Z",
+      "createdAt": "2026-01-08T17:38:13.662Z",
+      "id": "PQ2vEBOqiObk56wx",
+      "name": "RAG"
+    },
+    {
+      "updatedAt": "2025-11-29T13:31:19.045Z",
+      "createdAt": "2025-11-29T13:31:19.045Z",
+      "id": "QemMHXWtb4q33wd3",
+      "name": "dev"
+    }
+  ]
+}
