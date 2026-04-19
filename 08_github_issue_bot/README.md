@@ -1,6 +1,13 @@
 # 08 GitHub Issue Bot
 
-Telegram-бот для создания и просмотра GitHub Issues по голосовой или текстовой команде через n8n.
+Telegram-бот для создания и просмотра GitHub Issues по текстовой команде через `n8n`.
+
+## Пример использования
+```bash
+Пользователь: "Создай issue: Исправить баг с авторизацией в репо myproject"
+Бот: "✅ Issue #42 создан: https://github.com/user/myproject/issues/42"
+```
+![пример использования](demo.gif)
 
 ## Стек
 | Компонент       | Технология                       |
@@ -43,13 +50,6 @@ Telegram Trigger
 | Redis `Redis beget 47` | Хранение GitHub токенов |
 | OpenRouter API | LLM для обработки команд |
 | Telegram Bot API | Бот redFlags |
-
-## Пример использования
-```bash
-Пользователь: "Создай issue: Исправить баг с авторизацией в репо myproject"
-Бот: "✅ Issue #42 создан: https://github.com/user/myproject/issues/42"
-```
-![пример использования](demo.gif)
 
 ## Известные ограничения
 - Токен хранится в Redis — при перезапуске Redis токены сохраняются (если persistence включён)
